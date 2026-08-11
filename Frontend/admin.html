@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard | Rototuna Alumni Network</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <div class="announcement-bar">
+        Rototuna Alumni Network — Admin Area
+    </div>
+
+    <header>
+        <h1>Admin Dashboard</h1>
+
+        <nav>
+            <a href="admin.html">Dashboard</a>
+            <a href="#pending-users">Users</a>
+            <a href="events.html">Events</a>
+            <a href="login.html" class="join-button">Sign Out</a>
+        </nav>
+    </header>
+
+    <main class="admin-page">
+
+        <section class="admin-heading">
+
+            <p>ADMINISTRATION</p>
+
+            <h2>Alumni Management Dashboard</h2>
+
+            <p>
+                Review registrations, manage alumni accounts and monitor events.
+            </p>
+
+        </section>
+
+        <section class="admin-statistics">
+
+            <article class="statistic-card">
+                <p>Pending approvals</p>
+                <strong>8</strong>
+            </article>
+
+            <article class="statistic-card">
+                <p>Approved alumni</p>
+                <strong>126</strong>
+            </article>
+
+            <article class="statistic-card">
+                <p>Upcoming events</p>
+                <strong>2</strong>
+            </article>
+
+        </section>
+        <section class="pending-users" id="pending-users">
+
+            <h3>Pending Alumni Approvals</h3>
+
+            <div class="user-approval-card">
+
+                <div>
+                    <strong>Priya Sharma</strong>
+                    <p>priya.sharma@example.com</p>
+                    <p>Class of 2021</p>
+                </div>
+
+                <div class="approval-buttons">
+                    <button type="button" class="approve-button">
+                        Approve
+                    </button>
+
+                    <button type="button" class="reject-button">
+                        Reject
+                    </button>
+                </div>
+
+            </div>
+
+            <div class="user-approval-card">
+
+                <div>
+                    <strong>Daniel Wilson</strong>
+                    <p>daniel.wilson@example.com</p>
+                    <p>Class of 2019</p>
+                </div>
+
+                <div class="approval-buttons">
+                    <button type="button" class="approve-button">
+                        Approve
+                    </button>
+
+                    <button type="button" class="reject-button">
+                        Reject
+                    </button>
+                </div>
+
+            </div>
+
+        </section>
+
+    </main>
+
+</body>
+
+</html>
