@@ -1,0 +1,573 @@
+$primary-blue: #0a66c2;
+$primary-green: #0a7d45;
+$danger-red: #b4232a;
+$dark-text: #1f2937;
+$light-bg: #f3f2ef;
+$soft-border: #d9d9d9;
+$shadow: rgba(0, 0, 0, 0.12);
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: #f3f2ef;
+  font-family: "Segoe UI", sans-serif;
+  color: $dark-text;
+}
+
+#root {
+  min-height: 100vh;
+}
+
+button,
+input,
+a {
+  font: inherit;
+}
+
+.auth-shell {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(180deg, #f3f2ef 0%, #eef3f8 100%);
+  padding: 32px 16px;
+}
+
+.auth-hero {
+  width: min(1100px, 100%);
+  display: grid;
+  grid-template-columns: 1.1fr 0.9fr;
+  gap: 32px;
+  align-items: center;
+}
+
+.brand-panel {
+  padding: 40px 20px;
+}
+
+.brand-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 72px;
+  height: 72px;
+  border-radius: 18px;
+  background: linear-gradient(135deg, $primary-blue 0%, #5ca7ff 100%);
+  color: #fff;
+  font-size: 2.2rem;
+  font-weight: 700;
+  box-shadow: 0 18px 30px rgba(10, 102, 194, 0.25);
+}
+
+.brand-badge.small {
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  font-size: 1.1rem;
+  box-shadow: none;
+}
+
+.app-header {
+  width: 100%;
+  background: #fff;
+  border-bottom: 1px solid $soft-border;
+  box-shadow: 0 2px 10px rgba(15, 23, 42, 0.05);
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.app-header-inner {
+  width: 100%;
+  padding: 12px 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.app-brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  color: $dark-text;
+  text-decoration: none;
+  font-size: 1.15rem;
+  font-weight: 700;
+}
+
+.app-header-nav {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+}
+
+.app-header-nav a {
+  color: $dark-text;
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.app-header-nav a:hover {
+  color: $primary-blue;
+}
+
+.app-header-logout {
+  padding: 10px 16px;
+  font-size: 0.92rem;
+  line-height: 1;
+}
+
+.brand-panel h1 {
+  margin: 20px 0 10px;
+  font-size: clamp(2.4rem, 4vw, 4rem);
+  letter-spacing: -0.06em;
+  color: #0a1938;
+}
+
+.brand-panel p {
+  max-width: 520px;
+  font-size: 1.1rem;
+  color: #495057;
+  line-height: 1.6;
+}
+
+.auth-card {
+  background: rgba(255, 255, 255, 0.9);
+  border: 1px solid $soft-border;
+  border-radius: 20px;
+  box-shadow: 0 20px 45px $shadow;
+  padding: 18px 18px 24px;
+}
+
+.auth-switcher {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  margin-bottom: 18px;
+  border: 1px solid $soft-border;
+  border-radius: 12px;
+  overflow: hidden;
+  background: #f8f9fa;
+}
+
+.auth-tab {
+  border: none;
+  background: transparent;
+  padding: 12px 18px;
+  font-weight: 600;
+  color: #495057;
+  cursor: pointer;
+}
+
+.auth-tab.active {
+  background: #eaf3ff;
+  color: $primary-blue;
+}
+
+.auth-form {
+  padding: 8px 0 0;
+  border-radius: 16px;
+  color: $dark-text;
+}
+
+.login-form {
+  background: transparent;
+}
+
+.auth-form h2,
+.book-list h2 {
+  margin: 0 0 20px;
+  text-align: center;
+  color: inherit;
+}
+
+.auth-form form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.auth-form input {
+  width: 100%;
+  padding: 14px 14px;
+  border: 1px solid $soft-border;
+  border-radius: 10px;
+  background: #fff;
+  color: $dark-text;
+}
+
+.auth-form input::placeholder {
+  color: #6c757d;
+}
+
+.auth-form button,
+.btn {
+  border: none;
+  border-radius: 999px;
+  padding: 12px 20px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-weight: 600;
+}
+
+.auth-form button:hover,
+.btn:hover {
+  transform: translateY(-1px);
+  opacity: 0.97;
+}
+
+.login-button,
+.btn-primary {
+  background: $primary-blue;
+  color: #fff;
+}
+
+.register-button,
+.btn-danger,
+.delete-button {
+  background: $danger-red;
+  color: #fff;
+}
+
+.book-list {
+  background: rgba(255, 255, 255, 0.9);
+  border: 1px solid $soft-border;
+  border-radius: 16px;
+  box-shadow: 0 10px 20px rgba(15, 23, 42, 0.06);
+  padding: 24px;
+  color: $dark-text;
+}
+
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.action-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+}
+
+.profile-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.search-input,
+.year-filter {
+  padding: 12px 14px;
+  border: 1px solid $soft-border;
+  border-radius: 10px;
+  background: #fff;
+  color: $dark-text;
+}
+
+.search-input {
+  flex: 1 1 240px;
+}
+
+.year-filter {
+  min-width: 150px;
+}
+
+.profile-card-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 18px;
+}
+
+.profile-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 18px;
+  background: #fff;
+  border: 1px solid $soft-border;
+  border-radius: 16px;
+  box-shadow: 0 8px 18px rgba(15, 23, 42, 0.06);
+}
+
+.profile-avatar {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, $primary-blue 0%, #5ca7ff 100%);
+  color: #fff;
+  font-weight: 700;
+  font-size: 1.5rem;
+}
+
+.profile-card-body {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.profile-card-body h3 {
+  margin: 0;
+  font-size: 1.2rem;
+}
+
+.profile-card-body p {
+  margin: 0;
+  color: #495057;
+}
+
+.profile-card-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: auto;
+  padding-top: 8px;
+}
+
+.icon-action {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  text-decoration: none;
+  font-size: 1.15rem;
+  transition: all 0.2s ease;
+}
+
+.edit-action {
+  background: rgba(31, 120, 255, 0.1);
+}
+
+.delete-action {
+  background: rgba(180, 35, 42, 0.08);
+}
+
+.icon-action:hover {
+  transform: translateY(-1px);
+  text-decoration: none;
+}
+
+.linkedin-profile-shell {
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+.linkedin-cover {
+  height: 140px;
+  border-radius: 18px 18px 0 0;
+  background: linear-gradient(135deg, #0c4a6e 0%, #38bdf8 100%);
+}
+
+.linkedin-profile-card {
+  background: #fff;
+  border: 1px solid $soft-border;
+  border-radius: 0 0 18px 18px;
+  box-shadow: 0 12px 24px rgba(15, 23, 42, 0.08);
+  padding: 24px;
+}
+
+.linkedin-profile-header {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  margin-bottom: 22px;
+}
+
+.linkedin-avatar {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, $primary-blue 0%, #5ca7ff 100%);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2rem;
+  font-weight: 700;
+  border: 4px solid #fff;
+  box-shadow: 0 8px 20px rgba(31, 120, 255, 0.2);
+}
+
+.linkedin-profile-meta h2 {
+  margin: 0;
+  font-size: clamp(1.8rem, 3vw, 2.4rem);
+}
+
+.linkedin-title {
+  margin: 6px 0 0;
+  color: #495057;
+  font-size: 1rem;
+}
+
+.linkedin-profile-body {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.linkedin-detail-row {
+  display: grid;
+  grid-template-columns: 150px 1fr;
+  gap: 12px;
+  padding: 12px 0;
+  border-bottom: 1px solid #edf2f7;
+}
+
+.linkedin-label {
+  font-weight: 700;
+  color: $dark-text;
+}
+
+.my-button {
+  background: $primary-blue;
+  color: #fff;
+  border: none;
+  border-radius: 10px;
+  padding: 10px 16px;
+}
+
+.book-form {
+  max-width: 520px;
+  margin: 40px auto;
+  padding: 24px;
+  background: #fff;
+  border: 1px solid $soft-border;
+  border-radius: 16px;
+  box-shadow: 0 10px 20px rgba(15, 23, 42, 0.08);
+}
+
+.book-form h2 {
+  margin-bottom: 20px;
+  text-align: center;
+}
+
+.book-form form {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.book-form input {
+  width: 100%;
+  padding: 12px 12px;
+  border: 1px solid $soft-border;
+  border-radius: 8px;
+}
+
+.book-form button {
+  align-self: flex-start;
+}
+
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 20px;
+}
+
+.modal-card {
+  width: min(420px, 100%);
+  background: #fff;
+  border: 1px solid $soft-border;
+  border-radius: 18px;
+  box-shadow: 0 25px 50px rgba(0, 0, 0, 0.2);
+  padding: 22px 20px;
+}
+
+.modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+}
+
+.close-button {
+  border: none;
+  background: transparent;
+  font-size: 2rem;
+  line-height: 1;
+  color: #6c757d;
+  cursor: pointer;
+}
+
+.password-rules {
+  list-style: none;
+  margin: 0 0 8px;
+  padding: 0;
+  display: grid;
+  gap: 6px;
+  font-size: 0.85rem;
+}
+
+.password-rules li {
+  color: #6c757d;
+}
+
+.password-rules li.valid {
+  color: #198754;
+}
+
+.password-rules li.invalid {
+  color: #b4232a;
+}
+
+.password-match,
+.password-mismatch {
+  margin: -4px 0 8px;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.password-match {
+  color: #198754;
+}
+
+.password-mismatch {
+  color: #b4232a;
+}
+
+@media (max-width: 900px) {
+  .profile-card-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 640px) {
+  .profile-card-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 768px) {
+  .auth-hero {
+    grid-template-columns: 1fr;
+  }
+
+  .page-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}
