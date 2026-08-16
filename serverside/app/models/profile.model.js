@@ -1,7 +1,5 @@
 const db = require("./db");
 
-// TODO: complete the code as per the instructions given README.md
-
 const Project = function(profile) {
   this.firstname = profile.firstname;
   this.lastname = profile.lastname;
@@ -11,9 +9,6 @@ const Project = function(profile) {
   this.user_id = profile.user_id;
 };
 
-
-
-// RETRIEVE all profiles
 Project.getAll = (result) => {
   db.query("SELECT * FROM profile", (err, res) => {
     if (err) {
@@ -21,116 +16,111 @@ Project.getAll = (result) => {
       result(err, null);
       return;
     }
-    result(null, res);
+    result(null, res.rows);
   });
 };
 
-// RETRIEVE a profile by ID
 Project.findById = (id, result) => {
-  db.query("SELECT * FROM profile WHERE id = ?", [id], (err, res) => {
+  db.query("SELECT * FROM profile WHERE id = $1", [id], (err, res) => {
     if (err) {
       console.log("FindById error: ", err);
       result(err, null);
       return;
     }
 
-    if (res.length) {
-      result(null, res[0]);
+    if (res.rows.length) {
+      result(null, res.rows[0]);
       return;
     }
 
+    result(null, null);
   });
 };
 
-// CREATE a new profile
 Project.create = (newProfile, result) => {
-  db.query("INSERT INTO profile SET ?", newProfile, (err, res) => {
-    if (err) {
-      console.log("Create error: ", err);
-      result(err, null);
-      return;
-    }
-    result(null, { id: res.insertId, ...newProfile });
-  });
-};
-
-// RETRIEVE a profile by Name 
-Project.findByName = (name, result) => {
-  db.query("SELECT * FROM profile WHERE firstname LIKE ? OR lastname LIKE ?", [`%${name}%`, `%${name}%`], (err, res) => {
-    if (err) {
-      console.log("findByName error: ", err);
-      result(err, null);
-      return;
-    }
-
-    if (res.length) {
-      result(null, res);
-      return;
-    }
-
-  });
-};
-
-
-// UPDATE a profile by ID 
-Project.updateById = (id, profile, result) => {
-  const fields = [];
-  const values = [];
-
-  for (const key in profile) {
-    fields.push(`${key} = ?`);
-    values.push(profile[key]);
-  }
-
-  values.push(id);
-
-  db.query(`UPDATE profile SET  ${fields.join(", ")} WHERE id = ?`, 
-   values,
-   (err, res) => {
+  db.query(
+    "INSERT INTO profile (firstname, lastname, email, year, student_id, user_id) VALUES ($1, $2, $3, $4, $5, $6) RETURNING *",
+    [
+      newProfile.firstname,
+      newProfile.lastname,
+      newProfile.email,
+      newProfile.year,
+      newProfile.student_id,
+      newProfile.user_id
+    ],
+    (err, res) => {
       if (err) {
-      console.log("Error while Updating : ", err);
-      result(err, null);
-      return;
+        console.log("Create error: ", err);
+        result(err, null);
+        return;
+      }
+      result(null, res.rows[0]);
     }
-
-    if (res.affectedRows === 0) {
-      result({ kind: "not_found" }, null);
-      return;
-    }
-  result(null, { id: id, ...profile });
- }
-
   );
 };
 
+Project.findByName = (name, result) => {
+  db.query(
+    "SELECT * FROM profile WHERE firstname ILIKE $1 OR lastname ILIKE $2",
+    [`%${name}%`, `%${name}%`],
+    (err, res) => {
+      if (err) {
+        console.log("findByName error: ", err);
+        result(err, null);
+        return;
+      }
 
-// DELETE a profile by ID
+      if (res.rows.length) {
+        result(null, res.rows);
+        return;
+      }
+
+      result(null, []);
+    }
+  );
+};
+
+Project.updateById = (id, profile, result) => {
+  const entries = Object.entries(profile);
+  const fields = entries.map(([key], index) => `${key} = $${index + 1}`);
+  const values = entries.map(([, value]) => value);
+  values.push(id);
+
+  db.query(
+    `UPDATE profile SET ${fields.join(", ")} WHERE id = $${fields.length + 1} RETURNING *`,
+    values,
+    (err, res) => {
+      if (err) {
+        console.log("Error while Updating: ", err);
+        result(err, null);
+        return;
+      }
+
+      if (!res.rows.length) {
+        result({ kind: "not_found" }, null);
+        return;
+      }
+
+      result(null, res.rows[0]);
+    }
+  );
+};
+
 Project.deleteById = (id, result) => {
-  db.query("UPDATE `users` SET `active` = '0' WHERE `users`.`id`= ?", [id], (err, res) => {
+  db.query("UPDATE users SET active = 0 WHERE id = $1 RETURNING *", [id], (err, res) => {
     if (err) {
       console.log("Error while Deleting: ", err);
       result(err, null);
       return;
     }
 
-    if (res.affectedRows === 0) {
+    if (!res.rows.length) {
       result({ kind: "NO such ID found" }, null);
       return;
     }
 
-    result(null, res);
+    result(null, res.rows);
   });
 };
-
-
-// DELETE all profiles
-
-//Project.eraseAll = (result) => {
-//  db.query("DELETE FROM profile", (err, res) => {
-//   if (err) {       console.log("error while deleting: ", err);      result(err, null);
-//      return;     }
-//    result(null, res);  });  
-//  };
-
 
 module.exports = Project;

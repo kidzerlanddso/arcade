@@ -1,7 +1,9 @@
 module.exports = {
   HOST: "localhost",
-  USER: "root",
-  PASSWORD: "",
+  PORT: 5432,
+  USER: "rototuna_app",
+  PASSWORD: "Rototuna_2026$",
   DB: "rshs",
-  JWT_SECRET:"my_JWT_secret_key_COMPX_575"
+  SSL: "false",
+  JWT_SECRET: "my_JWT_secret_key_COMPX_575"
 };
