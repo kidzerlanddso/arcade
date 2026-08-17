@@ -1,6 +1,6 @@
 const db = require("./db");
 
-const Project = function(profile) {
+const Project = function (profile) {
   this.firstname = profile.firstname;
   this.lastname = profile.lastname;
   this.email = profile.email;
@@ -46,7 +46,7 @@ Project.create = (newProfile, result) => {
       newProfile.email,
       newProfile.year,
       newProfile.student_id,
-      newProfile.user_id
+      newProfile.user_id,
     ],
     (err, res) => {
       if (err) {
@@ -55,7 +55,7 @@ Project.create = (newProfile, result) => {
         return;
       }
       result(null, res.rows[0]);
-    }
+    },
   );
 };
 
@@ -76,7 +76,7 @@ Project.findByName = (name, result) => {
       }
 
       result(null, []);
-    }
+    },
   );
 };
 
@@ -102,25 +102,29 @@ Project.updateById = (id, profile, result) => {
       }
 
       result(null, res.rows[0]);
-    }
+    },
   );
 };
 
 Project.deleteById = (id, result) => {
-  db.query("UPDATE users SET active = 0 WHERE id = $1 RETURNING *", [id], (err, res) => {
-    if (err) {
-      console.log("Error while Deleting: ", err);
-      result(err, null);
-      return;
-    }
+  db.query(
+    "UPDATE users SET active = 0 WHERE id = $1 RETURNING *",
+    [id],
+    (err, res) => {
+      if (err) {
+        console.log("Error while Deleting: ", err);
+        result(err, null);
+        return;
+      }
 
-    if (!res.rows.length) {
-      result({ kind: "NO such ID found" }, null);
-      return;
-    }
+      if (!res.rows.length) {
+        result({ kind: "NO such ID found" }, null);
+        return;
+      }
 
-    result(null, res.rows);
-  });
+      result(null, res.rows);
+    },
+  );
 };
 
 module.exports = Project;
