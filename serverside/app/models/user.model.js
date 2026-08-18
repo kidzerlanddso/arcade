@@ -16,52 +16,82 @@ User.create = function (newUser, profileData, result) {
     profileData = null;
   }
 
-  db.query(
-    "INSERT INTO users (username, password, active, admin, approved_date, connect) VALUES ($1, $2, $3, $4, $5, $6) RETURNING *",
-    [
-      newUser.username,
-      newUser.password,
-      newUser.active,
-      newUser.admin,
-      newUser.approved_date,
-      newUser.connect,
-    ],
-    function (err, res) {
-      if (err) {
-        result(err, null);
+  db.connect(function (connectErr, client, release) {
+    if (connectErr) {
+      result(connectErr, null);
+      return;
+    }
+
+    client.query("BEGIN", function (beginErr) {
+      if (beginErr) {
+        release();
+        result(beginErr, null);
         return;
       }
 
-      const createdUser = res.rows[0];
+      client.query(
+        "INSERT INTO users (username, password, active, admin, approved_date, connect) VALUES ($1, $2, $3, $4, $5, $6) RETURNING *",
+        [
+          newUser.username,
+          newUser.password,
+          newUser.active,
+          newUser.admin,
+          newUser.approved_date,
+          newUser.connect,
+        ],
+        function (userErr, userRes) {
+          if (userErr) {
+            client.query("ROLLBACK", function () {
+              release();
+              result(userErr, null);
+            });
+            return;
+          }
 
-      if (!profileData) {
-        result(null, createdUser);
-        return;
-      }
+          const createdUser = userRes.rows[0];
 
-      const Profile = require("./profile.model");
-      const profileRecord = {
-        firstname: profileData.firstname || "",
-        lastname: profileData.lastname || "",
-        email: profileData.email || "",
-        year: profileData.year ?? null,
-        student_id: profileData.student_id ?? null,
-        user_id: createdUser.id,
-      };
+          if (!profileData) {
+            client.query("COMMIT", function (commitErr) {
+              release();
+              result(commitErr || null, commitErr ? null : createdUser);
+            });
+            return;
+          }
 
-      Profile.create(profileRecord, function (profileErr, profileResult) {
-        if (profileErr) {
-          result(profileErr, null);
-          return;
-        }
+          client.query(
+            "INSERT INTO profile (firstname, lastname, email, year, student_id, user_id) VALUES ($1, $2, $3, $4, $5, $6) RETURNING *",
+            [
+              profileData.firstname || "",
+              profileData.lastname || "",
+              profileData.email || "",
+              profileData.year ?? null,
+              profileData.student_id ?? null,
+              createdUser.id,
+            ],
+            function (profileErr, profileRes) {
+              if (profileErr) {
+                client.query("ROLLBACK", function () {
+                  release();
+                  result(profileErr, null);
+                });
+                return;
+              }
 
-        result(null, {
-          user: createdUser,
-          profile: profileResult,
-        });
-      });
-    },
-  );
+              client.query("COMMIT", function (commitErr) {
+                release();
+                result(
+                  commitErr || null,
+                  commitErr
+                    ? null
+                    : { user: createdUser, profile: profileRes.rows[0] },
+                );
+              });
+            },
+          );
+        },
+      );
+    });
+  });
 };
 
 User.findByUsername = function (username, result) {
