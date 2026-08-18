@@ -1,12 +1,15 @@
 const db = require("./db");
 
-const Project = function (profile) {
+const Project = function(profile) {
   this.firstname = profile.firstname;
   this.lastname = profile.lastname;
   this.email = profile.email;
   this.year = profile.year;
   this.student_id = profile.student_id;
   this.user_id = profile.user_id;
+  this.bio = profile.bio;
+this.linkedin_url = profile.linkedin_url;
+this.profile_image_url = profile.profile_image_url;
 };
 
 Project.getAll = (result) => {
@@ -39,23 +42,24 @@ Project.findById = (id, result) => {
 
 Project.create = (newProfile, result) => {
   db.query(
-    "INSERT INTO profile (firstname, lastname, email, year, student_id, user_id) VALUES ($1, $2, $3, $4, $5, $6) RETURNING *",
-    [
-      newProfile.firstname,
+    "INSERT INTO profile (firstname, lastname, email, year, student_id, user_id, bio, linkedin_url, profile_image_url) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING *",
+     [ newProfile.firstname,
       newProfile.lastname,
       newProfile.email,
       newProfile.year,
       newProfile.student_id,
       newProfile.user_id,
-    ],
-    (err, res) => {
+      newProfile.bio,
+newProfile.linkedin_url,
+newProfile.profile_image_url],
+(err, res) => {
       if (err) {
         console.log("Create error: ", err);
         result(err, null);
         return;
       }
       result(null, res.rows[0]);
-    },
+    }
   );
 };
 
@@ -76,7 +80,7 @@ Project.findByName = (name, result) => {
       }
 
       result(null, []);
-    },
+    }
   );
 };
 
@@ -102,29 +106,25 @@ Project.updateById = (id, profile, result) => {
       }
 
       result(null, res.rows[0]);
-    },
+    }
   );
 };
 
 Project.deleteById = (id, result) => {
-  db.query(
-    "UPDATE users SET active = 0 WHERE id = $1 RETURNING *",
-    [id],
-    (err, res) => {
-      if (err) {
-        console.log("Error while Deleting: ", err);
-        result(err, null);
-        return;
-      }
+  db.query("UPDATE users SET active = 0 WHERE id = $1 RETURNING *", [id], (err, res) => {
+    if (err) {
+      console.log("Error while Deleting: ", err);
+      result(err, null);
+      return;
+    }
 
-      if (!res.rows.length) {
-        result({ kind: "NO such ID found" }, null);
-        return;
-      }
+    if (!res.rows.length) {
+      result({ kind: "NO such ID found" }, null);
+      return;
+    }
 
-      result(null, res.rows);
-    },
-  );
+    result(null, res.rows);
+  });
 };
 
 module.exports = Project;
