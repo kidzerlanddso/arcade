@@ -14,6 +14,9 @@ exports.create = (req, res) => {
   const newprofile = new Project({
     firstname: req.body.firstname,
     lastname: req.body.lastname,
+    email: req.body.email || "",
+    current_city: req.body.current_city || "Hamilton",
+    current_country: req.body.current_country || "New Zealand",
     year: req.body.year,
     student_id: req.body.student_id,
     user_id: req.body.user_id

@@ -5,9 +5,13 @@ import AuthPage from "../pages/AuthPage";
 import ProfilePage from "../pages/profilePage";
 import MyProfilePage from "../pages/MyProfilePage";
 import Dashboard from "../components/Dashboard";
+import MessageAlumniPage from "../pages/MessageAlumniPage";
 
 import NewProfile from "../components/NewProfile";
 import MembershipRequest from "../components/membershiprequest";
+import NewBook from "../components/NewBook";
+import EditBook from "../components/EditBook";
+import DeleteBook from "../components/DeleteBook";
 
 function AppRoutes() {
   return (
@@ -50,7 +54,23 @@ function AppRoutes() {
         }
       />
 
+      <Route
+        path="/profile/edit/:id"
+        element={
+          <ProtectedRoute>
+            <EditBook />
+          </ProtectedRoute>
+        }
+      />
 
+      <Route
+        path="/profile/delete/:id"
+        element={
+          <ProtectedRoute>
+            <DeleteBook />
+          </ProtectedRoute>
+        }
+      />
       <Route
         path="/membership-request"
         element={
@@ -60,7 +80,41 @@ function AppRoutes() {
         }
       />
 
+      <Route
+        path="/message-alumni"
+        element={
+          <ProtectedRoute>
+            <MessageAlumniPage />
+          </ProtectedRoute>
+        }
+      />
 
+      <Route
+        path="/books/new"
+        element={
+          <ProtectedRoute>
+            <NewBook />
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/books/edit/:id"
+        element={
+          <ProtectedRoute>
+            <EditBook />
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/books/delete/:id"
+        element={
+          <ProtectedRoute>
+            <DeleteBook />
+          </ProtectedRoute>
+        }
+      />
 
       <Route path="*" element={<Navigate to="/login" replace />} />
     </Routes>
