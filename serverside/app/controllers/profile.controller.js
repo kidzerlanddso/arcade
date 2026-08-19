@@ -107,7 +107,19 @@ exports.updateOne = (req, res) => {
     }
   });
 };
+exports.uploadProfileImage = (req, res) => {
+  if (!req.file) {
+    return res.status(400).send({
+      message: "No image file uploaded."
+    });
+  }
 
+  const imageUrl = `http://localhost:3001/uploads/${req.file.filename}`;
+
+  res.send({
+    profile_image_url: imageUrl
+  });
+};
 
 // Retrieve a single profile by ID
 exports.deleteOne = (req, res) => {
