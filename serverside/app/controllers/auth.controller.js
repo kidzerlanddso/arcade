@@ -38,7 +38,12 @@ exports.register = function (req, res) {
   User.create(user, profileData, function (err, data) {
     if (err) {
       if (err.code === "ER_DUP_ENTRY" || err.code === "23505") {
-        return res.status(409).send({ message: "Username already exists." });
+        const duplicateField = err.constraint?.includes("username")
+          ? "Username"
+          : "Registration data";
+        return res
+          .status(409)
+          .send({ message: `${duplicateField} already exists.` });
       }
       return res.status(500).send({
         message: err.message || "An error occurred during registration.",

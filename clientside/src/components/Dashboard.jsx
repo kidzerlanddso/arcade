@@ -8,11 +8,9 @@ function Dashboard() {
       </div>
 
       <nav className="action-row">
-        <Link className="btn btn-primary" to="/profile">
-          View All Profiles
-        </Link>
-        <Link className="btn btn-primary" to="/membership-request">
-          Membership Request
+        
+        <Link className="btn btn-primary" to="/add-event">
+          Add Event 
         </Link>
         
       </nav>

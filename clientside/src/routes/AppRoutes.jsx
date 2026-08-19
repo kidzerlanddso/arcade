@@ -8,9 +8,6 @@ import Dashboard from "../components/Dashboard";
 
 import NewProfile from "../components/NewProfile";
 import MembershipRequest from "../components/membershiprequest";
-import NewBook from "../components/NewBook";
-import EditBook from "../components/EditBook";
-import DeleteBook from "../components/DeleteBook";
 
 function AppRoutes() {
   return (
@@ -53,23 +50,7 @@ function AppRoutes() {
         }
       />
 
-      <Route
-        path="/profile/edit/:id"
-        element={
-          <ProtectedRoute>
-            <EditBook />
-          </ProtectedRoute>
-        }
-      />
 
-      <Route
-        path="/profile/delete/:id"
-        element={
-          <ProtectedRoute>
-            <DeleteBook />
-          </ProtectedRoute>
-        }
-      />
       <Route
         path="/membership-request"
         element={
@@ -79,32 +60,7 @@ function AppRoutes() {
         }
       />
 
-      <Route
-        path="/books/new"
-        element={
-          <ProtectedRoute>
-            <NewBook />
-          </ProtectedRoute>
-        }
-      />
 
-      <Route
-        path="/books/edit/:id"
-        element={
-          <ProtectedRoute>
-            <EditBook />
-          </ProtectedRoute>
-        }
-      />
-
-      <Route
-        path="/books/delete/:id"
-        element={
-          <ProtectedRoute>
-            <DeleteBook />
-          </ProtectedRoute>
-        }
-      />
 
       <Route path="*" element={<Navigate to="/login" replace />} />
     </Routes>

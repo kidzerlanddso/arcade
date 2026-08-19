@@ -70,7 +70,7 @@ function Register({ isOpen, onClose }) {
       onClose?.();
     } catch (error) {
       console.error(error);
-      alert("Registration failed");
+      alert(error.response?.data?.message || "Registration failed");
     }
   };
 
@@ -171,5 +171,3 @@ function Register({ isOpen, onClose }) {
 }
 
 export default Register;
-
-
