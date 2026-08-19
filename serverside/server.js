@@ -8,7 +8,7 @@ const app = express();
 // To help with accessing this server from Postman
 // app.use(cors());
 app.use(cors({
-  origin: ["http://localhost:5173", "http://localhost:5174"],
+  origin: "http://localhost:5173",
   credentials: true
 }));
 
@@ -35,6 +35,14 @@ require("./app/routes/employment.routes.js")(app);
 // can be seen in the terminal window used to run the server.
 
 const PORT = process.env.PORT || 3001;
+
+
+db.syncSequences((error) => {
+  if (error) {
+    console.warn(
+      `Could not synchronize ${error.table || "database"} ID sequence: ${error.message}`,
+    );
+  }
 
 app.listen(PORT, () => {
   console.log(`CORS enabled Express web server is running on port ${PORT}.`);
