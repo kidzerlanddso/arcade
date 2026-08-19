@@ -390,6 +390,7 @@ a {
   border-radius: 0 0 18px 18px;
   box-shadow: 0 12px 24px rgba(15, 23, 42, 0.08);
   padding: 24px;
+  position: relative;
 }
 
 .linkedin-profile-header {
@@ -397,12 +398,20 @@ a {
   align-items: center;
   gap: 18px;
   margin-bottom: 22px;
+  padding-top: 35px;
+  padding-left: 150px;
+    min-height: 110px;
 }
 
 .linkedin-avatar {
-  width: 80px;
-  height: 80px;
+  width: 120px;
+  height: 120px;
   border-radius: 50%;
+  overflow: hidden;
+  flex-shrink: 0;
+  position: absolute;
+    top: -65px;
+    left: 35px;
   background: linear-gradient(135deg, $primary-blue 0%, #5ca7ff 100%);
   color: #fff;
   display: flex;
@@ -577,4 +586,73 @@ a {
     flex-direction: column;
     align-items: flex-start;
   }
+}
+.profile-section {
+  width: 100%;
+  max-width: 1180px;
+  margin: 20px auto;
+  padding: 24px;
+  background: #fff;
+  border: 1px solid #e0e0e0;
+  border-radius: 16px;
+  box-sizing: border-box;
+}
+
+.profile-section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.profile-section-header h3 {
+  margin: 0;
+  text-align: left;
+}
+
+.experience-item {
+  display: block !important;
+  width: 100%;
+  padding: 18px 0;
+  text-align: left !important;
+  border-bottom: 1px solid #e5e5e5;
+}
+
+.experience-item strong,
+.experience-item div {
+  display: block;
+  text-align: left !important;
+}
+
+.experience-item strong {
+  font-size: 18px;
+  margin-bottom: 4px;
+}
+.experience-item button {
+  margin-top: 8px;
+  padding: 6px 14px;
+  border: 1px solid #c62828;
+  border-radius: 18px;
+  background: #fff;
+  color: #c62828 !important;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.experience-item button:hover {
+  background: #fdecec;
+}
+.linkedin-profile-header>button {
+  padding: 8px 16px;
+  border: 1px solid #0a66c2;
+  border-radius: 20px;
+  background: #ffffff;
+  color: #0a66c2;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.linkedin-profile-header>button:hover {
+  background: #eef6ff;
 }

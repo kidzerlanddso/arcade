@@ -2,6 +2,7 @@ module.exports = app => {
   const projects = require("../controllers/profile.controller.js");
   //const profile = require("../controllers/profile.controller");
   const { verifyToken } = require("../middleware/authJwt.js");
+  const upload = require("../middleware/upload");
 
   
 
@@ -20,6 +21,12 @@ module.exports = app => {
   app.post("/profile", verifyToken, projects.create);
   // Update by ID. using PATCH to avoid null values
   app.patch("/profile/:id", verifyToken, projects.updateOne);
+  app.post(
+  "/profile/:id/image",
+  verifyToken,
+  upload.single("profileImage"),
+  projects.uploadProfileImage
+);
 
   // delete by ID
   app.delete("/profile/:id", verifyToken, projects.deleteOne);
