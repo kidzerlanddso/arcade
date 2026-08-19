@@ -21,7 +21,7 @@ app.get("/", (req, res) => {
   res.json({ message: "Welcome to COMPX575 - Task 7" });
 });
 
-require("./app/routes/books.routes.js")(app);
+
 require("./app/routes/auth.routes.js")(app);
 require("./app/routes/profile.routes.js")(app);
 

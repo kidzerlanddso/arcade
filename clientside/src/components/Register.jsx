@@ -171,5 +171,3 @@ function Register({ isOpen, onClose }) {
 }
 
 export default Register;
-
-
