@@ -14,6 +14,9 @@ exports.create = (req, res) => {
   const newprofile = new Project({
     firstname: req.body.firstname,
     lastname: req.body.lastname,
+    email: req.body.email || "",
+    current_city: req.body.current_city || "Hamilton",
+    current_country: req.body.current_country || "New Zealand",
     year: req.body.year,
     student_id: req.body.student_id,
     user_id: req.body.user_id
@@ -104,7 +107,19 @@ exports.updateOne = (req, res) => {
     }
   });
 };
+exports.uploadProfileImage = (req, res) => {
+  if (!req.file) {
+    return res.status(400).send({
+      message: "No image file uploaded."
+    });
+  }
 
+  const imageUrl = `http://localhost:3001/uploads/${req.file.filename}`;
+
+  res.send({
+    profile_image_url: imageUrl
+  });
+};
 
 // Retrieve a single profile by ID
 exports.deleteOne = (req, res) => {

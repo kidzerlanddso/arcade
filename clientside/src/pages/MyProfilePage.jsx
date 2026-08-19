@@ -24,7 +24,14 @@ function MyProfilePage() {
 const [bio, setBio] = useState("");
 const [linkedinUrl, setLinkedinUrl] = useState("");
 const [profileImageUrl, setProfileImageUrl] = useState("");
-
+const [profileImageFile, setProfileImageFile] = useState(null);
+const [employment, setEmployment] = useState([]);
+const [jobTitle, setJobTitle] = useState("");
+const [company, setCompany] = useState("");
+const [startDate, setStartDate] = useState("");
+const [endDate, setEndDate] = useState("");
+const [description, setDescription] = useState("");
+const [showEmploymentForm, setShowEmploymentForm] = useState(false);
   useEffect(() => {
     const payload = getTokenPayload();
 
@@ -42,10 +49,12 @@ const [profileImageUrl, setProfileImageUrl] = useState("");
         ) || profiles[0];
 
         setProfile(currentProfile || null);
+       
         setBio(currentProfile?.bio || "");
 setLinkedinUrl(currentProfile?.linkedin_url || "");
 setProfileImageUrl(currentProfile?.profile_image_url || "");
       })
+    
       .catch((error) => {
         console.error("Error loading current profile:", error);
         setProfile(null);
@@ -53,22 +62,93 @@ setProfileImageUrl(currentProfile?.profile_image_url || "");
       .finally(() => {
         setLoading(false);
       });
-  }, []);
+      
+
+api
+  .get(`/employment/user/${payload.userId}`)
+  .then((response) => {
+    setEmployment(response.data || []);
+  })
+  .catch((error) => {
+    console.error("Error loading employment history:", error);
+    setEmployment([]);
+  });
+
+}, []);
+
   const handleSave = async () => {
   try {
-     const response = await api.patch(`/profile/${profile.id}`, {
-  bio: bio,
-  linkedin_url: linkedinUrl,
-  profile_image_url: profileImageUrl
-});
+    let imageUrl = profileImageUrl;
+
+    // Agar user ne new image choose ki hai
+    if (profileImageFile) {
+      const formData = new FormData();
+      formData.append("profileImage", profileImageFile);
+
+      const uploadResponse = await api.post(
+        `/profile/${profile.id}/image`,
+        formData,
+        {
+          headers: {
+            "Content-Type": "multipart/form-data"
+          }
+        }
+      );
+
+      imageUrl = uploadResponse.data.profile_image_url;
+      setProfileImageUrl(imageUrl);
+    }
+
+    // Profile information database mein save karo
+    const response = await api.patch(`/profile/${profile.id}`, {
+      bio: bio,
+      linkedin_url: linkedinUrl,
+      profile_image_url: imageUrl
+    });
 
     setProfile(response.data);
+    setProfileImageFile(null);
     setEditing(false);
+
   } catch (error) {
     console.error("Error updating profile:", error);
   }
 };
+const handleAddEmployment = async () => {
+  const payload = getTokenPayload();
 
+  try {
+    const response = await api.post("/employment", {
+      user_id: payload.userId,
+      company: company,
+      job_title: jobTitle,
+      start_date: startDate,
+      end_date: endDate || null,
+      description: description
+    });
+
+    setEmployment([...employment, response.data]);
+
+    setJobTitle("");
+    setCompany("");
+    setStartDate("");
+    setEndDate("");
+    setDescription("");
+  } catch (error) {
+    console.error("Error adding employment:", error);
+  }
+};
+const handleDeleteEmployment = async (id) => {
+  try {
+    await api.delete(`/employment/${id}`);
+
+    setEmployment(
+      employment.filter((job) => job.id !== id)
+    );
+  } catch (error) {
+    console.error("Error deleting employment:", error);
+  }
+};
   if (loading) {
     return <div className="book-list"><p>Loading profile...</p></div>;
   }
@@ -106,10 +186,10 @@ setProfileImageUrl(currentProfile?.profile_image_url || "");
 </div>
 {editing && (
   <input
-    type="url"
-    value={profileImageUrl}
-    onChange={(e) => setProfileImageUrl(e.target.value)}
-    placeholder="Enter profile image URL"
+    type="file"
+    accept="image/*"
+        onChange={(e) => setProfileImageFile(e.target.files[0])}
+    
   />
 )}
 
@@ -123,9 +203,15 @@ setProfileImageUrl(currentProfile?.profile_image_url || "");
       Save
     </button>
 
-    <button onClick={() => setEditing(false)}>
-      Cancel
-    </button>
+    <button
+  onClick={() => {
+    setEditing(false);
+    setProfileImageFile(null);
+    setShowEmploymentForm(false);
+  }}
+>
+  Cancel
+</button>
   </>
 ) : (
   <button onClick={() => setEditing(true)}>
@@ -189,8 +275,90 @@ setProfileImageUrl(currentProfile?.profile_image_url || "");
     </span>
   )}
 </div>
+
           </div>
         </div>
+        <div className="profile-section">
+  <div className="profile-section-header">
+    <h3>Experience</h3>
+
+    {editing && (
+      <button
+  className="add-experience-button"
+  onClick={() => setShowEmploymentForm(true)}
+>
+  +
+</button>
+    )}
+  </div>
+  {editing && showEmploymentForm && (
+  <div>
+    <input
+      type="text"
+      value={jobTitle}
+      onChange={(e) => setJobTitle(e.target.value)}
+      placeholder="Job title"
+    />
+
+    <input
+      type="text"
+      value={company}
+      onChange={(e) => setCompany(e.target.value)}
+      placeholder="Company"
+    />
+
+    <input
+      type="date"
+      value={startDate}
+      onChange={(e) => setStartDate(e.target.value)}
+    />
+
+    <input
+      type="date"
+      value={endDate}
+      onChange={(e) => setEndDate(e.target.value)}
+    />
+
+    <textarea
+      value={description}
+      onChange={(e) => setDescription(e.target.value)}
+      placeholder="Job description"
+    />
+
+    <button onClick={handleAddEmployment}>
+      Add Employment
+    </button>
+  </div>
+)}
+
+{employment.length === 0 ? (
+  <span>No employment history added.</span>
+) : (
+  employment.map((job) => (
+    <div key={job.id} className="experience-item">
+      <strong>{job.job_title || "-"}</strong>
+
+      <div>{job.company || "-"}</div>
+
+      <div>
+        {job.start_date
+          ? new Date(job.start_date).toLocaleDateString("en-NZ")
+          : "-"}{" "}
+        -{" "}
+        {job.end_date
+          ? new Date(job.end_date).toLocaleDateString("en-NZ")
+          : "Present"}
+      </div>
+
+      {editing && (
+  <button onClick={() => handleDeleteEmployment(job.id)}>
+    Delete
+  </button>
+)}
+    </div>
+  ))
+)}
+</div>
       </div>
     </div>
   );
