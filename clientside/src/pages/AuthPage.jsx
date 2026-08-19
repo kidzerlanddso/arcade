@@ -10,7 +10,8 @@ function AuthPage() {
     <main className="auth-shell">
       <section className="auth-hero">
         <div className="brand-panel">
-          <div className="brand-badge">R</div>
+          {/* <div className="brand-badge"><img src="src/assets/logo.png" alt="AlumniConnect Logo" /></div>*/}
+          <div><img src="src/assets/logo.png" alt="AlumniConnect Logo" /></div>
           <h1>AlumniConnect</h1>
           <p>
             Discover, manage, and grow your community of Alumni in one place.
