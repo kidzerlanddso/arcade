@@ -5,6 +5,7 @@ import AuthPage from "../pages/AuthPage";
 import ProfilePage from "../pages/profilePage";
 import MyProfilePage from "../pages/MyProfilePage";
 import Dashboard from "../components/Dashboard";
+import MessageAlumniPage from "../pages/MessageAlumniPage";
 
 import NewProfile from "../components/NewProfile";
 import MembershipRequest from "../components/membershiprequest";
@@ -75,6 +76,15 @@ function AppRoutes() {
         element={
           <ProtectedRoute>
             <MembershipRequest />
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/message-alumni"
+        element={
+          <ProtectedRoute>
+            <MessageAlumniPage />
           </ProtectedRoute>
         }
       />

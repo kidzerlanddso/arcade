@@ -3,7 +3,9 @@ const db = require("./db");
 const Project = function(profile) {
   this.firstname = profile.firstname;
   this.lastname = profile.lastname;
-  this.email = profile.email;
+  this.email = profile.email || "";
+  this.current_city = profile.current_city || "Hamilton";
+  this.current_country = profile.current_country || "New Zealand";
   this.year = profile.year;
   this.student_id = profile.student_id;
   this.user_id = profile.user_id;
@@ -39,11 +41,13 @@ Project.findById = (id, result) => {
 
 Project.create = (newProfile, result) => {
   db.query(
-    "INSERT INTO profile (firstname, lastname, email, year, student_id, user_id) VALUES ($1, $2, $3, $4, $5, $6) RETURNING *",
+    "INSERT INTO profile (firstname, lastname, email, current_city, current_country, year, student_id, user_id) VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING *",
     [
       newProfile.firstname,
       newProfile.lastname,
-      newProfile.email,
+      newProfile.email || "",
+      newProfile.current_city || "Hamilton",
+      newProfile.current_country || "New Zealand",
       newProfile.year,
       newProfile.student_id,
       newProfile.user_id

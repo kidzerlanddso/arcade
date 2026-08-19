@@ -7,7 +7,8 @@ const app = express();
 // To help with accessing this server from Postman
 // app.use(cors());
 app.use(cors({
-  origin: "http://localhost:5173"
+  origin: ["http://localhost:5173", "http://localhost:5174"],
+  credentials: true
 }));
 
 // To help with POST and PUT requests to the server

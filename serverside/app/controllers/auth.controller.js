@@ -22,6 +22,9 @@ exports.register = function(req, res) {
   const profileData = {
     firstname: req.body.firstName || req.body.firstname || "",
     lastname: req.body.lastName || req.body.lastname || "",
+    email: req.body.email || "",
+    current_city: req.body.current_city || "Hamilton",
+    current_country: req.body.current_country || "New Zealand",
     year: req.body.yearOfGraduation || req.body.year || null,
     student_id: req.body.studentId || req.body.student_id || null
   };

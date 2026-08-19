@@ -33,6 +33,9 @@ User.create = function(newUser, profileData, result) {
       const profileRecord = {
         firstname: profileData.firstname || "",
         lastname: profileData.lastname || "",
+        email: profileData.email || "",
+        current_city: profileData.current_city || "Hamilton",
+        current_country: profileData.current_country || "New Zealand",
         year: profileData.year || null,
         student_id: profileData.student_id || null,
         user_id: createdUser.id
