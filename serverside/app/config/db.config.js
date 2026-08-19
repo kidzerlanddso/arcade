@@ -5,5 +5,5 @@ module.exports = {
   PASSWORD: "Rototuna_2026$",
   DB: "rshs",
   SSL: "false",
-  JWT_SECRET: "my_JWT_secret_key_COMPX_575"
+  JWT_SECRET: "my_JWT_secret_key_COMPX_596",
 };
