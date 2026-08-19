@@ -17,6 +17,13 @@ body {
   color: $dark-text;
 }
 
+.auth-body {
+    background-image: url(/src/assets/school_bg.png);
+    background-repeat: no-repeat;
+    background-position: center center;
+    background-size: cover;
+    background-attachment: fixed;
+}
 #root {
   min-height: 100vh;
 }
@@ -32,7 +39,7 @@ a {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(180deg, #f3f2ef 0%, #eef3f8 100%);
+  background: linear-gradient(180deg, #f3f2ef 0%, #c3dcf5bf 100%);
   padding: 32px 16px;
 }
 
@@ -517,7 +524,7 @@ a {
   list-style: none;
   margin: 0 0 8px;
   padding: 0;
-  display: grid;
+  display: ruby;
   gap: 6px;
   font-size: 0.85rem;
 }
