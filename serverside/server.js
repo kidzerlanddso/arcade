@@ -19,7 +19,7 @@ app.use(express.urlencoded({ extended: true }));
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
 app.get("/", (req, res) => {
-  res.json({ message: "Welcome to COMPX575 - Task 7" });
+  res.json({ message: "Welcome to Alumni Portal" });
 });
 
 try {
