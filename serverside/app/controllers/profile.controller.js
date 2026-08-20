@@ -1,4 +1,7 @@
 const Project = require("../models/profile.model");
+const sharp = require("sharp");
+const fs = require("fs");
+const path = require("path");
  
 // TODO: complete the code as per the instructions given README.md
 
@@ -107,18 +110,43 @@ exports.updateOne = (req, res) => {
     }
   });
 };
-exports.uploadProfileImage = (req, res) => {
+exports.uploadProfileImage = async (req, res) => {
   if (!req.file) {
     return res.status(400).send({
       message: "No image file uploaded."
     });
   }
 
-  const imageUrl = `http://localhost:3001/uploads/${req.file.filename}`;
+  try {
+    const compressedFilename =
+      `compressed-${path.parse(req.file.filename).name}.webp`;
 
-  res.send({
-    profile_image_url: imageUrl
-  });
+    const compressedPath = path.join(
+      path.dirname(req.file.path),
+      compressedFilename
+    );
+
+    await sharp(req.file.path)
+      .resize(300, 300, { fit: "cover" })
+      .webp({ quality: 75 })
+      .toFile(compressedPath);
+
+    await fs.promises.unlink(req.file.path);
+
+    const imageUrl =
+      `http://localhost:3001/uploads/${compressedFilename}`;
+
+    res.send({
+      profile_image_url: imageUrl
+    });
+
+  } catch (error) {
+    console.error("Error compressing profile image:", error);
+
+    res.status(500).send({
+      message: "Error processing profile image."
+    });
+  }
 };
 
 // Retrieve a single profile by ID
