@@ -41,6 +41,8 @@ exports.register = function(req, res) {
   });
 };
 
+
+
 // Login and return a JWT
 exports.login = function(req, res) {
   if (!req.body || !req.body.username || !req.body.password) {
@@ -63,12 +65,26 @@ exports.login = function(req, res) {
 
     const isAdmin = Number(data.admin) === 1;
 
-    // Sign and return the token (expires in 24 hours)
+    // Sign and return the token (expires in 2 hours)
     const token = jwt.sign(
       { userId: data.id, username: data.username, admin: isAdmin },
       config.JWT_SECRET,
-      { expiresIn: "2h" }
+      { expiresIn: "15m" }
     );
+    const refreshToken = jwt.sign({ userId: data.id, username: data.username, admin: isAdmin },config.REFRESH_SECRET, { expiresIn: '7d' }
+    );
+
+    // 3. Send refresh token in a secure, hidden cookie
+    res.cookie('refreshToken', refreshToken, {
+      httpOnly: true,     // Prevents XSS scripts from reading the cookie
+      secure: false,      // Set to true in production (requires HTTPS)
+      sameSite: 'lax',    // Helps protect against CSRF attacks
+      path: '/',          // Must match the path used when clearing the cookie
+      maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days matching token expiration
+    });
+
+    // 4. Send access token and user profile in the JSON body
+    //return res.json({ accessToken, user });
 
     res.status(200).send({
       message: "Login successful.",
@@ -76,6 +92,55 @@ exports.login = function(req, res) {
       admin: isAdmin
     });
   });
+};
+
+// Refresh and return a new JWT
+exports.refresh = function(req, res) {
+  // 5. Extract the refresh token directly from cookies, not body/headers
+  const refreshToken = req.cookies.refreshToken;
+
+  if (!refreshToken) {
+    return res.status(401).json({ message: "Refresh token missing" });
+  }
+
+
+  try {
+    const decoded = jwt.verify(refreshToken, config.REFRESH_SECRET);
+    
+    // Issue a fresh short-lived access token
+    const token = jwt.sign(
+          { userId: decoded.userId, username: decoded.username, admin: decoded.admin },
+          config.JWT_SECRET,
+          { expiresIn: "15m" }
+        );
+        
+    return res.json({ 
+      token: token,
+      admin: decoded.admin
+    });
+  } catch (err) {
+    return res.status(403).json({ message: "Invalid or expired refresh token" });
+  }
+};
+
+// Clear cookie and log out user
+exports.logout = function(req, res) {
+  res.clearCookie('refreshToken', {
+    httpOnly: true,
+    secure: false, // Set to true in production (requires HTTPS)
+    sameSite: 'lax',
+    path: '/'
+  });
+
+  // Remove cookies issued before the cookie path was made explicit.
+  res.clearCookie('refreshToken', {
+    httpOnly: true,
+    secure: false,
+    sameSite: 'lax',
+    path: '/auth'
+  });
+  
+  return res.status(200).send({ message: "Logged out successfully." });
 };
 
 exports.getMembershipRequests = function(req, res) {

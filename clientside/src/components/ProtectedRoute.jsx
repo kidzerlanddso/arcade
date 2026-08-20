@@ -43,10 +43,17 @@ function ProtectedRoute({ children }) {
     return () => document.removeEventListener("click", closeMenu);
   }, []);
 
-  const handleLogout = () => {
-    localStorage.removeItem("token");
-    localStorage.removeItem("isAdmin");
-    navigate("/login", { replace: true });
+  const handleLogout = async () => {
+    try {
+      await api.post("/auth/logout");
+    } catch (error) {
+      console.error("Logout request failed:", error);
+    } finally {
+      setAccessToken(null);
+      localStorage.removeItem("token");
+      localStorage.removeItem("isAdmin");
+      navigate("/login", { replace: true });
+    }
   };
 
   const handleResetPassword = async (event) => {

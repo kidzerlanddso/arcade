@@ -3,23 +3,30 @@ const express = require("express");
 const cors = require("cors");
 const path = require("path");
 const db = require("./app/models/db");
+
+const cookieParser = require('cookie-parser');
+const jwt = require('jsonwebtoken');
+
 const app = express();
 
-// To help with accessing this server from Postman
+// To help with accessing this server from React, we need to enable CORS (Cross-Origin Resource Sharing). In a production environment, we'd need to only allow React app's domain.
 // app.use(cors());
 app.use(cors({
   origin: "http://localhost:5173",
   credentials: true
 }));
 
+
+
 // To help with POST and PUT requests to the server
 app.use(express.json());
+app.use(cookieParser());
 app.use(express.urlencoded({ extended: true }));
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
 
 app.get("/", (req, res) => {
-  res.json({ message: "Welcome to Alumni Portal" });
+  res.json({ message: "Welcome to Alumni Portal" }); 
 });
 
 require("./app/routes/auth.routes.js")(app);
