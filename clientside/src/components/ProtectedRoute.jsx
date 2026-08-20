@@ -1,7 +1,7 @@
 import { Link, Navigate, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 
-import api from "../api/axios";
+import api, { setAccessToken }  from "../api/axios";
 
 const isAuthenticated = () => Boolean(localStorage.getItem("token"));
 
