@@ -530,18 +530,21 @@ a {
 }
 
 .password-rules {
-  list-style: none;
+  list-style: disc;
   margin: 0 0 8px;
-  padding: 0;
-  display: ruby;
-  gap: 6px;
-  font-size: 0.85rem;
+  padding-left: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 0.65rem;
+  text-align: left;      
+  align-items: flex-start;
 }
-
 .password-rules li {
   color: #6c757d;
+  display: list-item;
+  text-align: left;  
 }
-
 .password-rules li.valid {
   color: #198754;
 }
@@ -566,9 +569,14 @@ a {
 }
 
 .dashboard-shell {
-  width: min(1280px, calc(100% - 48px));
-  margin: 0 auto;
-  padding: 28px 0 40px;
+  width: 100%;
+  padding: 28px 24px 40px;   /* 24px 和 app-header-inner 一致 */
+  background: rgba(255, 255, 255, 0.9);
+  border: 1px solid $soft-border;
+  border-radius: 16px;
+  box-shadow: 0 10px 20px rgba(15, 23, 42, 0.06);
+  /* 删掉 margin: 0 auto; */
+  /* 删掉 width: min(1280px, ...); */
 }
 
 .events-topbar {
