@@ -15,4 +15,5 @@ module.exports = {
   DB: "postgres",
   SSL: "true",
   JWT_SECRET: "my_JWT_secret_key_COMPX_596",
+  REFRESH_SECRET: "our_jwt_refresh_secret_CSMAX_rototuna_alumni_platform",
 };
