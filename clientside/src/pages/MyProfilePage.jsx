@@ -32,6 +32,12 @@ const [startDate, setStartDate] = useState("");
 const [endDate, setEndDate] = useState("");
 const [description, setDescription] = useState("");
 const [showEmploymentForm, setShowEmploymentForm] = useState(false);
+const [currentCity, setCurrentCity] = useState("");
+const [currentCountry, setCurrentCountry] = useState("");
+const [email, setEmail] = useState("");
+const [studentId, setStudentId] = useState("");
+const [firstName, setFirstName] = useState("");
+const [lastName, setLastName] = useState("");
   useEffect(() => {
     const payload = getTokenPayload();
 
@@ -53,6 +59,12 @@ const [showEmploymentForm, setShowEmploymentForm] = useState(false);
         setBio(currentProfile?.bio || "");
 setLinkedinUrl(currentProfile?.linkedin_url || "");
 setProfileImageUrl(currentProfile?.profile_image_url || "");
+setCurrentCity(currentProfile?.current_city || "");
+setCurrentCountry(currentProfile?.current_country || "");
+setEmail(currentProfile?.email || "");
+setStudentId(currentProfile?.student_id || "");
+setFirstName(currentProfile?.firstname || currentProfile?.first_name || "");
+setLastName(currentProfile?.lastname || currentProfile?.last_name || "");
       })
     
       .catch((error) => {
@@ -80,7 +92,7 @@ api
   try {
     let imageUrl = profileImageUrl;
 
-    // Agar user ne new image choose ki hai
+    // If the user selected a new profile image.
     if (profileImageFile) {
       const formData = new FormData();
       formData.append("profileImage", profileImageFile);
@@ -99,12 +111,19 @@ api
       setProfileImageUrl(imageUrl);
     }
 
-    // Profile information database mein save karo
+    // Save Profile information to the database.
     const response = await api.patch(`/profile/${profile.id}`, {
-      bio: bio,
-      linkedin_url: linkedinUrl,
-      profile_image_url: imageUrl
-    });
+      firstname: firstName,
+      lastname: lastName,
+  bio: bio,
+  linkedin_url: linkedinUrl,
+  profile_image_url: imageUrl,
+  current_city: currentCity,
+  current_country: "New Zealand",
+  email: email,
+  student_id: studentId,
+
+});
 
     setProfile(response.data);
     setProfileImageFile(null);
@@ -194,7 +213,25 @@ const handleDeleteEmployment = async (id) => {
 )}
 
             <div className="linkedin-profile-meta">
-              <h2>{fullName}</h2>
+              {editing ? (
+  <>
+    <input
+      type="text"
+      value={firstName}
+      onChange={(e) => setFirstName(e.target.value)}
+      placeholder="Enter first name"
+    />
+
+    <input
+      type="text"
+      value={lastName}
+      onChange={(e) => setLastName(e.target.value)}
+      placeholder="Enter last name"
+    />
+  </>
+) : (
+  <h2>{fullName}</h2>
+)}
               <p className="linkedin-title">Graduate • Batch {profile.year || profile.graduation_year || "-"}</p>
             </div>
             {editing ? (
@@ -221,20 +258,70 @@ const handleDeleteEmployment = async (id) => {
           </div>
 
           <div className="linkedin-profile-body">
-            <div className="linkedin-detail-row">
-              <span className="linkedin-label">Location</span>
-              <span>{profile.current_city || "-"}{profile.current_country ? `, ${profile.current_country}` : ""}</span>
-            </div>
+           <div className="linkedin-detail-row">
+  <span className="linkedin-label">Location</span>
+
+  {editing ? (
+    <select
+      value={currentCity}
+      onChange={(e) => {
+        setCurrentCity(e.target.value);
+        setCurrentCountry("New Zealand");
+      }}
+    >
+      <option value="">Select city</option>
+      <option value="Hamilton">Hamilton</option>
+      <option value="Auckland">Auckland</option>
+      <option value="Wellington">Wellington</option>
+      <option value="Christchurch">Christchurch</option>
+      <option value="Tauranga">Tauranga</option>
+      <option value="Dunedin">Dunedin</option>
+      <option value="Palmerston North">Palmerston North</option>
+      <option value="Napier">Napier</option>
+      <option value="Hastings">Hastings</option>
+      <option value="Rotorua">Rotorua</option>
+      <option value="New Plymouth">New Plymouth</option>
+      <option value="Whangārei">Whangārei</option>
+      <option value="Nelson">Nelson</option>
+      <option value="Invercargill">Invercargill</option>
+    </select>
+  ) : (
+    <span>
+      {profile.current_city || "-"}
+      {profile.current_city ? ", New Zealand" : ""}
+    </span>
+  )}
+</div>
 
             <div className="linkedin-detail-row">
-              <span className="linkedin-label">Email</span>
-              <span>{profile.email || "-"}</span>
-            </div>
+  <span className="linkedin-label">Email</span>
+
+  {editing ? (
+    <input
+      type="email"
+      value={email}
+      onChange={(e) => setEmail(e.target.value)}
+      placeholder="Enter email address"
+    />
+  ) : (
+    <span>{profile.email || "-"}</span>
+  )}
+</div>
 
             <div className="linkedin-detail-row">
-              <span className="linkedin-label">Student ID</span>
-              <span>{profile.student_id || "-"}</span>
-            </div>
+  <span className="linkedin-label">Student ID</span>
+
+  {editing ? (
+    <input
+      type="text"
+      value={studentId}
+      onChange={(e) => setStudentId(e.target.value)}
+      placeholder="Enter student ID"
+    />
+  ) : (
+    <span>{profile.student_id || "-"}</span>
+  )}
+</div>
 
             <div className="linkedin-detail-row">
   <span className="linkedin-label">About</span>
