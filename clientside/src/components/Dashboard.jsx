@@ -9,6 +9,19 @@ function Dashboard() {
 
   return (
     <div className="dashboard-shell">
+      
+      <div className="dashboard-action-panel">
+        <Link className="primary-action" to="/profile">
+          View All Profiles
+        </Link>
+        <Link className="primary-action" to="/membership-request">
+          Membership Request
+        </Link>
+        <Link className="primary-action" to="/message-alumni">
+          Message Alumni
+        </Link>
+      </div>
+      
       <div className="events-topbar">
         <h1 className="events-title">
           Upcoming events, Rototuna alumni meetups, and local activities
@@ -45,17 +58,6 @@ function Dashboard() {
         ))}
       </div>
 
-      <div className="dashboard-action-panel">
-        <Link className="primary-action" to="/profile">
-          View All Profiles
-        </Link>
-        <Link className="primary-action" to="/membership-request">
-          Membership Request
-        </Link>
-        <Link className="primary-action" to="/message-alumni">
-          Message Alumni
-        </Link>
-      </div>
 
       <EventDetailsModal
         event={selectedEvent}
