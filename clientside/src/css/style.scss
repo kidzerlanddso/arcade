@@ -89,6 +89,8 @@ a {
 
 .app-header-inner {
   width: 100%;
+  max-width: 1440px;
+  margin: 0 auto;
   padding: 12px 24px;
   display: flex;
   align-items: center;
@@ -104,6 +106,13 @@ a {
   text-decoration: none;
   font-size: 1.15rem;
   font-weight: 700;
+}
+
+.app-logo {
+  display: block;
+  width: 42px;
+  height: 42px;
+  object-fit: contain;
 }
 
 .app-header-nav {
@@ -126,6 +135,81 @@ a {
   padding: 10px 16px;
   font-size: 0.92rem;
   line-height: 1;
+}
+
+.app-header-menu-toggle {
+  display: none;
+  width: 42px;
+  height: 42px;
+  padding: 9px;
+  border: 1px solid $soft-border;
+  border-radius: 10px;
+  background: #fff;
+  cursor: pointer;
+}
+
+.app-header-menu-toggle span {
+  display: block;
+  height: 2px;
+  margin: 5px 0;
+  border-radius: 2px;
+  background: $dark-text;
+}
+
+.profile-menu {
+  position: relative;
+}
+
+.profile-menu-button {
+  border: 0;
+  padding: 8px 4px;
+  background: transparent;
+  color: $dark-text;
+  cursor: pointer;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.profile-menu-button:hover,
+.profile-menu-button:focus-visible {
+  color: $primary-blue;
+}
+
+.profile-menu-panel {
+  position: absolute;
+  top: calc(100% + 10px);
+  right: 0;
+  z-index: 30;
+  min-width: 180px;
+  padding: 6px;
+  border: 1px solid $soft-border;
+  border-radius: 10px;
+  background: #fff;
+  box-shadow: 0 12px 28px rgba(15, 23, 42, 0.16);
+}
+
+.profile-menu-panel a,
+.profile-menu-item {
+  display: block;
+  width: 100%;
+  padding: 10px 12px;
+  border: 0;
+  border-radius: 7px;
+  background: transparent;
+  color: $dark-text;
+  cursor: pointer;
+  font-size: 0.95rem;
+  font-weight: 600;
+  text-align: left;
+  text-decoration: none;
+}
+
+.profile-menu-panel a:hover,
+.profile-menu-panel a:focus-visible,
+.profile-menu-item:hover,
+.profile-menu-item:focus-visible {
+  background: #f0f6ff;
+  color: $primary-blue;
 }
 
 .brand-panel h1 {
@@ -1315,6 +1399,149 @@ a {
     flex-direction: column;
     align-items: flex-start;
   }
+
+  .app-header-inner {
+    position: relative;
+    padding: 10px 16px;
+  }
+
+  .app-header-menu-toggle {
+    display: block;
+    margin-left: auto;
+  }
+
+  .app-header-nav {
+    position: absolute;
+    top: 100%;
+    right: 0;
+    left: 0;
+    display: none;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0;
+    padding: 8px 16px 14px;
+    border-top: 1px solid $soft-border;
+    background: #fff;
+    box-shadow: 0 10px 18px rgba(15, 23, 42, 0.1);
+  }
+
+  .app-header-nav.is-open {
+    display: flex;
+  }
+
+  .app-header-nav > a,
+  .profile-menu-button,
+  .app-header-logout {
+    width: 100%;
+    min-height: 44px;
+    padding: 11px 8px;
+    text-align: left;
+  }
+
+  .profile-menu-panel {
+    position: static;
+    min-width: 0;
+    margin: 0 0 4px 8px;
+    border: 0;
+    box-shadow: none;
+    background: #f7f9fc;
+  }
+
+  .app-header-logout {
+    justify-content: flex-start;
+    margin-top: 4px;
+  }
+
+  .dashboard-shell,
+  .book-list,
+  .profile-section {
+    border-radius: 10px;
+  }
+
+  .dashboard-shell {
+    padding: 20px 16px 28px;
+  }
+
+  .profile-section {
+    margin: 12px 0;
+    padding: 16px;
+  }
+
+  .linkedin-profile-card {
+    padding: 18px;
+  }
+
+  .linkedin-profile-header {
+    align-items: flex-start;
+    flex-direction: column;
+    padding: 58px 0 0;
+  }
+
+  .linkedin-avatar {
+    left: 18px;
+  }
+
+  .linkedin-detail-row {
+    grid-template-columns: 1fr;
+    gap: 4px;
+  }
+}
+
+@media (max-width: 480px) {
+  .auth-shell {
+    padding: 20px 12px;
+  }
+
+  .brand-panel {
+    padding: 20px 8px;
+  }
+
+  .auth-card,
+  .modal-card {
+    padding: 16px;
+    border-radius: 12px;
+  }
+
+  .events-page-shell,
+  .message-alumni-page {
+    width: calc(100% - 24px);
+    padding-top: 24px;
+  }
+
+  .events-page-header h1,
+  .events-title {
+    font-size: 2rem;
+  }
+
+  .events-header-actions,
+  .events-header-actions > *,
+  .add-event-form-actions,
+  .add-event-form-actions > * {
+    width: 100%;
+  }
+
+  .events-count {
+    align-self: flex-start;
+  }
+
+  .modal-overlay,
+  .event-modal-overlay {
+    padding: 12px;
+  }
+}
+
+img,
+svg,
+video,
+canvas {
+  max-width: 100%;
+}
+
+input,
+select,
+textarea,
+button {
+  max-width: 100%;
 }
 .profile-section {
   width: 100%;

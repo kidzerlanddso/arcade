@@ -1,5 +1,5 @@
 import { Link, Navigate, useNavigate } from "react-router-dom";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import api, { setAccessToken }  from "../api/axios";
 
@@ -24,7 +24,9 @@ const isStrongPassword = (password) =>
 function ProtectedRoute({ children }) {
   const navigate = useNavigate();
   const userName = getCurrentUserName();
+  const profileMenuRef = useRef(null);
   const [menuOpen, setMenuOpen] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [resetOpen, setResetOpen] = useState(false);
   const [formData, setFormData] = useState({
     currentPassword: "",
@@ -34,7 +36,7 @@ function ProtectedRoute({ children }) {
 
   useEffect(() => {
     const closeMenu = (event) => {
-      if (!event.target.closest(".profile-menu")) {
+      if (profileMenuRef.current && !profileMenuRef.current.contains(event.target)) {
         setMenuOpen(false);
       }
     };
@@ -42,6 +44,11 @@ function ProtectedRoute({ children }) {
     document.addEventListener("click", closeMenu);
     return () => document.removeEventListener("click", closeMenu);
   }, []);
+
+  useEffect(() => {
+    setMenuOpen(false);
+    setMobileMenuOpen(false);
+  }, [navigate]);
 
   const handleLogout = async () => {
     try {
@@ -101,16 +108,35 @@ function ProtectedRoute({ children }) {
             <img src="src/assets/logo.png" alt="Logo" className="app-logo" />
           </Link>
 
-          <nav className="app-header-nav" aria-label="Main navigation">
-            <Link to="/dashboard">Dashboard</Link>
+          <button
+            type="button"
+            className="app-header-menu-toggle"
+            aria-expanded={mobileMenuOpen}
+            aria-controls="main-navigation"
+            aria-label={mobileMenuOpen ? "Close navigation menu" : "Open navigation menu"}
+            onClick={() => setMobileMenuOpen((open) => !open)}
+          >
+            <span />
+            <span />
+            <span />
+          </button>
 
-            <Link to="/profile">    Find an Alumni </Link>
-            <Link to="/membership-request">    Membership Request</Link>
+          <nav
+            id="main-navigation"
+            className={`app-header-nav${mobileMenuOpen ? " is-open" : ""}`}
+            aria-label="Main navigation"
+          >
+            <Link to="/dashboard" onClick={() => setMobileMenuOpen(false)}>Dashboard</Link>
 
-            <div className="profile-menu">
+            <Link to="/profile" onClick={() => setMobileMenuOpen(false)}>Find an Alumni</Link>
+            <Link to="/membership-request" onClick={() => setMobileMenuOpen(false)}>Membership Request</Link>
+
+            <div className="profile-menu" ref={profileMenuRef}>
               <button
                 type="button"
                 className="profile-menu-button"
+                aria-expanded={menuOpen}
+                aria-haspopup="menu"
                 onClick={() => setMenuOpen((open) => !open)}
               >
                 {userName} ▾
@@ -118,7 +144,10 @@ function ProtectedRoute({ children }) {
 
               {menuOpen && (
                 <div className="profile-menu-panel" role="menu">
-                  <Link to="/profile/me" onClick={() => setMenuOpen(false)}>
+                  <Link to="/profile/me" onClick={() => {
+                    setMenuOpen(false);
+                    setMobileMenuOpen(false);
+                  }}>
                     Profile
                   </Link>
                   <button
@@ -126,6 +155,7 @@ function ProtectedRoute({ children }) {
                     className="profile-menu-item"
                     onClick={() => {
                       setMenuOpen(false);
+                      setMobileMenuOpen(false);
                       setResetOpen(true);
                     }}
                   >
@@ -135,7 +165,10 @@ function ProtectedRoute({ children }) {
               )}
             </div>
 
-            <button type="button" className="btn btn-danger app-header-logout" onClick={handleLogout}>
+            <button type="button" className="btn btn-danger app-header-logout" onClick={() => {
+              setMobileMenuOpen(false);
+              handleLogout();
+            }}>
               Logout
             </button>
           </nav>
