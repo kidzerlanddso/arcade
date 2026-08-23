@@ -1,6 +1,6 @@
 import axios from "axios";
 
-let memoryToken = localStorage.getItem("token");
+let memoryToken = null;
 
 export const setAccessToken = (token) => {
   memoryToken = token;
@@ -41,7 +41,7 @@ api.interceptors.response.use(
 
         const { token } = response.data;
         setAccessToken(token);
-        localStorage.setItem("token", token);
+       
 
         // Update the failed request header and immediately retry it
         originalRequest.headers.Authorization = `Bearer ${token}`;
