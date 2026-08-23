@@ -38,6 +38,8 @@ const [email, setEmail] = useState("");
 const [studentId, setStudentId] = useState("");
 const [firstName, setFirstName] = useState("");
 const [lastName, setLastName] = useState("");
+const [countries, setCountries] = useState([]);
+const [showPhotoModal, setShowPhotoModal] = useState(false);
   useEffect(() => {
     const payload = getTokenPayload();
 
@@ -87,7 +89,49 @@ api
   });
 
 }, []);
+useEffect(() => {
+  api
+    .get("/country")
+    .then((response) => {
+      setCountries(response.data || []);
+    })
+    .catch((error) => {
+      console.error("Error loading countries:", error);
+      setCountries([]);
+    });
+}, []);
+const handleProfileImageChange = async (e) => {
+  const file = e.target.files[0];
 
+  if (!file) return;
+
+  try {
+    const formData = new FormData();
+    formData.append("profileImage", file);
+
+    const uploadResponse = await api.post(
+      `/profile/${profile.id}/image`,
+      formData
+    );
+
+    const imageUrl = uploadResponse.data.profile_image_url;
+
+    await api.patch(`/profile/${profile.id}`, {
+      profile_image_url: imageUrl,
+    });
+
+    setProfile((prev) => ({
+      ...prev,
+      profile_image_url: imageUrl,
+    }));
+
+    setProfileImageUrl(imageUrl);
+
+    e.target.value = "";
+  } catch (error) {
+    console.error("Error updating profile image:", error);
+  }
+};
   const handleSave = async () => {
   try {
     let imageUrl = profileImageUrl;
@@ -98,14 +142,9 @@ api
       formData.append("profileImage", profileImageFile);
 
       const uploadResponse = await api.post(
-        `/profile/${profile.id}/image`,
-        formData,
-        {
-          headers: {
-            "Content-Type": "multipart/form-data"
-          }
-        }
-      );
+  `/profile/${profile.id}/image`,
+  formData
+);
 
       imageUrl = uploadResponse.data.profile_image_url;
       setProfileImageUrl(imageUrl);
@@ -119,7 +158,7 @@ api
   linkedin_url: linkedinUrl,
   profile_image_url: imageUrl,
   current_city: currentCity,
-  current_country: "New Zealand",
+  current_country:currentCountry,
   email: email,
   student_id: studentId,
 
@@ -192,105 +231,148 @@ const handleDeleteEmployment = async (id) => {
 
         <div className="linkedin-profile-card">
           <div className="linkedin-profile-header">
-            <div className="linkedin-avatar">
-  {profile.profile_image_url ? (
-    <img
-      src={profile.profile_image_url}
-      alt="Profile"
-      className="profile-image"
-    />
-  ) : (
-    (profile.firstname || "U").charAt(0).toUpperCase()
-  )}
-</div>
-{editing && (
+
+  <div
+    className="linkedin-avatar"
+    onClick={() => setShowPhotoModal(true)}
+  >
+    {profile.profile_image_url ? (
+      <img
+        src={profile.profile_image_url}
+        alt="Profile"
+        className="profile-image"
+      />
+    ) : (
+      (profile.firstname || "U").charAt(0).toUpperCase()
+    )}
+  </div>
+
   <input
+    id="profileImageInput"
     type="file"
     accept="image/*"
-        onChange={(e) => setProfileImageFile(e.target.files[0])}
-    
+    onChange={handleProfileImageChange}
+    style={{ display: "none" }}
   />
-)}
 
-            <div className="linkedin-profile-meta">
-              {editing ? (
-  <>
-    <input
-      type="text"
-      value={firstName}
-      onChange={(e) => setFirstName(e.target.value)}
-      placeholder="Enter first name"
-    />
+  {showPhotoModal && (
+    <div className="photo-modal-overlay">
+      <div className="photo-modal">
 
-    <input
-      type="text"
-      value={lastName}
-      onChange={(e) => setLastName(e.target.value)}
-      placeholder="Enter last name"
-    />
-  </>
-) : (
-  <h2>{fullName}</h2>
-)}
-              <p className="linkedin-title">Graduate • Batch {profile.year || profile.graduation_year || "-"}</p>
-            </div>
-            {editing ? (
-  <>
-    <button onClick={handleSave}>
-      Save
+        <button
+          className="photo-modal-close"
+          onClick={() => setShowPhotoModal(false)}
+        >
+          ×
+        </button>
+
+        <h2>Profile photo</h2>
+
+        <img
+          src={profile.profile_image_url}
+          alt="Profile"
+          className="photo-modal-image"
+        />
+
+        <button
+          className="change-photo-button"
+          onClick={() => {
+            document
+              .getElementById("profileImageInput")
+              ?.click();
+
+            setShowPhotoModal(false);
+          }}
+        >
+          Change photo
+        </button>
+
+      </div>
+    </div>
+  )}
+
+  <div className="linkedin-profile-meta">
+    {editing ? (
+      <>
+        <input
+          type="text"
+          value={firstName}
+          onChange={(e) => setFirstName(e.target.value)}
+          placeholder="Enter first name"
+        />
+
+        <input
+          type="text"
+          value={lastName}
+          onChange={(e) => setLastName(e.target.value)}
+          placeholder="Enter last name"
+        />
+      </>
+    ) : (
+      <h2>{fullName}</h2>
+    )}
+
+    <p className="linkedin-title">
+      Graduate • Batch {profile.year || profile.graduation_year || "-"}
+    </p>
+  </div>
+
+  {editing ? (
+    <>
+      <button onClick={handleSave}>
+        Save
+      </button>
+
+      <button
+        onClick={() => {
+          setEditing(false);
+          setProfileImageFile(null);
+          setShowEmploymentForm(false);
+        }}
+      >
+        Cancel
+      </button>
+    </>
+  ) : (
+    <button onClick={() => setEditing(true)}>
+      Edit Profile
     </button>
+  )}
 
-    <button
-  onClick={() => {
-    setEditing(false);
-    setProfileImageFile(null);
-    setShowEmploymentForm(false);
-  }}
->
-  Cancel
-</button>
-  </>
-) : (
-  <button onClick={() => setEditing(true)}>
-    Edit Profile
-  </button>
-)}
-          </div>
+</div>
 
           <div className="linkedin-profile-body">
            <div className="linkedin-detail-row">
   <span className="linkedin-label">Location</span>
 
   {editing ? (
-    <select
-      value={currentCity}
-      onChange={(e) => {
-        setCurrentCity(e.target.value);
-        setCurrentCountry("New Zealand");
-      }}
-    >
-      <option value="">Select city</option>
-      <option value="Hamilton">Hamilton</option>
-      <option value="Auckland">Auckland</option>
-      <option value="Wellington">Wellington</option>
-      <option value="Christchurch">Christchurch</option>
-      <option value="Tauranga">Tauranga</option>
-      <option value="Dunedin">Dunedin</option>
-      <option value="Palmerston North">Palmerston North</option>
-      <option value="Napier">Napier</option>
-      <option value="Hastings">Hastings</option>
-      <option value="Rotorua">Rotorua</option>
-      <option value="New Plymouth">New Plymouth</option>
-      <option value="Whangārei">Whangārei</option>
-      <option value="Nelson">Nelson</option>
-      <option value="Invercargill">Invercargill</option>
-    </select>
+  <div className="location-edit-fields">
+  <input
+    type="text"
+    value={currentCity}
+    onChange={(e) => setCurrentCity(e.target.value)}
+    placeholder="Enter city"
+  />
+
+  <select
+    value={currentCountry}
+    onChange={(e) => setCurrentCountry(e.target.value)}
+  >
+    <option value="">Select country</option>
+
+    {countries.map((country) => (
+      <option key={country.Code} value={country.Name}>
+        {country.Name}
+      </option>
+    ))}
+  </select>
+</div>
   ) : (
     <span>
-      {profile.current_city || "-"}
-      {profile.current_city ? ", New Zealand" : ""}
-    </span>
-  )}
+  {profile.current_city || "-"}
+  {profile.current_country ? `, ${profile.current_country}` : ""}
+</span>
+)}
 </div>
 
             <div className="linkedin-detail-row">

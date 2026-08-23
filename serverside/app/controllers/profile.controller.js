@@ -126,13 +126,14 @@ exports.uploadProfileImage = async (req, res) => {
       compressedFilename
     );
 
-    await sharp(req.file.path)
-      .resize(300, 300, { fit: "cover" })
-      .webp({ quality: 75 })
-      .toFile(compressedPath);
+    const imageBuffer = await fs.promises.readFile(req.file.path);
 
-    await fs.promises.unlink(req.file.path);
+await sharp(imageBuffer)
+  .resize(300, 300, { fit: "cover" })
+  .webp({ quality: 75 })
+  .toFile(compressedPath);
 
+await fs.promises.unlink(req.file.path);
     const imageUrl =
       `http://localhost:3001/uploads/${compressedFilename}`;
 
