@@ -1667,3 +1667,77 @@ button {
 .linkedin-profile-header>button:hover {
   background: #eef6ff;
 }
+.location-edit-fields {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.location-edit-fields input,
+.location-edit-fields select {
+  width: 100%;
+  box-sizing: border-box;
+}
+.photo-modal-overlay {
+  position: fixed !important;
+  inset: 0 !important;
+  width: 100vw !important;
+  height: 100vh !important;
+  background: rgba(0, 0, 0, 0.65) !important;
+  display: flex !important;
+  justify-content: center !important;
+  align-items: center !important;
+  z-index: 99999 !important;
+}
+
+.photo-modal {
+  position: relative !important;
+  width: 600px !important;
+  max-width: 90vw !important;
+  background: #1d2226 !important;
+  color: white !important;
+  border-radius: 10px !important;
+  padding: 24px !important;
+  text-align: center !important;
+}
+
+.photo-modal h2 {
+  text-align: left !important;
+  margin: 0 0 25px 0 !important;
+  color: white !important;
+}
+
+.photo-modal-image {
+  width: 300px !important;
+  height: 300px !important;
+  object-fit: cover !important;
+  border-radius: 50% !important;
+  display: block !important;
+  margin: 0 auto 25px auto !important;
+}
+
+.photo-modal-close {
+  position: absolute !important;
+  top: 15px !important;
+  right: 18px !important;
+  background: transparent !important;
+  border: none !important;
+  color: white !important;
+  font-size: 30px !important;
+  cursor: pointer !important;
+}
+
+.change-photo-button {
+  display: block !important;
+  margin: 0 auto !important;
+  padding: 10px 20px !important;
+  border: none !important;
+  border-radius: 20px !important;
+  cursor: pointer !important;
+  font-size: 16px !important;
+}
+
+.linkedin-avatar {
+  cursor: pointer;
+}

@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-
-import api from "../api/axios";
+import api, { setAccessToken } from "../api/axios";
 
 function Login() {
   const navigate = useNavigate();
@@ -29,6 +28,7 @@ function Login() {
       const isAdmin = Number(response.data.admin) === 1;
 
       localStorage.setItem("token", token);
+      setAccessToken(token);
       localStorage.setItem("isAdmin", String(isAdmin));
       setStatus({
         type: "success",

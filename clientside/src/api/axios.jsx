@@ -1,6 +1,6 @@
 import axios from "axios";
 
-let memoryToken = null;
+let memoryToken = localStorage.getItem("token");
 
 export const setAccessToken = (token) => {
   memoryToken = token;
@@ -9,9 +9,7 @@ export const setAccessToken = (token) => {
 const api = axios.create({
   baseURL: "http://localhost:3001",
   withCredentials: true, // Crucial: Tells the browser to send/receive cookies automatically
-  headers: {
-    "Content-Type": "application/json"
-  }
+  
 });
 
 
@@ -43,6 +41,7 @@ api.interceptors.response.use(
 
         const { token } = response.data;
         setAccessToken(token);
+        localStorage.setItem("token", token);
 
         // Update the failed request header and immediately retry it
         originalRequest.headers.Authorization = `Bearer ${token}`;
