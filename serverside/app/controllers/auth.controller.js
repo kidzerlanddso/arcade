@@ -83,11 +83,14 @@ exports.login = function(req, res) {
     const refreshToken = jwt.sign({ userId: data.id, username: data.username, admin: isAdmin },config.REFRESH_SECRET, { expiresIn: '7d' }
     );
 
+    // Cross-site cookies need secure + SameSite=None in production (Vercel ↔ Render).
+    const isProd = process.env.NODE_ENV === "production";
+
     // 3. Send refresh token in a secure, hidden cookie
     res.cookie('refreshToken', refreshToken, {
       httpOnly: true,     // Prevents XSS scripts from reading the cookie
-      secure: false,      // Set to true in production (requires HTTPS)
-      sameSite: 'lax',    // Helps protect against CSRF attacks
+      secure: isProd,     // Required for HTTPS / SameSite=None
+      sameSite: isProd ? 'none' : 'lax',
       path: '/',          // Must match the path used when clearing the cookie
       maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days matching token expiration
     });
@@ -134,18 +137,20 @@ exports.refresh = function(req, res) {
 
 // Clear cookie and log out user
 exports.logout = function(req, res) {
+  const isProd = process.env.NODE_ENV === "production";
+
   res.clearCookie('refreshToken', {
     httpOnly: true,
-    secure: false, // Set to true in production (requires HTTPS)
-    sameSite: 'lax',
+    secure: isProd,
+    sameSite: isProd ? 'none' : 'lax',
     path: '/'
   });
 
   // Remove cookies issued before the cookie path was made explicit.
   res.clearCookie('refreshToken', {
     httpOnly: true,
-    secure: false,
-    sameSite: 'lax',
+    secure: isProd,
+    sameSite: isProd ? 'none' : 'lax',
     path: '/auth'
   });
   
