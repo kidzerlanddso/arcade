@@ -326,6 +326,66 @@ a {
   gap: 16px;
 }
 
+.auth-form .form-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.auth-form label {
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.auth-form .required-mark {
+  color: #b42318;
+}
+
+.auth-form .form-note {
+  margin: 0;
+  font-size: 12px;
+  color: #6c757d;
+}
+
+.form-status {
+  margin-bottom: 12px;
+  padding: 12px 14px;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.45;
+}
+
+.form-status--success {
+  background: #e8f7ee;
+  color: #1f7a4d;
+  border: 1px solid #9ad3b0;
+}
+
+.form-status--error {
+  background: #fdecea;
+  color: #b42318;
+  border: 1px solid #f5b7b1;
+}
+
+.register-form.modal-card {
+  width: min(720px, 100%);
+}
+
+.register-form form {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px 16px;
+}
+
+.register-form .password-rules,
+.register-form .form-note,
+.register-form .register-button,
+.register-form .password-match,
+.register-form .password-mismatch {
+  grid-column: 1 / -1;
+}
+
 .auth-form input {
   width: 100%;
   padding: 14px 14px;
@@ -1641,6 +1701,10 @@ a {
   .modal-card {
     padding: 16px;
     border-radius: 12px;
+  }
+
+  .register-form form {
+    grid-template-columns: 1fr;
   }
 
   .events-page-shell,

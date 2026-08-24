@@ -21,8 +21,11 @@ function Register({ isOpen, onClose }) {
     studentId: "",
     username: "",
     password: "",
-    confirmPassword: ""
+    confirmPassword: "",
+    email: ""
   });
+  const [status, setStatus] = useState({ type: "", message: "" });
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   if (!isOpen) return null;
 
@@ -38,20 +41,26 @@ function Register({ isOpen, onClose }) {
   const handleChange = (event) => {
     const { name, value } = event.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
+    if (status.message) {
+      setStatus({ type: "", message: "" });
+    }
   };
 
   const handleSubmit = async (event) => {
     event.preventDefault();
+    setStatus({ type: "", message: "" });
 
     if (!isPasswordStrong(formData.password)) {
-      alert(
-        "Password must include at least 8 characters, uppercase, lowercase, a number, and a special character."
-      );
+      setStatus({
+        type: "error",
+        message:
+          "Password must include at least 8 characters, uppercase, lowercase, a number, and a special character."
+      });
       return;
     }
 
     if (formData.password !== formData.confirmPassword) {
-      alert("Passwords do not match");
+      setStatus({ type: "error", message: "Passwords do not match." });
       return;
     }
 
@@ -61,16 +70,32 @@ function Register({ isOpen, onClose }) {
       year: formData.yearOfGraduation,
       student_id: formData.studentId,
       username: formData.username,
-      password: formData.password
+      password: formData.password,
+      email: formData.email
     };
 
+    setIsSubmitting(true);
+
     try {
-      await api.post("/auth/register", payload);
-      alert("User registered successfully");
-      onClose?.();
+      const response = await api.post("/auth/register", payload);
+      setStatus({
+        type: "success",
+        message: response.data.message || "Registration successful!"
+      });
+
+      window.setTimeout(() => {
+        onClose?.();
+      }, 1500);
     } catch (error) {
       console.error(error);
-      alert(error.response?.data?.message || "Registration failed");
+      setStatus({
+        type: "error",
+        message:
+          error.response?.data?.message ||
+          "Registration failed. Please try again."
+      });
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -87,54 +112,120 @@ function Register({ isOpen, onClose }) {
           </button>
         </div>
 
+        {status.message && (
+          <div className={`form-status form-status--${status.type}`}>
+            {status.message}
+          </div>
+        )}
+
         <form onSubmit={handleSubmit}>
-          <input
-            type="text"
-            name="firstName"
-            value={formData.firstName}
-            placeholder="First name"
-            onChange={handleChange}
-          />
+          <div className="form-field">
+            <label htmlFor="firstName">First name</label>
+            <input
+              id="firstName"
+              type="text"
+              name="firstName"
+              value={formData.firstName}
+              placeholder="First name"
+              onChange={handleChange}
+            />
+          </div>
 
-          <input
-            type="text"
-            name="lastName"
-            value={formData.lastName}
-            placeholder="Last name"
-            onChange={handleChange}
-          />
+          <div className="form-field">
+            <label htmlFor="lastName">Last name</label>
+            <input
+              id="lastName"
+              type="text"
+              name="lastName"
+              value={formData.lastName}
+              placeholder="Last name"
+              onChange={handleChange}
+            />
+          </div>
 
-          <input
-            type="number"
-            name="yearOfGraduation"
-            value={formData.yearOfGraduation}
-            placeholder="Year of graduation"
-            onChange={handleChange}
-          />
+          <div className="form-field">
+            <label htmlFor="yearOfGraduation">Year of graduation</label>
+            <input
+              id="yearOfGraduation"
+              type="number"
+              name="yearOfGraduation"
+              value={formData.yearOfGraduation}
+              placeholder="Year of graduation"
+              onChange={handleChange}
+            />
+          </div>
 
-          <input
-            type="text"
-            name="studentId"
-            value={formData.studentId}
-            placeholder="Student ID"
-            onChange={handleChange}
-          />
+          <div className="form-field">
+            <label htmlFor="studentId">Student ID</label>
+            <input
+              id="studentId"
+              type="text"
+              name="studentId"
+              value={formData.studentId}
+              placeholder="Student ID"
+              onChange={handleChange}
+            />
+          </div>
 
-          <input
-            type="text"
-            name="username"
-            value={formData.username}
-            placeholder="Choose a username"
-            onChange={handleChange}
-          />
+          <div className="form-field">
+            <label htmlFor="username">
+              Username <span className="required-mark">*</span>
+            </label>
+            <input
+              id="username"
+              type="text"
+              name="username"
+              value={formData.username}
+              placeholder="Choose a username"
+              onChange={handleChange}
+              required
+            />
+          </div>
 
-          <input
-            type="password"
-            name="password"
-            value={formData.password}
-            placeholder="Create a password"
-            onChange={handleChange}
-          />
+          <div className="form-field">
+            <label htmlFor="email">
+              Email <span className="required-mark">*</span>
+            </label>
+            <input
+              id="email"
+              type="email"
+              name="email"
+              value={formData.email}
+              placeholder="Enter your email"
+              onChange={handleChange}
+              required
+            />
+          </div>
+
+          <div className="form-field">
+            <label htmlFor="password">
+              Password <span className="required-mark">*</span>
+            </label>
+            <input
+              id="password"
+              type="password"
+              name="password"
+              value={formData.password}
+              placeholder="Create a password"
+              onChange={handleChange}
+              required
+            />
+          </div>
+
+          <div className="form-field">
+            <label htmlFor="confirmPassword">
+              Confirm password <span className="required-mark">*</span>
+            </label>
+            <input
+              id="confirmPassword"
+              type="password"
+              name="confirmPassword"
+              value={formData.confirmPassword}
+              placeholder="Re-enter password"
+              onChange={handleChange}
+              required
+            />
+          </div>
 
           <ul className="password-rules">
             {passwordChecks.map((rule) => (
@@ -147,22 +238,18 @@ function Register({ isOpen, onClose }) {
             ))}
           </ul>
 
-          <input
-            type="password"
-            name="confirmPassword"
-            value={formData.confirmPassword}
-            placeholder="Re-enter password"
-            onChange={handleChange}
-          />
-
           {formData.confirmPassword && (
             <p className={passwordsMatch ? "password-match" : "password-mismatch"}>
               {passwordsMatch ? "Passwords match" : "Passwords do not match"}
             </p>
           )}
 
-          <button className="register-button" type="submit">
-            Sign Up
+          <p className="form-note">
+            <span className="required-mark">*</span> Required field
+          </p>
+
+          <button className="register-button" type="submit" disabled={isSubmitting}>
+            {isSubmitting ? "Signing Up..." : "Sign Up"}
           </button>
         </form>
       </div>
