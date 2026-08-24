@@ -580,6 +580,62 @@ a {
   padding: 12px 0;
   border-bottom: 1px solid #edf2f7;
 }
+/* LinkedIn style profile editing */
+
+.linkedin-profile-body input,
+.linkedin-profile-body textarea,
+.linkedin-profile-body select {
+  width: 100%;
+  padding: 12px 14px;
+  border: 1px solid #d0d7de;
+  border-radius: 8px;
+  font-size: 16px;
+  background: white;
+  color: #1f2937;
+  box-sizing: border-box;
+}
+
+.linkedin-profile-body textarea {
+  min-height: 100px;
+  resize: vertical;
+}
+
+.linkedin-profile-body input:focus,
+.linkedin-profile-body textarea:focus,
+.linkedin-profile-body select:focus {
+  outline: none;
+  border-color: #0a66c2;
+  box-shadow: 0 0 0 2px rgba(10, 102, 194, 0.15);
+}
+.linkedin-profile-meta input {
+  width: 100%;
+  padding: 12px 14px;
+  border: 1px solid #d0d7de;
+  border-radius: 8px;
+  font-size: 16px;
+  background: white;
+  color: #1f2937;
+  box-sizing: border-box;
+}
+
+.linkedin-profile-meta input:focus {
+  outline: none;
+  border-color: #0a66c2;
+  box-shadow: 0 0 0 2px rgba(10, 102, 194, 0.15);
+}
+.linkedin-profile-meta {
+  display: block;
+}
+
+.linkedin-profile-meta input {
+  width: 220px;
+  display: inline-block;
+  margin-right: 12px;
+}
+
+.linkedin-profile-meta input {
+  width: 220px;
+}
 
 .linkedin-label {
   font-weight: 700;
@@ -592,6 +648,36 @@ a {
   border: none;
   border-radius: 10px;
   padding: 10px 16px;
+}
+.linkedin-profile-header button {
+  padding: 10px 22px;
+  border-radius: 24px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: 0.2s ease;
+}
+
+/* Save button */
+.linkedin-profile-header button:first-of-type {
+  background: #0a66c2;
+  color: white;
+  border: 1px solid #0a66c2;
+}
+
+.linkedin-profile-header button:first-of-type:hover {
+  background: #004182;
+}
+
+/* Cancel button */
+.linkedin-profile-header button:last-of-type {
+  background: white;
+  color: #0a66c2;
+  border: 1px solid #0a66c2;
+}
+
+.linkedin-profile-header button:last-of-type:hover {
+  background: #eaf3ff;
 }
 
 .book-form {
