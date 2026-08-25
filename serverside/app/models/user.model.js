@@ -3,7 +3,7 @@ const db = require("./db");
 const User = function(user) {
   this.username = user.username;
   this.password = user.password;
-  this.active = user.active !== undefined ? user.active : 1;
+  this.active = user.active !== undefined ? user.active : 2;
   this.admin = user.admin !== undefined ? Number(user.admin) : 0;
 };
 
@@ -71,14 +71,42 @@ User.findByUsername = function(username, result) {
 };
 
 User.getByActive = function(activeValue, result) {
-  db.query("SELECT * FROM users WHERE active = $1 ORDER BY id DESC", [activeValue], function(err, res) {
+  db.query(
+    `SELECT users.*, profile.firstname, profile.lastname, profile.year
+     FROM users
+     LEFT JOIN profile ON profile.user_id = users.id
+     WHERE users.active = $1
+     ORDER BY users.id DESC`,
+    [activeValue],
+    function(err, res) {
     if (err) {
       result(err, null);
       return;
     }
 
     result(null, res.rows);
-  });
+    }
+  );
+};
+
+User.approveById = function(userId, result) {
+  db.query(
+    "UPDATE users SET active = 1 WHERE id = $1 AND active = 2 RETURNING id, username, active",
+    [userId],
+    function(err, res) {
+      if (err) {
+        result(err, null);
+        return;
+      }
+
+      if (!res.rows.length) {
+        result({ kind: "not_found" }, null);
+        return;
+      }
+
+      result(null, res.rows[0]);
+    }
+  );
 };
 
 module.exports = User;

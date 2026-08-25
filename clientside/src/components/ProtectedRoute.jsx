@@ -5,6 +5,24 @@ import api, { setAccessToken }  from "../api/axios";
 
 const isAuthenticated = () => Boolean(localStorage.getItem("token"));
 
+const getAdminFromToken = () => {
+  const currentToken = localStorage.getItem("token");
+
+  if (!currentToken) return false;
+
+  try {
+    const payload = JSON.parse(atob(currentToken.split(".")[1] || ""));
+    const adminValue = payload.admin;
+    if (adminValue !== undefined && adminValue !== null) {
+      return adminValue === true || adminValue === 1 || adminValue === "1" || adminValue === "true";
+    }
+  } catch (error) {
+    console.error("Error decoding token for admin status:", error);
+  }
+
+  const storedAdmin = localStorage.getItem("isAdmin");
+  return storedAdmin === "true" || storedAdmin === "1";
+};
 const getCurrentUserName = () => {
   const token = localStorage.getItem("token");
 
@@ -25,6 +43,7 @@ function ProtectedRoute({ children }) {
   const navigate = useNavigate();
   const userName = getCurrentUserName();
   const profileMenuRef = useRef(null);
+  const [isAdmin, setIsAdmin] = useState(() => getAdminFromToken());
   const [menuOpen, setMenuOpen] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [resetOpen, setResetOpen] = useState(false);
@@ -129,7 +148,7 @@ function ProtectedRoute({ children }) {
             <Link to="/dashboard" onClick={() => setMobileMenuOpen(false)}>Dashboard</Link>
 
             <Link to="/profile" onClick={() => setMobileMenuOpen(false)}>Find an Alumni</Link>
-            <Link to="/membership-request" onClick={() => setMobileMenuOpen(false)}>Membership Request</Link>
+            {isAdmin && (<Link to="/membership-request" onClick={() => setMobileMenuOpen(false)}>Membership Request</Link>)}
 
             <div className="profile-menu" ref={profileMenuRef}>
               <button

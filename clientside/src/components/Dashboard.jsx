@@ -9,7 +9,7 @@ function Dashboard() {
 
   return (
     <div className="dashboard-shell">
-      
+      {/*
       <div className="dashboard-action-panel">
         <Link className="primary-action" to="/profile">
           View All Profiles
@@ -21,7 +21,8 @@ function Dashboard() {
           Message Alumni
         </Link>
       </div>
-      
+      */}
+
       <div className="events-topbar">
         <h1 className="events-title">
           Upcoming events, Rototuna alumni meetups, and local activities

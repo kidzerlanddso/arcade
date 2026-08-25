@@ -15,7 +15,7 @@ this.profile_image_url = profile.profile_image_url;
 };
 
 Project.getAll = (result) => {
-  db.query("SELECT * FROM profile", (err, res) => {
+  db.query("SELECT * FROM profile ORDER BY firstname DESC", (err, res) => {
     if (err) {
       console.log("GetAll error: ", err);
       result(err, null);

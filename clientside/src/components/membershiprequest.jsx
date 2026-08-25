@@ -7,6 +7,7 @@ function MembershipRequest() {
   const navigate = useNavigate();
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [approvingId, setApprovingId] = useState(null);
 
   useEffect(() => {
     const token = localStorage.getItem("token");
@@ -31,6 +32,20 @@ function MembershipRequest() {
       });
   }, [navigate]);
 
+  const handleApprove = async (userId) => {
+    setApprovingId(userId);
+
+    try {
+      await api.put(`/auth/membership-requests/${userId}/approve`);
+      setUsers((currentUsers) => currentUsers.filter((user) => user.id !== userId));
+    } catch (error) {
+      console.error("Error approving membership request:", error);
+      alert(error.response?.data?.message || "Unable to approve membership request.");
+    } finally {
+      setApprovingId(null);
+    }
+  };
+
   if (!localStorage.getItem("token")) return null;
 
   return (
@@ -52,10 +67,24 @@ function MembershipRequest() {
               </div>
 
               <div className="profile-card-body">
-                <h3>{user.username || "Unknown user"}</h3>
+                <h3>
+                  {[user.firstname, user.lastname].filter(Boolean).join(" ") || "Unknown user"}
+                </h3>
+                <p><strong>Username:</strong> {user.username || "-"}</p>
                 <p><strong>User ID:</strong> {user.id}</p>
+                <p><strong>Batch:</strong> {user.year || "-"}</p>
                 <p><strong>Status:</strong> Pending approval</p>
-                <p><strong>Active:</strong> {user.active}</p>
+                <button
+                  type="button"
+                  className="btn btn-success"
+                  onClick={() => handleApprove(user.id)}
+                  disabled={approvingId === user.id}
+                >
+                  {approvingId === user.id ? "Approving..." : "Approve Request"}
+                </button>
+                <button type="button" className="btn btn-danger">
+                  Decline Request
+                </button>
               </div>
             </article>
           ))}
