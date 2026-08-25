@@ -16,7 +16,7 @@ exports.register = function(req, res) {
   const user = new User({
     username: req.body.username,
     password: hashedPassword,
-    active: 1
+    active: 2
   });
 
   const profileData = {
@@ -70,6 +70,18 @@ exports.login = function(req, res) {
     const passwordIsValid = bcrypt.compareSync(req.body.password, data.password);
     if (!passwordIsValid) {
       return res.status(401).send({ message: "Invalid username/email or password." });
+    }
+
+    if (Number(data.active) === 2) {
+      return res.status(403).send({
+        message: "Admin needs to approve your account."
+      });
+    }
+
+    if (Number(data.active) === 2) {
+      return res.status(403).send({
+        message: "Admin needs to approve your account."
+      });
     }
 
     const isAdmin = Number(data.admin) === 1;
@@ -167,6 +179,31 @@ exports.getMembershipRequests = function(req, res) {
 
     res.status(200).send({
       data: users || []
+    });
+  });
+};
+
+exports.approveMembershipRequest = function(req, res) {
+  const userId = Number(req.params.id);
+
+  if (!Number.isInteger(userId) || userId <= 0) {
+    return res.status(400).send({ message: "A valid user ID is required." });
+  }
+
+  User.approveById(userId, function(err, data) {
+    if (err) {
+      if (err.kind === "not_found") {
+        return res.status(404).send({ message: "Pending membership request not found." });
+      }
+
+      return res.status(500).send({
+        message: err.message || "Unable to approve membership request."
+      });
+    }
+
+    return res.status(200).send({
+      message: "Membership request approved.",
+      user: data
     });
   });
 };

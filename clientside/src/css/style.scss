@@ -5,6 +5,8 @@ $dark-text: #1f2937;
 $light-bg: #f3f2ef;
 $soft-border: #d9d9d9;
 $shadow: rgba(0, 0, 0, 0.12);
+$primary-font-family: "DM Sans", sans-serif;
+
 
 * {
   box-sizing: border-box;
@@ -14,6 +16,7 @@ body {
   margin: 0;
   background: #f3f2ef;
   font-family: "Segoe UI", sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
   color: $dark-text;
 }
 
@@ -134,7 +137,7 @@ a {
 
 .app-header-inner {
   width: 100%;
-  max-width: 1440px;
+  //max-width: 1440px;
   margin: 0 auto;
   padding: 12px 24px;
   display: flex;
@@ -155,21 +158,23 @@ a {
 
 .app-logo {
   display: block;
-  width: 42px;
-  height: 42px;
+  //width: 42px;
+  //height: 42px;
   object-fit: contain;
 }
 
 .app-header-nav {
   display: flex;
   align-items: center;
+  font-family: $primary-font-family;
+  font-weight: 450;
   gap: 18px;
 }
 
 .app-header-nav a {
   color: $dark-text;
   text-decoration: none;
-  font-weight: 600;
+  font-weight: 450;
 }
 
 .app-header-nav a:hover {
@@ -483,6 +488,45 @@ a {
 
 .year-filter {
   min-width: 150px;
+}
+
+.profile-sort-controls {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: #495057;
+  font-size: 0.92rem;
+  font-weight: 600;
+}
+
+.profile-sort-controls button {
+  padding: 10px 12px;
+  border: 1px solid $soft-border;
+  border-radius: 8px;
+  background: #fff;
+  color: $dark-text;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.profile-sort-controls button:hover,
+.profile-sort-controls button.active {
+  border-color: $primary-blue;
+  background: #eaf3ff;
+  color: $primary-blue;
+}
+
+.profile-pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  margin-top: 24px;
+}
+
+.profile-pagination .btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
 }
 
 .profile-card-grid {
@@ -1588,6 +1632,23 @@ a {
 
   .primary-action {
     width: 100%;
+  }
+
+  .profile-sort-controls {
+    width: 100%;
+    flex-wrap: wrap;
+  }
+
+  .profile-sort-controls button {
+    flex: 1 1 130px;
+  }
+
+  .profile-pagination {
+    gap: 10px;
+  }
+
+  .profile-pagination .btn {
+    padding: 10px 14px;
   }
 }
 

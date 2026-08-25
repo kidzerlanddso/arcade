@@ -25,11 +25,16 @@ const getAdminFromToken = () => {
 function ProfileList() {
   const navigate = useNavigate();
   const [profiles, setProfiles] = useState([]);
-  const [token, setToken] = useState(() => localStorage.getItem("token"));
-  const [isAdmin, setIsAdmin] = useState(() => getAdminFromToken());
+  const [loading, setLoading] = useState(true);
+  const token = localStorage.getItem("token");
+  const isAdmin = getAdminFromToken();
   const [showModal, setShowModal] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedYear, setSelectedYear] = useState("all");
+  const [sortBy, setSortBy] = useState("firstname");
+  const [sortDirection, setSortDirection] = useState("asc");
+  const [currentPage, setCurrentPage] = useState(1);
+  const profilesPerPage = 20;
   const [formData, setFormData] = useState({
     firstname: "",
     lastname: "",
@@ -38,6 +43,7 @@ function ProfileList() {
   });
 
   useEffect(() => {
+    const controller = new AbortController();
     const storedToken = localStorage.getItem("token");
 
     if (!storedToken) {
@@ -45,18 +51,24 @@ function ProfileList() {
       return;
     }
 
-    setIsAdmin(getAdminFromToken());
-    setToken(storedToken);
-
     api
-      .get("/profile")
+      .get("/profile", { signal: controller.signal })
       .then((response) => {
         const profileData = response.data.data || response.data;
         setProfiles(profileData);
       })
       .catch((error) => {
-        console.error("Error fetching profiles:", error);
+        if (error.code !== "ERR_CANCELED") {
+          console.error("Error fetching profiles:", error);
+        }
+      })
+      .finally(() => {
+        if (!controller.signal.aborted) {
+          setLoading(false);
+        }
       });
+
+    return () => controller.abort();
   }, [navigate]);
 
   const handleChange = (event) => {
@@ -101,6 +113,31 @@ function ProfileList() {
     return matchesSearch && matchesYear;
   });
 
+  const sortedProfiles = [...filteredProfiles].sort((firstProfile, secondProfile) => {
+    const firstValue = (firstProfile[sortBy] || "").toLowerCase();
+    const secondValue = (secondProfile[sortBy] || "").toLowerCase();
+    const comparison = firstValue.localeCompare(secondValue);
+
+    return sortDirection === "asc" ? comparison : -comparison;
+  });
+
+  const totalPages = Math.max(1, Math.ceil(sortedProfiles.length / profilesPerPage));
+  const visiblePage = Math.min(currentPage, totalPages);
+  const visibleProfiles = sortedProfiles.slice(
+    (visiblePage - 1) * profilesPerPage,
+    visiblePage * profilesPerPage
+  );
+
+  const handleSort = (field) => {
+    if (sortBy === field) {
+      setSortDirection((direction) => direction === "asc" ? "desc" : "asc");
+      return;
+    }
+
+    setSortBy(field);
+    setSortDirection("asc");
+  };
+
   if (!token) return null;
 
   return (
@@ -137,10 +174,31 @@ function ProfileList() {
             </option>
           ))}
         </select>
+
+        <div className="profile-sort-controls" aria-label="Sort profiles">
+          <span>Sort by:</span>
+          <button
+            type="button"
+            className={sortBy === "firstname" ? "active" : ""}
+            onClick={() => handleSort("firstname")}
+          >
+            First name {sortBy === "firstname" ? (sortDirection === "asc" ? "↑" : "↓") : ""}
+          </button>
+          <button
+            type="button"
+            className={sortBy === "lastname" ? "active" : ""}
+            onClick={() => handleSort("lastname")}
+          >
+            Last name {sortBy === "lastname" ? (sortDirection === "asc" ? "↑" : "↓") : ""}
+          </button>
+        </div>
       </div>
 
-      <div className="profile-card-grid">
-        {filteredProfiles.map((profile) => (
+      {loading ? (
+        <p>Loading profiles...</p>
+      ) : (
+        <div className="profile-card-grid">
+          {visibleProfiles.map((profile) => (
           <article className="profile-card" key={profile.id}>
             <div className="profile-avatar">
               {(profile.firstname || "U").charAt(0).toUpperCase()}
@@ -176,8 +234,31 @@ function ProfileList() {
               )}
             </div>
           </article>
-        ))}
-      </div>
+          ))}
+        </div>
+      )}
+
+      {!loading && sortedProfiles.length > 0 && (
+        <div className="profile-pagination" aria-label="Profile pagination">
+          <button
+            type="button"
+            className="btn btn-light"
+            onClick={() => setCurrentPage((page) => Math.max(1, Math.min(page, totalPages) - 1))}
+            disabled={visiblePage === 1}
+          >
+            Previous
+          </button>
+          <span>Page {visiblePage} of {totalPages}</span>
+          <button
+            type="button"
+            className="btn btn-light"
+            onClick={() => setCurrentPage((page) => Math.min(totalPages, Math.min(page, totalPages) + 1))}
+            disabled={visiblePage === totalPages}
+          >
+            Next
+          </button>
+        </div>
+      )}
 
       {showModal && (
         <div
