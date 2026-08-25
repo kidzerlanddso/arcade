@@ -2,6 +2,7 @@ import { Link, Navigate, useNavigate } from "react-router-dom";
 import { useEffect, useRef, useState } from "react";
 
 import api, { setAccessToken }  from "../api/axios";
+import logo from "../assets/logo.png";
 
 const isAuthenticated = () => Boolean(localStorage.getItem("token"));
 
@@ -124,7 +125,7 @@ function ProtectedRoute({ children }) {
       <header className="app-header">
         <div className="app-header-inner">
           <Link to="/dashboard" className="app-brand" aria-label="Go to dashboard">
-            <img src="src/assets/logo.png" alt="Logo" className="app-logo" />
+            <img src={logo} alt="Logo" className="app-logo" />
           </Link>
 
           <button

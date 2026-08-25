@@ -108,5 +108,17 @@ User.approveById = function(userId, result) {
     }
   );
 };
-
+User.findByLogin = function(login, result) {
+  db.query("SELECT u.* FROM users u LEFT JOIN profile p ON p.user_id = u.id WHERE u.username = $1 OR p.email = $1 LIMIT 1", [login], function(err, res) {
+    if (err) {
+      result(err, null);
+      return;
+    }
+    if (res.rows.length) {
+      result(null, res.rows[0]);
+      return;
+    }
+    result({ kind: "not_found" }, null);
+  });
+};
 module.exports = User;

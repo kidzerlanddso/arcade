@@ -6,7 +6,7 @@ const config = require("../config/db.config.js");
 
 // Register a new user
 exports.register = function(req, res) {
-  if (!req.body || !req.body.username || !req.body.password) {
+  if (!req.body || !req.body.username || !req.body.password|| !req.body.email) {
     return res.status(400).send({ message: "Username and password are required." });
   }
 
@@ -33,11 +33,16 @@ exports.register = function(req, res) {
     if (err) {
       const isDuplicateUsername =
         err.code === "ER_DUP_ENTRY" ||
-        (err.code === "23505" && err.constraint === "users_username_key");
+        (err.code === "23505" &&
+          (err.constraint === "users_username_key" ||
+            String(err.message || "").includes("users_username_key")));
 
       if (isDuplicateUsername) {
-        return res.status(409).send({ message: "Username already exists." });
+        return res.status(409).send({
+          message: "This username is already taken. Please choose a different one."
+        });
       }
+
       return res.status(500).send({ message: err.message || "An error occurred during registration." });
     }
 
@@ -49,14 +54,14 @@ exports.register = function(req, res) {
 
 // Login and return a JWT
 exports.login = function(req, res) {
-  if (!req.body || !req.body.username || !req.body.password) {
+  if (!req.body || !req.body.login || !req.body.password) {
     return res.status(400).send({ message: "Username and password are required." });
   }
 
-  User.findByUsername(req.body.username, function(err, data) {
+  User.findByLogin(req.body.login, function(err, data) {
     if (err) {
       if (err.kind === "not_found") {
-        return res.status(401).send({ message: "Invalid username or password." });
+        return res.status(401).send({ message: "Username/email and password are required." });
       }
       return res.status(500).send({ message: err.message || "An error occurred during login." });
     }
@@ -64,7 +69,13 @@ exports.login = function(req, res) {
     // Compare the submitted password with the stored hash
     const passwordIsValid = bcrypt.compareSync(req.body.password, data.password);
     if (!passwordIsValid) {
-      return res.status(401).send({ message: "Invalid username or password." });
+      return res.status(401).send({ message: "Invalid username/email or password." });
+    }
+
+    if (Number(data.active) === 2) {
+      return res.status(403).send({
+        message: "Admin needs to approve your account."
+      });
     }
 
     if (Number(data.active) === 2) {
@@ -84,11 +95,14 @@ exports.login = function(req, res) {
     const refreshToken = jwt.sign({ userId: data.id, username: data.username, admin: isAdmin },config.REFRESH_SECRET, { expiresIn: '7d' }
     );
 
+    // Cross-site cookies need secure + SameSite=None in production (Vercel ↔ Render).
+    const isProd = process.env.NODE_ENV === "production";
+
     // 3. Send refresh token in a secure, hidden cookie
     res.cookie('refreshToken', refreshToken, {
       httpOnly: true,     // Prevents XSS scripts from reading the cookie
-      secure: false,      // Set to true in production (requires HTTPS)
-      sameSite: 'lax',    // Helps protect against CSRF attacks
+      secure: isProd,     // Required for HTTPS / SameSite=None
+      sameSite: isProd ? 'none' : 'lax',
       path: '/',          // Must match the path used when clearing the cookie
       maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days matching token expiration
     });
@@ -135,18 +149,20 @@ exports.refresh = function(req, res) {
 
 // Clear cookie and log out user
 exports.logout = function(req, res) {
+  const isProd = process.env.NODE_ENV === "production";
+
   res.clearCookie('refreshToken', {
     httpOnly: true,
-    secure: false, // Set to true in production (requires HTTPS)
-    sameSite: 'lax',
+    secure: isProd,
+    sameSite: isProd ? 'none' : 'lax',
     path: '/'
   });
 
   // Remove cookies issued before the cookie path was made explicit.
   res.clearCookie('refreshToken', {
     httpOnly: true,
-    secure: false,
-    sameSite: 'lax',
+    secure: isProd,
+    sameSite: isProd ? 'none' : 'lax',
     path: '/auth'
   });
   
