@@ -1757,8 +1757,68 @@ button {
   border: 1px solid #e0e0e0;
   border-radius: 16px;
   box-sizing: border-box;
+}/* Education and Experience form fields */
+.profile-section input,
+.profile-section textarea {
+  background: #ffffff;
+  color: #1f2937;
+  border: 1px solid #d0d7de;
+  border-radius: 8px;
+  padding: 10px 12px;
+  font-size: 16px;
+  box-sizing: border-box;
 }
 
+.profile-section input::placeholder,
+.profile-section textarea::placeholder {
+  color: #6b7280;
+}
+
+.profile-section input:focus,
+.profile-section textarea:focus {
+  outline: none;
+  border-color: #0a66c2;
+  box-shadow: 0 0 0 2px rgba(10, 102, 194, 0.15);
+}
+
+.profile-section textarea {
+  min-height: 80px;
+  resize: vertical;
+}
+
+.profile-section input[type="date"] {
+  color-scheme: light;
+}
+.add-experience-button {
+  background: #0a66c2;
+  color: white;
+  border: 1px solid #0a66c2;
+  border-radius: 20px;
+  padding: 9px 16px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.add-experience-button:hover {
+  background: #004182;
+  border-color: #004182;
+}
+.profile-section .add-record-button {
+  background: #0a66c2 !important;
+  color: #ffffff !important;
+  border: 1px solid #0a66c2 !important;
+  border-radius: 20px !important;
+  padding: 9px 18px !important;
+  font-size: 15px !important;
+  font-weight: 600 !important;
+  cursor: pointer !important;
+}
+
+.profile-section .add-record-button:hover {
+  background: #004182 !important;
+  border-color: #004182 !important;
+}
 .profile-section-header {
   display: flex;
   justify-content: space-between;
