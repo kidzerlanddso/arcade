@@ -2,6 +2,7 @@ import { useState } from "react";
 
 import Register from "../components/Register";
 import Login from "../components/Login";
+import logo from "../assets/logo.png";
 
 function AuthPage() {
   const [showRegister, setShowRegister] = useState(false);
@@ -10,8 +11,9 @@ function AuthPage() {
     <main className="auth-shell">
       <section className="auth-hero">
         <div className="brand-panel">
-          {/* <div className="brand-badge"><img src="src/assets/logo.png" alt="AlumniConnect Logo" /></div>*/}
-          <div><img src="src/assets/logo.png" alt="AlumniConnect Logo" /></div>
+          <div>
+            <img src={logo} alt="AlumniConnect Logo" />
+          </div>
           <h1>AlumniConnect</h1>
           <p>
             Discover, manage, and grow your community of Alumni in one place.

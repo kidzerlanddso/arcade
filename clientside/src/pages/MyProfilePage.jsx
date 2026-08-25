@@ -40,6 +40,14 @@ const [firstName, setFirstName] = useState("");
 const [lastName, setLastName] = useState("");
 const [countries, setCountries] = useState([]);
 const [showPhotoModal, setShowPhotoModal] = useState(false);
+const [education, setEducation] = useState([]);
+const [institution, setInstitution] = useState("");
+const [qualification, setQualification] = useState("");
+const [fieldOfStudy, setFieldOfStudy] = useState("");
+const [educationStartDate, setEducationStartDate] = useState("");
+const [educationEndDate, setEducationEndDate] = useState("");
+const [educationDescription, setEducationDescription] = useState("");
+const [showEducationForm, setShowEducationForm] = useState(false);
   useEffect(() => {
     const payload = getTokenPayload();
 
@@ -87,7 +95,15 @@ api
     console.error("Error loading employment history:", error);
     setEmployment([]);
   });
-
+api
+  .get(`/education/user/${payload.userId}`)
+  .then((response) => {
+    setEducation(response.data || []);
+  })
+  .catch((error) => {
+    console.error("Error loading education history:", error);
+    setEducation([]);
+  });
 }, []);
 useEffect(() => {
   api
@@ -196,6 +212,33 @@ const handleAddEmployment = async () => {
     console.error("Error adding employment:", error);
   }
 };
+const handleAddEducation = async () => {
+  const payload = getTokenPayload();
+
+  try {
+    const response = await api.post("/education", {
+      user_id: payload.userId,
+      institution: institution,
+      qualification: qualification,
+      field_of_study: fieldOfStudy,
+      start_date: educationStartDate,
+      end_date: educationEndDate || null,
+      description: educationDescription
+    });
+
+    setEducation([...education, response.data]);
+
+    setInstitution("");
+    setQualification("");
+    setFieldOfStudy("");
+    setEducationStartDate("");
+    setEducationEndDate("");
+    setEducationDescription("");
+    setShowEducationForm(false);
+  } catch (error) {
+    console.error("Error adding education:", error);
+  }
+};
 const handleDeleteEmployment = async (id) => {
   try {
     await api.delete(`/employment/${id}`);
@@ -205,6 +248,17 @@ const handleDeleteEmployment = async (id) => {
     );
   } catch (error) {
     console.error("Error deleting employment:", error);
+  }
+};
+const handleDeleteEducation = async (id) => {
+  try {
+    await api.delete(`/education/${id}`);
+
+    setEducation(
+      education.filter((item) => item.id !== id)
+    );
+  } catch (error) {
+    console.error("Error deleting education:", error);
   }
 };
   if (loading) {
@@ -447,6 +501,102 @@ const handleDeleteEmployment = async (id) => {
 
           </div>
         </div>
+        {/* Education Section */}
+<div className="profile-section">
+  <div className="profile-section-header">
+    <h3>Education</h3>
+
+    {editing && (
+      <button
+        className="add-experience-button"
+        onClick={() => setShowEducationForm(true)}
+      >
+        +
+      </button>
+    )}
+  </div>
+
+  {editing && showEducationForm && (
+    <div>
+      <input
+        type="text"
+        value={institution}
+        onChange={(e) => setInstitution(e.target.value)}
+        placeholder="Institution"
+      />
+
+      <input
+        type="text"
+        value={qualification}
+        onChange={(e) => setQualification(e.target.value)}
+        placeholder="Qualification"
+      />
+
+      <input
+        type="text"
+        value={fieldOfStudy}
+        onChange={(e) => setFieldOfStudy(e.target.value)}
+        placeholder="Field of study"
+      />
+
+      <input
+        type="date"
+        value={educationStartDate}
+        onChange={(e) => setEducationStartDate(e.target.value)}
+      />
+
+      <input
+        type="date"
+        value={educationEndDate}
+        onChange={(e) => setEducationEndDate(e.target.value)}
+      />
+
+      <textarea
+        value={educationDescription}
+        onChange={(e) => setEducationDescription(e.target.value)}
+        placeholder="Education description"
+      />
+
+      <button 
+      className="add-record-button"
+      onClick={handleAddEducation}>
+        Add Education
+      </button>
+    </div>
+  )}
+
+  {education.length === 0 ? (
+    <span>No education history added.</span>
+  ) : (
+    education.map((item) => (
+      <div key={item.id} className="experience-item">
+        <strong>{item.institution || "-"}</strong>
+
+        <div>{item.qualification || "-"}</div>
+
+        <div>{item.field_of_study || "-"}</div>
+
+        <div>
+          {item.start_date
+            ? new Date(item.start_date).toLocaleDateString("en-NZ")
+            : "-"}
+          {" - "}
+          {item.end_date
+            ? new Date(item.end_date).toLocaleDateString("en-NZ")
+            : "Present"}
+        </div>
+
+        {item.description && <p>{item.description}</p>}
+
+        {editing && (
+          <button onClick={() => handleDeleteEducation(item.id)}>
+            Delete
+          </button>
+        )}
+      </div>
+    ))
+  )}
+</div>
         <div className="profile-section">
   <div className="profile-section-header">
     <h3>Experience</h3>
@@ -494,7 +644,9 @@ const handleDeleteEmployment = async (id) => {
       placeholder="Job description"
     />
 
-    <button onClick={handleAddEmployment}>
+    <button
+    className="add-record-button"
+     onClick={handleAddEmployment}>
       Add Employment
     </button>
   </div>

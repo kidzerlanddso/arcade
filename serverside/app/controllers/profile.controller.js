@@ -1,7 +1,6 @@
 const Project = require("../models/profile.model");
 const sharp = require("sharp");
-const fs = require("fs");
-const path = require("path");
+const { uploadProfileImage: uploadToSupabase } = require("../services/supabaseStorage");
  
 // TODO: complete the code as per the instructions given README.md
 
@@ -118,34 +117,28 @@ exports.uploadProfileImage = async (req, res) => {
   }
 
   try {
-    const compressedFilename =
-      `compressed-${path.parse(req.file.filename).name}.webp`;
+    const profileId = req.params.id;
+    const filePath = `profiles/profile-${profileId}-${Date.now()}.webp`;
 
-    const compressedPath = path.join(
-      path.dirname(req.file.path),
-      compressedFilename
+    const compressedBuffer = await sharp(req.file.buffer)
+      .resize(300, 300, { fit: "cover" })
+      .webp({ quality: 75 })
+      .toBuffer();
+
+    const imageUrl = await uploadToSupabase(
+      filePath,
+      compressedBuffer,
+      "image/webp"
     );
-
-    const imageBuffer = await fs.promises.readFile(req.file.path);
-
-await sharp(imageBuffer)
-  .resize(300, 300, { fit: "cover" })
-  .webp({ quality: 75 })
-  .toFile(compressedPath);
-
-await fs.promises.unlink(req.file.path);
-    const imageUrl =
-      `http://localhost:3001/uploads/${compressedFilename}`;
 
     res.send({
       profile_image_url: imageUrl
     });
-
   } catch (error) {
-    console.error("Error compressing profile image:", error);
+    console.error("Error uploading profile image:", error);
 
     res.status(500).send({
-      message: "Error processing profile image."
+      message: error.message || "Error processing profile image."
     });
   }
 };

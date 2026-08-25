@@ -1,5 +1,11 @@
 import axios from "axios";
 
+const API_URL =
+  import.meta.env.VITE_API_URL ||
+  (import.meta.env.PROD
+    ? "https://rototuna-alumni-platform.onrender.com"
+    : "http://localhost:3001");
+
 let memoryToken = null;
 
 export const setAccessToken = (token) => {
@@ -7,12 +13,9 @@ export const setAccessToken = (token) => {
 };
 
 const api = axios.create({
-  baseURL: "http://localhost:3001",
+  baseURL: API_URL,
   withCredentials: true, // Crucial: Tells the browser to send/receive cookies automatically
-  
 });
-
-
 
 api.interceptors.request.use((req) => {
   if (memoryToken) {
@@ -20,7 +23,6 @@ api.interceptors.request.use((req) => {
   }
   return req;
 });
-
 
 // Seamlessly handle token refresh on 401 Unauthorized errors
 api.interceptors.response.use(
@@ -34,14 +36,13 @@ api.interceptors.response.use(
       try {
         // Request a new access token. The browser automatically attaches the HttpOnly cookie.
         const response = await axios.post(
-          "http://localhost:3001/auth/refresh",
+          `${API_URL}/auth/refresh`,
           {},
           { withCredentials: true }
         );
 
         const { token } = response.data;
         setAccessToken(token);
-        
 
         // Update the failed request header and immediately retry it
         originalRequest.headers.Authorization = `Bearer ${token}`;
@@ -57,6 +58,5 @@ api.interceptors.response.use(
     return Promise.reject(error);
   }
 );
-
 
 export default api;
