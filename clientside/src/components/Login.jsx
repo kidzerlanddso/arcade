@@ -23,7 +23,11 @@ function Login() {
     setIsSubmitting(true);
 
     try {
-      const response = await api.post("/auth/login", formData);
+      const response = await api.post("/auth/login", {
+        ...formData,
+        // Keep compatibility with servers that still expect username.
+        username: formData.login
+      });
       const token = response.data.token;
       const isAdmin = Number(response.data.admin) === 1;
 

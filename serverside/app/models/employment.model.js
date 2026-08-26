@@ -28,8 +28,8 @@ Employment.findByUserId = (userId, result) => {
 Employment.create = (newEmployment, result) => {
   db.query(
     `INSERT INTO employment
-      (user_id, company, job_title, start_date, end_date, description, active)
-     VALUES ($1, $2, $3, $4, $5, $6, 2)
+      (user_id, company, job_title, start_date, end_date, description)
+     VALUES ($1, $2, $3, $4, $5, $6)
      RETURNING *`,
     [
       newEmployment.user_id,

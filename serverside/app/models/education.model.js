@@ -26,6 +26,8 @@ Education.findByUserId = (userId, result) => {
   );
 };
 
+
+
 Education.create = (newEducation, result) => {
   db.query(
     `INSERT INTO education

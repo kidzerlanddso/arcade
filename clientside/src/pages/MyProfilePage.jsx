@@ -57,12 +57,9 @@ const [showEducationForm, setShowEducationForm] = useState(false);
     }
 
     api
-      .get("/profile")
+      .get("/profile/me")
       .then((response) => {
-        const profiles = response.data.data || response.data || [];
-        const currentProfile = profiles.find(
-          (item) => Number(item.user_id) === Number(payload.userId)
-        ) || profiles[0];
+        const currentProfile = response.data;
 
         setProfile(currentProfile || null);
        
