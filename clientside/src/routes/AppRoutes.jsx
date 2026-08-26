@@ -51,7 +51,6 @@ function AppRoutes() {
         }
       />
 
-
       <Route
         path="/membership-request"
         element={
@@ -61,7 +60,14 @@ function AppRoutes() {
         }
       />
 
-
+      <Route
+        path="/message-alumni"
+        element={
+          <ProtectedRoute>
+            <MessageAlumniPage />
+          </ProtectedRoute>
+        }
+      />
 
       <Route path="*" element={<Navigate to="/login" replace />} />
     </Routes>
