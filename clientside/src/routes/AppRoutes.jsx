@@ -43,6 +43,15 @@ function AppRoutes() {
       />
 
       <Route
+        path="/message-alumni"
+        element={
+          <ProtectedRoute>
+            <MessageAlumniPage />
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
         path="/profile/new"
         element={
           <ProtectedRoute>
