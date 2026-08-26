@@ -15,7 +15,7 @@ this.profile_image_url = profile.profile_image_url;
 };
 
 Project.getAll = (result) => {
-  db.query("SELECT * FROM profile ORDER BY firstname DESC", (err, res) => {
+  db.query("SELECT * FROM profile p LEFT JOIN users u ON p.user_id = u.id WHERE u.active = 1 AND u.admin = 0 ORDER BY p.firstname ASC", (err, res) => {
     if (err) {
       console.log("GetAll error: ", err);
       result(err, null);
@@ -26,7 +26,7 @@ Project.getAll = (result) => {
 };
 
 Project.findById = (id, result) => {
-  db.query("SELECT * FROM profile WHERE id = $1", [id], (err, res) => {
+  db.query("SELECT * FROM profile p LEFT JOIN users u ON p.user_id = u.id WHERE p.id = $1 AND u.active = 1 ", [id], (err, res) => {
     if (err) {
       console.log("FindById error: ", err);
       result(err, null);
@@ -40,6 +40,26 @@ Project.findById = (id, result) => {
 
     result(null, null);
   });
+};
+
+Project.findByUserId = (userId, result) => {
+  db.query(
+    `SELECT p.*
+     FROM profile p
+     INNER JOIN users u ON u.id = p.user_id
+     WHERE p.user_id = $1 AND u.active = 1
+     LIMIT 1`,
+    [userId],
+    (err, res) => {
+      if (err) {
+        console.log("FindByUserId error: ", err);
+        result(err, null);
+        return;
+      }
+
+      result(null, res.rows[0] || null);
+    }
+  );
 };
 
 Project.create = (newProfile, result) => {
@@ -88,14 +108,16 @@ Project.findByName = (name, result) => {
   );
 };
 
-Project.updateById = (id, profile, result) => {
+Project.updateById = (id, profile, userId, result) => {
   const entries = Object.entries(profile);
   const fields = entries.map(([key], index) => `${key} = $${index + 1}`);
   const values = entries.map(([, value]) => value);
   values.push(id);
+  values.push(userId);
 
   db.query(
-    `UPDATE profile SET ${fields.join(", ")} WHERE id = $${fields.length + 1} RETURNING *`,
+    `UPDATE profile SET ${fields.join(", ")} WHERE id = $${fields.length + 1}
+     AND user_id = $${fields.length + 2} RETURNING *`,
     values,
     (err, res) => {
       if (err) {

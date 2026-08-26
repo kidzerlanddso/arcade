@@ -54,11 +54,13 @@ exports.register = function(req, res) {
 
 // Login and return a JWT
 exports.login = function(req, res) {
-  if (!req.body || !req.body.login || !req.body.password) {
+  const login = req.body?.login || req.body?.username || req.body?.email;
+
+  if (!login || !req.body?.password) {
     return res.status(400).send({ message: "Username and password are required." });
   }
 
-  User.findByLogin(req.body.login, function(err, data) {
+  User.findByLogin(login, function(err, data) {
     if (err) {
       if (err.kind === "not_found") {
         return res.status(401).send({ message: "Username/email and password are required." });

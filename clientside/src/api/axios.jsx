@@ -6,7 +6,7 @@ const API_URL =
     ? "https://rototuna-alumni-platform.onrender.com"
     : "http://localhost:3001");
 
-let memoryToken = null;
+let memoryToken = localStorage.getItem("token");
 
 export const setAccessToken = (token) => {
   memoryToken = token;
@@ -30,7 +30,10 @@ api.interceptors.response.use(
   async (error) => {
     const originalRequest = error.config;
 
-    if (error.response?.status === 401 && !originalRequest._retry) {
+    const requestUrl = originalRequest?.url || "";
+    const isAuthRequest = requestUrl.includes("/auth/login") || requestUrl.includes("/auth/refresh");
+
+    if (error.response?.status === 401 && !originalRequest._retry && !isAuthRequest) {
       originalRequest._retry = true;
 
       try {

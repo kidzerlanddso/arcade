@@ -68,6 +68,22 @@ exports.findOne = (req, res) => {
   });
 };
 
+exports.findMine = (req, res) => {
+  Project.findByUserId(req.userId, (err, data) => {
+    if (err) {
+      return res.status(500).send({
+        message: "Error retrieving your profile."
+      });
+    }
+
+    if (!data) {
+      return res.status(404).send({ message: "Your profile was not found." });
+    }
+
+    return res.send(data);
+  });
+};
+
 
 // Retrieve a single record by name
 exports.findName = (req, res) => {
@@ -93,7 +109,7 @@ exports.findName = (req, res) => {
 // Update the profile by ID
 exports.updateOne = (req, res) => {
 
-  Project.updateById(req.params.id, req.body, (err, data) => {
+  Project.updateById(req.params.id, req.body, req.userId, (err, data) => {
     if (err) {
       if (err.kind === "not_found") {
         res.status(404).send({
