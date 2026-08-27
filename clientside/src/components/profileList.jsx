@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import * as XLSX from "xlsx";
 
 import api from "../api/axios";
 
@@ -34,6 +35,8 @@ function ProfileList() {
   const [sortBy, setSortBy] = useState("firstname");
   const [sortDirection, setSortDirection] = useState("asc");
   const [currentPage, setCurrentPage] = useState(1);
+  const [viewMode, setViewMode] = useState("tile");
+  const [selectedProfileIds, setSelectedProfileIds] = useState([]);
   const profilesPerPage = 20;
   const [formData, setFormData] = useState({
     firstname: "",
@@ -138,6 +141,47 @@ function ProfileList() {
     setSortDirection("asc");
   };
 
+  const handleProfileSelection = (profileId) => {
+    setSelectedProfileIds((selectedIds) => {
+      const profileKey = String(profileId);
+
+      return selectedIds.includes(profileKey)
+        ? selectedIds.filter((selectedId) => selectedId !== profileKey)
+        : [...selectedIds, profileKey];
+    });
+  };
+
+  const handleSelectAll = (event) => {
+    if (event.target.checked) {
+      setSelectedProfileIds(sortedProfiles.map((profile) => String(profile.id)));
+    } else {
+      setSelectedProfileIds([]);
+    }
+  };
+
+  const handleExport = () => {
+    const reportRows = sortedProfiles
+      .filter((profile) => selectedProfileIds.includes(String(profile.id)))
+      .map((profile) => ({
+      "First name": profile.firstname || profile.first_name || "",
+      "Last name": profile.lastname || profile.last_name || "",
+      Username: profile.username || "",
+      Email: profile.email || "",
+      City: profile.current_city || "",
+      Country: profile.current_country || "",
+      "Batch year": profile.year || profile.graduation_year || "",
+      "Student ID": profile.student_id || ""
+      }));
+
+    if (!reportRows.length) return;
+
+    const worksheet = XLSX.utils.json_to_sheet(reportRows);
+    const workbook = XLSX.utils.book_new();
+
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Profiles");
+    XLSX.writeFile(workbook, "alumni-profiles-report.xlsx");
+  };
+
   if (!token) return null;
 
   return (
@@ -175,31 +219,84 @@ function ProfileList() {
           ))}
         </select>
 
-        <div className="profile-sort-controls" aria-label="Sort profiles">
-          <span>Sort by:</span>
-          <button
-            type="button"
-            className={sortBy === "firstname" ? "active" : ""}
-            onClick={() => handleSort("firstname")}
-          >
-            First name {sortBy === "firstname" ? (sortDirection === "asc" ? "↑" : "↓") : ""}
-          </button>
-          <button
-            type="button"
-            className={sortBy === "lastname" ? "active" : ""}
-            onClick={() => handleSort("lastname")}
-          >
-            Last name {sortBy === "lastname" ? (sortDirection === "asc" ? "↑" : "↓") : ""}
-          </button>
         </div>
+        <div className="profile-toolbar">
+        {isAdmin && (
+          <div className="profile-view-controls" aria-label="Profile view options">
+          
+            {viewMode === "list" && (
+              <label className="profile-select-all">
+                <input
+                  type="checkbox"
+                  checked={sortedProfiles.length > 0 && selectedProfileIds.length === sortedProfiles.length}
+                  onChange={handleSelectAll}
+                />
+                Select all ({sortedProfiles.length})
+              </label>
+            )}
+            <button
+              type="button"
+              className={viewMode === "tile" ? "active" : ""}
+              onClick={() => setViewMode("tile")}
+            >
+              Tiles
+            </button>
+            <button
+              type="button"
+              className={viewMode === "list" ? "active" : ""}
+              onClick={() => setViewMode("list")}
+            >
+              Lists
+            </button>
+              
+            {viewMode === "list" && (
+              <button
+                type="button"
+                className="profile-export-button"
+                onClick={handleExport}
+                disabled={selectedProfileIds.length === 0}
+              >
+                Export Excel
+              </button>
+            )}
+          </div>
+           )}
+        <div className="profile-sort-controls" aria-label="Sort profiles">
+            <span>Sort by:</span>
+            <button
+              type="button"
+              className={sortBy === "firstname" ? "active" : ""}
+              onClick={() => handleSort("firstname")}
+            >
+              First name {sortBy === "firstname" ? (sortDirection === "asc" ? "↑" : "↓") : ""}
+            </button>
+            <button
+              type="button"
+              className={sortBy === "lastname" ? "active" : ""}
+              onClick={() => handleSort("lastname")}
+            >
+              Last name {sortBy === "lastname" ? (sortDirection === "asc" ? "↑" : "↓") : ""}
+            </button>
+          </div>
       </div>
+      <br/>
 
       {loading ? (
         <p>Loading profiles...</p>
       ) : (
-        <div className="profile-card-grid">
+        <div className={viewMode === "list" ? "profile-list-view" : "profile-card-grid"}>
           {visibleProfiles.map((profile) => (
           <article className="profile-card" key={profile.id}>
+            {isAdmin && viewMode === "list" && (
+              <label className="profile-select-checkbox">
+                <input
+                  type="checkbox"
+                  checked={selectedProfileIds.includes(String(profile.id))}
+                  onChange={() => handleProfileSelection(profile.id)}
+                  aria-label={`Select ${profile.firstname || "profile"} ${profile.lastname || ""}`}
+                />
+              </label>
+            )}
             <div className="profile-avatar">
               {(profile.firstname || "U").charAt(0).toUpperCase()}
             </div>
