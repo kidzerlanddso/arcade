@@ -42,7 +42,7 @@ function AppRoutes() {
         }
       />
 
-      <Route
+     <Route
         path="/profile/new"
         element={
           <ProtectedRoute>
