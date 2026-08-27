@@ -239,14 +239,14 @@ function ProfileList() {
               className={viewMode === "tile" ? "active" : ""}
               onClick={() => setViewMode("tile")}
             >
-              Tiles
+              Tile View
             </button>
             <button
               type="button"
               className={viewMode === "list" ? "active" : ""}
               onClick={() => setViewMode("list")}
             >
-              Lists
+              List View
             </button>
               
             {viewMode === "list" && (
