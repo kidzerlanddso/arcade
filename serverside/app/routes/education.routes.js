@@ -7,6 +7,8 @@ module.exports = app => {
 
   // Add new education record
   app.post("/education", verifyToken, education.create);
+  // Update an education record
+app.patch("/education/:id", verifyToken, education.update);
 
   // Delete an education record
   app.delete("/education/:id", verifyToken, education.delete);

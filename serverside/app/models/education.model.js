@@ -83,5 +83,41 @@ Education.deleteById = (id, result) => {
     }
   );
 };
+Education.updateById = (id, education, result) => {
+  db.query(
+    `UPDATE education
+     SET institution = $1,
+         qualification = $2,
+         field_of_study = $3,
+         start_date = $4,
+         end_date = $5,
+         description = $6
+     WHERE id = $7
+     RETURNING *`,
+    [
+      education.institution,
+      education.qualification,
+      education.field_of_study,
+      education.start_date,
+      education.end_date,
+      education.description,
+      id,
+    ],
+    (err, res) => {
+      if (err) {
+        console.log("Education updateById error:", err);
+        result(err, null);
+        return;
+      }
+
+      if (res.rows.length === 0) {
+        result({ kind: "not_found" }, null);
+        return;
+      }
+
+      result(null, res.rows[0]);
+    }
+  );
+};
 
 module.exports = Education;
