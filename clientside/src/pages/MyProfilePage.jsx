@@ -719,6 +719,7 @@ const formatDateForInput = (dateValue) => {
 
   {editing ? (
     <textarea
+    className="about-modal-textarea"
       value={bio}
       onChange={(e) => setBio(e.target.value)}
       placeholder="Write something about yourself"
@@ -733,6 +734,7 @@ const formatDateForInput = (dateValue) => {
       <h2>Edit about</h2>
 
       <textarea
+      className="about-modal-textarea"
         value={bio}
         onChange={(e) => setBio(e.target.value)}
         placeholder="Write something about yourself"
@@ -740,14 +742,14 @@ const formatDateForInput = (dateValue) => {
 
       <div className="about-modal-actions">
   <button
-    type="button"
+   className="about-cancel-button"
     onClick={() => setShowAboutModal(false)}
   >
     Cancel
   </button>
 
   <button
-    type="button"
+   className="about-save-button"
     onClick={handleSaveAbout}
   >
     Save
