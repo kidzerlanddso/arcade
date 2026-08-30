@@ -43,6 +43,33 @@ exports.create = (req, res) => {
     res.send(data);
   });
 };
+exports.updateOne = (req, res) => {
+  const employment = {
+    company: req.body.company,
+    job_title: req.body.job_title,
+    start_date: req.body.start_date,
+    end_date: req.body.end_date || null,
+    description: req.body.description,
+  };
+
+  Employment.updateById(req.params.id, employment, (err, data) => {
+    if (err) {
+      res.status(500).send({
+        message: err.message || "Error updating employment record.",
+      });
+      return;
+    }
+
+    if (!data) {
+      res.status(404).send({
+        message: "Employment record not found.",
+      });
+      return;
+    }
+
+    res.send(data);
+  });
+};
 exports.deleteOne = (req, res) => {
   Employment.deleteById(req.params.id, (err, data) => {
     if (err) {

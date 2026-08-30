@@ -50,6 +50,35 @@ Employment.create = (newEmployment, result) => {
     }
   );
 };
+Employment.updateById = (id, employment, result) => {
+  db.query(
+    `UPDATE employment
+     SET company = $1,
+         job_title = $2,
+         start_date = $3,
+         end_date = $4,
+         description = $5
+     WHERE id = $6
+     RETURNING *`,
+    [
+      employment.company,
+      employment.job_title,
+      employment.start_date,
+      employment.end_date || null,
+      employment.description,
+      id,
+    ],
+    (err, res) => {
+      if (err) {
+        console.log("Employment update error:", err);
+        result(err, null);
+        return;
+      }
+
+      result(null, res.rows[0]);
+    }
+  );
+};
 Employment.deleteById = (id, result) => {
   db.query(
     "DELETE FROM employment WHERE id = $1 RETURNING *",
