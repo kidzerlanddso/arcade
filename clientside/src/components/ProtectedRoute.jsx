@@ -181,16 +181,17 @@ function ProtectedRoute({ children }) {
                   >
                     Reset Password
                   </button>
+                  <button type="button" className="btn btn-danger app-header-logout" onClick={() => {
+                    setMobileMenuOpen(false);
+                    handleLogout();
+                    }}>
+                      Logout
+                  </button>
                 </div>
               )}
             </div>
 
-            <button type="button" className="btn btn-danger app-header-logout" onClick={() => {
-              setMobileMenuOpen(false);
-              handleLogout();
-            }}>
-              Logout
-            </button>
+            
           </nav>
         </div>
       </header>
