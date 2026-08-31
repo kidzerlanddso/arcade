@@ -1,3 +1,5 @@
+import { formatEventDate, formatEventTime } from "../data/events";
+
 function EventDetailsModal({ event, onClose }) {
   if (!event) return null;
 
@@ -29,11 +31,11 @@ function EventDetailsModal({ event, onClose }) {
           <dl className="event-details-list">
             <div>
               <dt>Date</dt>
-              <dd>{event.date}</dd>
+              <dd>{formatEventDate(event.date)}</dd>
             </div>
             <div>
               <dt>Time</dt>
-              <dd>{event.startTime} - {event.endTime} NZST</dd>
+              <dd>{formatEventTime(event.startTime)} - {formatEventTime(event.endTime)} NZST</dd>
             </div>
             <div>
               <dt>Location</dt>

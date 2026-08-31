@@ -91,10 +91,38 @@ export const defaultEvents = [
 
 const storedEventsKey = "rototuna-events";
 
+export const toDateInputValue = (value) => String(value || "").slice(0, 10);
+
+export const toTimeInputValue = (value) => String(value || "").slice(0, 5);
+
+export const formatEventDate = (value) => {
+  const dateValue = toDateInputValue(value);
+  if (!dateValue) return "Date to be confirmed";
+
+  return new Intl.DateTimeFormat("en-NZ", {
+    weekday: "long",
+    day: "numeric",
+    month: "long",
+    year: "numeric"
+  }).format(new Date(`${dateValue}T00:00:00`));
+};
+
+export const formatEventTime = (value) => {
+  const timeValue = toTimeInputValue(value);
+  if (!timeValue) return "Time to be confirmed";
+
+  const [hours, minutes] = timeValue.split(":").map(Number);
+  const period = hours >= 12 ? "PM" : "AM";
+  const displayHours = hours % 12 || 12;
+  return `${displayHours}:${String(minutes).padStart(2, "0")} ${period}`;
+};
+
 export const getEvents = () => {
   try {
     const storedEvents = JSON.parse(localStorage.getItem(storedEventsKey) || "[]");
-    return [...defaultEvents, ...storedEvents];
+    const storedById = new Map(storedEvents.map((event) => [event.id, event]));
+    return defaultEvents.map((event) => storedById.get(event.id) || event)
+      .concat(storedEvents.filter((event) => !defaultEvents.some((defaultEvent) => defaultEvent.id === event.id)));
   } catch {
     return defaultEvents;
   }
@@ -102,7 +130,17 @@ export const getEvents = () => {
 
 export const saveEvent = (event) => {
   const storedEvents = JSON.parse(localStorage.getItem(storedEventsKey) || "[]");
-  localStorage.setItem(storedEventsKey, JSON.stringify([...storedEvents, event]));
+  const existingIndex = storedEvents.findIndex((storedEvent) => storedEvent.id === event.id);
+
+  if (existingIndex === -1) {
+    storedEvents.push(event);
+  } else {
+    storedEvents[existingIndex] = event;
+  }
+
+  localStorage.setItem(storedEventsKey, JSON.stringify(storedEvents));
 };
+
+export const updateEvent = saveEvent;
 
 export default defaultEvents;
