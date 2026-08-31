@@ -87,6 +87,7 @@ const [showEmploymentEditMode, setShowEmploymentEditMode] = useState(false);
 
     if (!payload) {
       setLoading(false);
+      window.location.href = "/login";
       return;
     }
 
@@ -154,6 +155,10 @@ const handleProfileImageChange = async (e) => {
   const file = e.target.files[0];
 
   if (!file) return;
+  if (!profile?.id) {
+    alert("Your profile has not loaded yet. Please wait a moment and try again.");
+    return;
+  }
 
   try {
     const formData = new FormData();
