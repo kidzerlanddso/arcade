@@ -10,6 +10,7 @@ import EventsPage from "../pages/EventsPage";
 
 import NewProfile from "../components/NewProfile";
 import MembershipRequest from "../components/membershiprequest";
+import AdminList from "../components/adminlist";
 
 function AppRoutes() {
   return (
@@ -62,14 +63,8 @@ function AppRoutes() {
       />
 
 
-      <Route
-        path="/membership-request"
-        element={
-          <ProtectedRoute>
-            <MembershipRequest />
-          </ProtectedRoute>
-        }
-      />
+      <Route  path="/membership-request"   element={<ProtectedRoute><MembershipRequest /></ProtectedRoute>}     />
+      <Route  path="/admin"   element={<ProtectedRoute><AdminList /></ProtectedRoute>}     />
 
 
 

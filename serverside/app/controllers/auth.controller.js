@@ -49,8 +49,52 @@ exports.register = function(req, res) {
     res.status(201).send({ message: "User registered successfully." });
   });
 };
+ 
 
+// Register a new admin
+exports.RegisterAdmin = function(req, res) {
+  if (!req.body || !req.body.username || !req.body.password|| !req.body.email) {
+    return res.status(400).send({ message: "Username and password are required." });
+  }
 
+  // Hash the password before saving
+  const hashedPassword = bcrypt.hashSync(req.body.password, 10);
+
+  const user = new User({
+    username: req.body.username,
+    password: hashedPassword,
+    active: 1,
+    admin: 1
+  });
+
+  const profileData = {
+    firstname: req.body.firstName || req.body.firstname || "",
+    lastname: req.body.lastName || req.body.lastname || "",
+    email: req.body.email || "",
+    current_city: req.body.current_city || "Hamilton",
+    current_country: req.body.current_country || "New Zealand"
+  };
+
+  User.create(user, profileData, function(err, data) {
+    if (err) {
+      const isDuplicateUsername =
+        err.code === "ER_DUP_ENTRY" ||
+        (err.code === "23505" &&
+          (err.constraint === "users_username_key" ||
+            String(err.message || "").includes("users_username_key")));
+
+      if (isDuplicateUsername) {
+        return res.status(409).send({
+          message: "This username is already taken. Please choose a different one."
+        });
+      }
+
+      return res.status(500).send({ message: err.message || "An error occurred during registration." });
+    }
+
+    res.status(201).send({ message: "User registered successfully." });
+  });
+};
 
 // Login and return a JWT
 exports.login = function(req, res) {
@@ -185,6 +229,20 @@ exports.getMembershipRequests = function(req, res) {
   });
 };
 
+exports.getAdmins = function(req, res) {
+  User.getAdmins(function(err, users) {
+    if (err) {
+      return res.status(500).send({
+        message: err.message || "Unable to load admin users."
+      });
+    }
+
+    return res.status(200).send({
+      data: users || []
+    });
+  });
+};
+
 exports.approveMembershipRequest = function(req, res) {
   const userId = Number(req.params.id);
 
@@ -206,6 +264,30 @@ exports.approveMembershipRequest = function(req, res) {
     return res.status(200).send({
       message: "Membership request approved.",
       user: data
+    });
+  });
+};
+
+exports.approveMembershipRequests = function(req, res) {
+  const userIds = Array.isArray(req.body?.userIds) ? req.body.userIds : [];
+  const normalizedIds = userIds
+    .map((value) => Number(value))
+    .filter((value) => Number.isInteger(value) && value > 0);
+
+  if (!normalizedIds.length) {
+    return res.status(400).send({ message: "Select at least one membership request to approve." });
+  }
+
+  User.approveByIds(normalizedIds, function(err, approvedUsers) {
+    if (err) {
+      return res.status(500).send({
+        message: err.message || "Unable to approve selected membership requests."
+      });
+    }
+
+    return res.status(200).send({
+      message: "Selected membership requests approved.",
+      users: approvedUsers || []
     });
   });
 };

@@ -33,6 +33,7 @@ function ProfileList() {
   // const [showModal, setShowModal] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedYear, setSelectedYear] = useState("all");
+  const [selectedExpertise, setSelectedExpertise] = useState("all");
   const [sortBy, setSortBy] = useState("firstname");
   const [sortDirection, setSortDirection] = useState("asc");
   const [currentPage, setCurrentPage] = useState(1);
@@ -89,17 +90,40 @@ function ProfileList() {
     )
   ).sort((a, b) => b - a);
 
+  const expertiseOptions = Array.from(
+    new Set(
+      profiles.flatMap((profile) => {
+        const value = profile.expertise || profile.expertise_area || profile.expertise_field || "";
+        return String(value)
+          .split(",")
+          .map((item) => item.trim())
+          .filter(Boolean);
+      })
+    )
+  ).sort((a, b) => a.localeCompare(b));
+
   const filteredProfiles = profiles.filter((profile) => {
     const fullName = `${profile.firstname || ""} ${profile.lastname || ""}`.toLowerCase();
     const city = `${profile.current_city || ""}`.toLowerCase();
+    const student_id = `${profile.student_id || ""}`.toLowerCase();
+    const expertise = `${profile.expertise || ""}`.toLowerCase();
     const searchValue = searchTerm.toLowerCase().trim();
     const matchesSearch =
       searchValue === "" ||
       fullName.includes(searchValue) ||
-      city.includes(searchValue);
+      city.includes(searchValue)||
+      student_id.includes(searchValue)||
+      expertise.includes(searchValue);
     const profileYear = profile.year || profile.graduation_year;
     const matchesYear = selectedYear === "all" || String(profileYear) === String(selectedYear);
-    return matchesSearch && matchesYear;
+    const profileExpertise = String(profile.expertise || profile.expertise_area || profile.expertise_field || "")
+      .split(",")
+      .map((item) => item.trim().toLowerCase())
+      .filter(Boolean);
+    const matchesExpertise =
+      selectedExpertise === "all" ||
+      profileExpertise.includes(String(selectedExpertise).trim().toLowerCase());
+    return matchesSearch && matchesYear && matchesExpertise;
   });
 
   const sortedProfiles = [...filteredProfiles].sort((firstProfile, secondProfile) => {
@@ -220,7 +244,7 @@ function ProfileList() {
         <input
           type="text"
           className="search-input"
-          placeholder="Search by name or city"
+          placeholder="Search by name, city, student id or expertise"
           value={searchTerm}
           onChange={(event) => setSearchTerm(event.target.value)}
         />
@@ -234,6 +258,18 @@ function ProfileList() {
           {years.map((year) => (
             <option key={year} value={year}>
               {year}
+            </option>
+          ))}
+        </select>
+        <select
+          className="year-filter"
+          value={selectedExpertise}
+          onChange={(event) => setSelectedExpertise(event.target.value)}
+        >
+          <option value="all">All Expertise</option>
+          {expertiseOptions.map((expertise) => (
+            <option key={expertise} value={expertise}>
+              {expertise}
             </option>
           ))}
         </select>

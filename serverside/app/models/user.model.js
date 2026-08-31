@@ -89,6 +89,24 @@ User.getByActive = function(activeValue, result) {
   );
 };
 
+User.getAdmins = function(result) {
+  db.query(
+    `SELECT u.*, p.firstname, p.lastname, p.email AS profile_email, p.current_city, p.current_country, p.year
+     FROM users u
+     LEFT JOIN profile p ON p.user_id = u.id
+     WHERE u.admin = 1 AND u.active = 1
+     ORDER BY COALESCE(p.firstname, u.username) ASC`,
+    function(err, res) {
+      if (err) {
+        result(err, null);
+        return;
+      }
+
+      result(null, res.rows);
+    }
+  );
+};
+
 User.approveById = function(userId, result) {
   db.query(
     "UPDATE users SET active = 1 WHERE id = $1 AND active = 2 RETURNING id, username, active",
@@ -105,6 +123,28 @@ User.approveById = function(userId, result) {
       }
 
       result(null, res.rows[0]);
+    }
+  );
+};
+
+User.approveByIds = function(userIds, result) {
+  const safeUserIds = [...new Set(userIds.filter((value) => Number.isInteger(Number(value)) && Number(value) > 0).map(Number))];
+
+  if (!safeUserIds.length) {
+    result(null, []);
+    return;
+  }
+
+  db.query(
+    "UPDATE users SET active = 1 WHERE id = ANY($1::int[]) AND active = 2 RETURNING id, username, active",
+    [safeUserIds],
+    function(err, res) {
+      if (err) {
+        result(err, null);
+        return;
+      }
+
+      result(null, res.rows);
     }
   );
 };
