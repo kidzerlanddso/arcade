@@ -43,9 +43,11 @@ const isStrongPassword = (password) =>
 function ProtectedRoute({ children }) {
   const navigate = useNavigate();
   const userName = getCurrentUserName();
+  const adminMenuRef = useRef(null);
   const profileMenuRef = useRef(null);
   const [isAdmin, setIsAdmin] = useState(() => getAdminFromToken());
-  const [menuOpen, setMenuOpen] = useState(false);
+  const [adminMenuOpen, setAdminMenuOpen] = useState(false);
+  const [profileMenuOpen, setProfileMenuOpen] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [resetOpen, setResetOpen] = useState(false);
   const [formData, setFormData] = useState({
@@ -56,8 +58,15 @@ function ProtectedRoute({ children }) {
 
   useEffect(() => {
     const closeMenu = (event) => {
-      if (profileMenuRef.current && !profileMenuRef.current.contains(event.target)) {
-        setMenuOpen(false);
+      const clickedOutsideAdmin = adminMenuRef.current && !adminMenuRef.current.contains(event.target);
+      const clickedOutsideProfile = profileMenuRef.current && !profileMenuRef.current.contains(event.target);
+
+      if (clickedOutsideAdmin) {
+        setAdminMenuOpen(false);
+      }
+
+      if (clickedOutsideProfile) {
+        setProfileMenuOpen(false);
       }
     };
 
@@ -66,7 +75,8 @@ function ProtectedRoute({ children }) {
   }, []);
 
   useEffect(() => {
-    setMenuOpen(false);
+    setAdminMenuOpen(false);
+    setProfileMenuOpen(false);
     setMobileMenuOpen(false);
   }, [navigate]);
 
@@ -149,23 +159,60 @@ function ProtectedRoute({ children }) {
             <Link to="/dashboard" onClick={() => setMobileMenuOpen(false)}>Dashboard</Link>
 
             <Link to="/profile" onClick={() => setMobileMenuOpen(false)}>Find an Alumni</Link>
-            {isAdmin && (<Link to="/membership-request" onClick={() => setMobileMenuOpen(false)}>Membership Request</Link>)}
+            {isAdmin && (
+              <div className="profile-menu" ref={adminMenuRef}>
+                <button
+                  type="button"
+                  className="profile-menu-button"
+                  aria-expanded={adminMenuOpen}
+                  aria-haspopup="menu"
+                  onClick={() => {
+                    setAdminMenuOpen((open) => !open);
+                    setProfileMenuOpen(false);
+                  }}
+                >
+                  Admin ▾
+                </button>
+
+                {adminMenuOpen && (
+                  <div className="profile-menu-panel" role="menu">
+                    <Link to="/membership-request" onClick={() => {
+                      setAdminMenuOpen(false);
+                      setMobileMenuOpen(false);
+                    }}>
+                      Membership Request
+                    </Link>
+                    
+                    <Link to="/admin" onClick={() => {
+                      setAdminMenuOpen(false);
+                      setMobileMenuOpen(false);
+                    }}>
+                      Admin
+                    </Link>
+                  </div>
+                  
+                )}
+              </div>
+            )}
 
             <div className="profile-menu" ref={profileMenuRef}>
               <button
                 type="button"
                 className="profile-menu-button"
-                aria-expanded={menuOpen}
+                aria-expanded={profileMenuOpen}
                 aria-haspopup="menu"
-                onClick={() => setMenuOpen((open) => !open)}
+                onClick={() => {
+                  setProfileMenuOpen((open) => !open);
+                  setAdminMenuOpen(false);
+                }}
               >
                 {userName} ▾
               </button>
 
-              {menuOpen && (
+              {profileMenuOpen && (
                 <div className="profile-menu-panel" role="menu">
                   <Link to="/profile/me" onClick={() => {
-                    setMenuOpen(false);
+                    setProfileMenuOpen(false);
                     setMobileMenuOpen(false);
                   }}>
                     Profile
@@ -174,7 +221,7 @@ function ProtectedRoute({ children }) {
                     type="button"
                     className="profile-menu-item"
                     onClick={() => {
-                      setMenuOpen(false);
+                      setProfileMenuOpen(false);
                       setMobileMenuOpen(false);
                       setResetOpen(true);
                     }}
@@ -184,8 +231,8 @@ function ProtectedRoute({ children }) {
                   <button type="button" className="btn btn-danger app-header-logout" onClick={() => {
                     setMobileMenuOpen(false);
                     handleLogout();
-                    }}>
-                      Logout
+                  }}>
+                    Logout
                   </button>
                 </div>
               )}

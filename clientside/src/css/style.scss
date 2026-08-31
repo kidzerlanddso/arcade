@@ -428,10 +428,15 @@ a {
 }
 
 .register-button,
+.RegisterAdmin-button,
 .btn-danger,
 .delete-button {
   background: $danger-red;
   color: #fff;
+}
+
+.RegisterAdmin-button {
+  width: 100%;
 }
 
 .book-list {
