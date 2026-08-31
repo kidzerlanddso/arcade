@@ -2,7 +2,7 @@ import { useState } from "react";
 
 import Register from "../components/Register";
 import Login from "../components/Login";
-import logo from "../assets/logo.png";
+import logo from "../assets/logo.png"; 
 
 function AuthPage() {
   const [showRegister, setShowRegister] = useState(false);
