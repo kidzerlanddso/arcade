@@ -8,8 +8,22 @@ const API_URL =
 
 let memoryToken = localStorage.getItem("token");
 
+const getStoredToken = () => {
+  const currentToken = localStorage.getItem("token") || memoryToken;
+  if (currentToken) {
+    memoryToken = currentToken;
+  }
+  return currentToken;
+};
+
 export const setAccessToken = (token) => {
   memoryToken = token;
+
+  if (token) {
+    localStorage.setItem("token", token);
+  } else {
+    localStorage.removeItem("token");
+  }
 };
 
 const api = axios.create({
@@ -18,9 +32,12 @@ const api = axios.create({
 });
 
 api.interceptors.request.use((req) => {
-  if (memoryToken) {
-    req.headers.Authorization = `Bearer ${memoryToken}`;
+  const token = getStoredToken();
+
+  if (token) {
+    req.headers.Authorization = `Bearer ${token}`;
   }
+
   return req;
 });
 
