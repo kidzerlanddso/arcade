@@ -54,21 +54,7 @@ require("./app/routes/event.routes.js")(app);
 
 const PORT = process.env.PORT || 3001;
 
-db.ensureEventsTable((tableError) => {
-  if (tableError) {
-    console.error(`Could not create events table: ${tableError.message}`);
-    process.exitCode = 1;
-    return;
-  }
-
-  db.seedEvents((seedError) => {
-    if (seedError) {
-      console.error(`Could not seed events: ${seedError.message}`);
-      process.exitCode = 1;
-      return;
-    }
-
-    db.syncSequences((error) => {
+ db.syncSequences((error) => {
   if (error) {
     console.warn(
       `Could not synchronize ${error.table || "database"} ID sequence: ${error.message}`,
@@ -79,5 +65,5 @@ db.ensureEventsTable((tableError) => {
     console.log(`CORS enabled Express web server is running on port ${PORT}.`);
   });
     });
-  });
-});
+
+

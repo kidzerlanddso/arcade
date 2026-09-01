@@ -163,7 +163,7 @@ function MembershipRequest() {
               
               <h3>{[user.firstname, user.lastname].filter(Boolean).join(" ") || "Unknown user"}</h3>
                 
-                <p><strong>Graduated:</strong> {user.year} &nbsp;<strong>Student ID:</strong> {user.id}</p>
+                <p><strong>Graduated:</strong> {user.year} &nbsp;<strong>Student ID:</strong> { user.student_id }</p>
                 
                 <p>
                 <button

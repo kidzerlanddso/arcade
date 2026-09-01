@@ -72,7 +72,7 @@ User.findByUsername = function(username, result) {
 
 User.getByActive = function(activeValue, result) {
   db.query(
-    `SELECT users.*, profile.firstname, profile.lastname, profile.year
+    `SELECT users.*, profile.firstname, profile.lastname, profile.year, profile.student_id, profile.current_city, profile.current_country
      FROM users
      LEFT JOIN profile ON profile.user_id = users.id
      WHERE users.active = $1
