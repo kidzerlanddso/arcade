@@ -180,7 +180,8 @@ function ProfileList() {
       City: profile.current_city || "",
       Country: profile.current_country || "",
       "Batch year": profile.year || profile.graduation_year || "",
-      "Student ID": profile.student_id || ""
+      "Student ID": profile.student_id || "",
+      Expertise: profile.expertise || profile.expertise_area || profile.expertise_field || ""
       }));
 
     if (!reportRows.length) return;
