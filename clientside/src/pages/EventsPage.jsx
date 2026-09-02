@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Link, useSearchParams } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import EventDetailsModal from "../components/EventDetailsModal";
 import api from "../api/axios";
 import { formatEventDate, formatEventTime, toDateInputValue, toTimeInputValue } from "../data/events";
@@ -17,7 +17,10 @@ function EventsPage() {
   const [eventFilter, setEventFilter] = useState("upcoming");
   const [isAdmin] = useState(getAdminStatus);
   const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
   const [calendarMonth, setCalendarMonth] = useState(() => new Date());
+  const [isMonthPickerOpen, setIsMonthPickerOpen] = useState(false);
+  const [isCalendarViewMenuOpen, setIsCalendarViewMenuOpen] = useState(false);
   const [newEvent, setNewEvent] = useState({
     title: "",
     date: "",
@@ -115,7 +118,6 @@ function EventsPage() {
             Create New Event
           </button>
         )}
-        <button className="reference-action-button" type="button" disabled>Export Registrants</button>
       </div>
 
       <div className="events-page-header">
@@ -178,10 +180,55 @@ function EventsPage() {
             <button type="button" className="calendar-today-button" onClick={() => setCalendarMonth(new Date())}>Today</button>
             <button type="button" className="calendar-nav-button" aria-label="Previous month" onClick={() => changeCalendarMonth(-1)}>‹</button>
             <button type="button" className="calendar-nav-button" aria-label="Next month" onClick={() => changeCalendarMonth(1)}>›</button>
-            <h2>{new Intl.DateTimeFormat("en-NZ", { month: "long", year: "numeric" }).format(calendarMonth)}</h2>
-            <span className="calendar-month-arrow">⌄</span>
+            <div className="calendar-month-picker">
+              <button
+                type="button"
+                className="calendar-month-selector"
+                aria-expanded={isMonthPickerOpen}
+                aria-haspopup="dialog"
+                onClick={() => setIsMonthPickerOpen((isOpen) => !isOpen)}
+              >
+                <h2>{new Intl.DateTimeFormat("en-NZ", { month: "long", year: "numeric" }).format(calendarMonth)}</h2>
+                <span className="calendar-month-arrow">⌄</span>
+              </button>
+              {isMonthPickerOpen && (
+                <div className="calendar-month-picker-popup" role="dialog" aria-label="Choose calendar month">
+                  <label htmlFor="calendar-month-input">Choose month</label>
+                  <input
+                    id="calendar-month-input"
+                    type="month"
+                    value={`${calendarMonth.getFullYear()}-${String(calendarMonth.getMonth() + 1).padStart(2, "0")}`}
+                    onChange={(event) => {
+                      const [year, month] = event.target.value.split("-").map(Number);
+                      setCalendarMonth(new Date(year, month - 1, 1));
+                      setIsMonthPickerOpen(false);
+                    }}
+                  />
+                </div>
+              )}
+            </div>
             <span className="calendar-toolbar-spacer" />
-            <button type="button" className="calendar-view-button">Month <span>⌄</span></button>
+            <div className="calendar-view-menu">
+              <button
+                type="button"
+                className="calendar-view-button"
+                aria-expanded={isCalendarViewMenuOpen}
+                aria-haspopup="menu"
+                onClick={() => setIsCalendarViewMenuOpen((isOpen) => !isOpen)}
+              >
+                Month <span>⌄</span>
+              </button>
+              {isCalendarViewMenuOpen && (
+                <div className="calendar-view-menu-options" role="menu">
+                  <button className="calendar-view-menu-option calendar-view-menu-option-active" type="button" role="menuitem" onClick={() => setIsCalendarViewMenuOpen(false)}>
+                    Month
+                  </button>
+                  <button className="calendar-view-menu-option" type="button" role="menuitem" onClick={() => { navigate("/events"); setIsCalendarViewMenuOpen(false); }}>
+                    Event list
+                  </button>
+                </div>
+              )}
+            </div>
           </div>
           <div className="calendar-grid">
             {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map((dayName) => <div className="calendar-weekday" key={dayName}>{dayName}</div>)}
@@ -194,7 +241,7 @@ function EventsPage() {
                   <span className={`calendar-day-number ${isSameDate(day, new Date()) ? "calendar-day-today" : ""}`}>{day.getDate()}</span>
                   <div className="calendar-day-events">
                     {dayEvents.map((event) => (
-                      <button className="calendar-event" type="button" key={event.id} onClick={() => setSelectedEvent(event)} title={event.title}>
+                        <button className="calendar-event" type="button" key={event.id} onClick={() => navigate(`/events/${event.id}`)} title={event.title}>
                         {event.title}
                       </button>
                     ))}
@@ -216,7 +263,7 @@ function EventsPage() {
         {visibleEvents.map((event, index) => (
           <article className={`event-list-row ${index % 2 === 0 ? "event-list-row-tinted" : ""}`} key={event.id} role="row" onClick={() => setSelectedEvent(event)}>
             <div className="event-list-name">
-              <button type="button" onClick={(clickEvent) => { clickEvent.stopPropagation(); setSelectedEvent(event); }}>{event.title}</button>
+              <Link to={`/events/${event.id}`} onClick={(clickEvent) => clickEvent.stopPropagation()}>{event.title}</Link>
               <strong>{formatEventDate(event.date)} · {formatEventTime(event.startTime)} - {formatEventTime(event.endTime)}</strong>
               <span>{event.location}</span>
             </div>

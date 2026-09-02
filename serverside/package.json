@@ -5,6 +5,7 @@
   "main": "rest-api.js",
   "scripts": {
     "start": "node server.js",
+    "import:events": "node scripts/import-local-events.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "",
