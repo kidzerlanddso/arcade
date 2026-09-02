@@ -215,6 +215,34 @@ exports.logout = function(req, res) {
   return res.status(200).send({ message: "Logged out successfully." });
 };
 
+exports.updateEnableEmail = function(req, res) {
+  const userId = req.userId;
+  const enabledValue = req.body?.enableEmail;
+
+  if (!userId) {
+    return res.status(401).send({ message: "Authentication required." });
+  }
+
+  const enabled = enabledValue === true || enabledValue === 1 || enabledValue === "1";
+
+  User.updateEnableEmail(userId, enabled, function(err, data) {
+    if (err) {
+      if (err.kind === "not_found") {
+        return res.status(404).send({ message: "User not found." });
+      }
+
+      return res.status(500).send({
+        message: err.message || "Unable to update email notification setting."
+      });
+    }
+
+    return res.status(200).send({
+      message: "Email notification preference updated.",
+      user: data
+    });
+  });
+};
+
 exports.getMembershipRequests = function(req, res) {
   User.getByActive(2, function(err, users) {
     if (err) {

@@ -9,6 +9,7 @@ module.exports = app => {
   app.post("/auth/logout", auth.logout); 
   app.get("/auth/membership-requests", verifyToken, verifyAdmin, auth.getMembershipRequests);
   app.get("/admin", verifyToken, verifyAdmin, auth.getAdmins);
+  app.patch("/auth/user/enable-email", verifyToken, auth.updateEnableEmail);
   app.put("/auth/membership-requests/:id/approve", verifyToken, verifyAdmin, auth.approveMembershipRequest);
   app.put("/auth/membership-requests/bulk-approve", verifyToken, verifyAdmin, auth.approveMembershipRequests);
 };
