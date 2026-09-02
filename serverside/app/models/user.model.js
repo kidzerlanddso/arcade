@@ -108,6 +108,71 @@ User.getAdmins = function(result) {
   );
 };
 
+User.getDynamicData = function(result) {
+  db.query(
+    `SELECT *
+     FROM expertise `,
+    function(err, res) {
+      if (err) {
+        result(err, null);
+        return;
+      }
+
+      const normalized = (res.rows || []).map((row) => ({
+        id: row.expertise_id,
+        expertise_id: row.expertise_id,
+        expertise: row.expertise,
+        name: row.expertise
+      }));
+
+      result(null, normalized);
+    }
+  );
+};
+
+User.addExpertise = function(expertise, result) {
+  db.query(
+    "INSERT INTO expertise (expertise) VALUES ($1) RETURNING *",
+    [expertise],
+    function(err, res) {
+      if (err) {
+        result(err, null);
+        return;
+      }
+
+      const normalized = (res.rows || []).map((row) => ({
+        id: row.expertise_id,
+        expertise_id: row.expertise_id,
+        expertise: row.expertise,
+        name: row.expertise
+      }));
+
+      result(null, normalized);
+    }
+  );
+};
+
+User.deleteDynamicData = function(expertiseName, result) {
+  db.query(
+    "DELETE FROM expertise WHERE expertise_id = $1 RETURNING *",
+    [expertiseName],
+    function(err, res) {
+      if (err) {
+        console.log("Error while deleting expertise:", err);
+        result(err, null);
+        return;
+      }
+
+      if (!res.rows.length) {
+        result({ kind: "not_found" }, null);
+        return;
+      }
+
+      result(null, res.rows);
+    }
+  );
+};
+
 User.approveById = function(userId, result) {
   db.query(
     "UPDATE users SET active = 1 WHERE id = $1 AND active = 2 RETURNING id, username, active",
