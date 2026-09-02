@@ -7,6 +7,7 @@ import MyProfilePage from "../pages/MyProfilePage";
 import Dashboard from "../components/Dashboard";
 import MessageAlumniPage from "../pages/MessageAlumniPage";
 import EventsPage from "../pages/EventsPage";
+import EventDetailsPage from "../pages/EventDetailsPage";
 
 import NewProfile from "../components/NewProfile";
 import MembershipRequest from "../components/membershiprequest";
@@ -41,6 +42,15 @@ function AppRoutes() {
         element={
           <ProtectedRoute>
             <EventsPage />
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/events/:eventId"
+        element={
+          <ProtectedRoute>
+            <EventDetailsPage />
           </ProtectedRoute>
         }
       />
