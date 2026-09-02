@@ -5,6 +5,7 @@ const User = function(user) {
   this.password = user.password;
   this.active = user.active !== undefined ? user.active : 2;
   this.admin = user.admin !== undefined ? Number(user.admin) : 0;
+  this.enableEmail = user.enableEmail !== undefined ? Number(user.enableEmail) : 0;
 };
 
 User.create = function(newUser, profileData, result) {
@@ -14,8 +15,8 @@ User.create = function(newUser, profileData, result) {
   }
 
   db.query(
-    "INSERT INTO users (username, password, active, admin) VALUES ($1, $2, $3, $4) RETURNING *",
-    [newUser.username, newUser.password, newUser.active, newUser.admin],
+    "INSERT INTO users (username, password, active, admin, \"enableEmail\") VALUES ($1, $2, $3, $4, $5) RETURNING *",
+    [newUser.username, newUser.password, newUser.active, newUser.admin, newUser.enableEmail ?? 0],
     function(err, res) {
       if (err) {
         result(err, null);
@@ -148,6 +149,28 @@ User.approveByIds = function(userIds, result) {
     }
   );
 };
+User.updateEnableEmail = function(userId, enabled, result) {
+  const value = enabled === true || enabled === 1 || enabled === "1" ? 1 : 0;
+
+  db.query(
+    'UPDATE users SET "enableEmail" = $1 WHERE id = $2 RETURNING id, username, "enableEmail"',
+    [value, userId],
+    function(err, res) {
+      if (err) {
+        result(err, null);
+        return;
+      }
+
+      if (!res.rows.length) {
+        result({ kind: "not_found" }, null);
+        return;
+      }
+
+      result(null, res.rows[0]);
+    }
+  );
+};
+
 User.findByLogin = function(login, result) {
   db.query("SELECT u.* FROM users u LEFT JOIN profile p ON p.user_id = u.id WHERE u.username = $1 OR p.email = $1 LIMIT 1", [login], function(err, res) {
     if (err) {

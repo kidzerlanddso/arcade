@@ -825,6 +825,13 @@ a {
   padding: 8px 0;
   border-bottom: 1px solid #edf2f7;
 }
+
+.linkedin-detail-row a{
+  color: #000000;
+  text-decoration: none;
+  font-style: italic;
+  font-size: smaller;  
+}
 /* LinkedIn style profile editing */
 
 .linkedin-profile-body input,
@@ -2810,6 +2817,77 @@ button {
 .intro-form-group input:focus {
   border: 2px solid #0a66c2 !important;
 }
+/* Container for the switch */
+.switch {
+  position: relative;
+  display: inline-block;
+  width: 50px;
+  height: 26px;
+}
+
+/* Hide default HTML checkbox */
+.switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+/* The visual track of the slider */
+.slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #ccc;
+  transition: 0.3s;
+  border-radius: 34px;
+}
+
+/* The sliding knob inside the track */
+.slider::before {
+  position: absolute;
+  content: "";
+  height: 20px;
+  width: 20px;
+  left: 3px;
+  bottom: 3px;
+  background-color: white;
+  transition: 0.3s;
+  border-radius: 50%;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+/* Track color when checkbox is checked */
+input:checked + .slider {
+  background-color: #2196F3;
+}
+
+/* Move the knob to the right when checked */
+input:checked + .slider::before {
+  transform: translateX(24px);
+}
+
+/* Optional wrapper layout styling */
+.toggle-container {
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 12px;
+  width: fit-content;
+  margin-top: 8px;
+}
+
+.toggle-container .switch {
+  flex-shrink: 0;
+}
+
+.toggle-label {
+  line-height: 1.2;
+  white-space: nowrap;
+}
+
 .about-modal-textarea {
   width: 100%;
   min-height: 220px;

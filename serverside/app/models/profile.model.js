@@ -47,7 +47,7 @@ Project.findById = (id, result) => {
 
 Project.findByUserId = (userId, result) => {
   db.query(
-    `SELECT p.*
+    `SELECT p.*, u."enableEmail" AS "enableEmail"
      FROM profile p
      INNER JOIN users u ON u.id = p.user_id
      WHERE p.user_id = $1 AND u.active = 1
@@ -77,8 +77,8 @@ Project.create = (newProfile, result) => {
       newProfile.student_id,
       newProfile.user_id,
       newProfile.bio,
-newProfile.linkedin_url,
-newProfile.profile_image_url],
+      newProfile.linkedin_url,
+      newProfile.profile_image_url],
 
 (err, res) => {
       if (err) {
