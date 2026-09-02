@@ -6,9 +6,12 @@ import ProfilePage from "../pages/profilePage";
 import MyProfilePage from "../pages/MyProfilePage";
 import Dashboard from "../components/Dashboard";
 import MessageAlumniPage from "../pages/MessageAlumniPage";
+import EventsPage from "../pages/EventsPage";
+import EventDetailsPage from "../pages/EventDetailsPage";
 
 import NewProfile from "../components/NewProfile";
 import MembershipRequest from "../components/membershiprequest";
+import AdminList from "../components/adminlist";
 
 function AppRoutes() {
   return (
@@ -34,6 +37,24 @@ function AppRoutes() {
       />
 
       <Route
+        path="/events"
+        element={
+          <ProtectedRoute>
+            <EventsPage />
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/events/:eventId"
+        element={
+          <ProtectedRoute>
+            <EventDetailsPage />
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
         path="/profile/me"
         element={
           <ProtectedRoute>
@@ -42,7 +63,7 @@ function AppRoutes() {
         }
       />
 
-      <Route
+     <Route
         path="/profile/new"
         element={
           <ProtectedRoute>
@@ -51,23 +72,11 @@ function AppRoutes() {
         }
       />
 
-      <Route
-        path="/membership-request"
-        element={
-          <ProtectedRoute>
-            <MembershipRequest />
-          </ProtectedRoute>
-        }
-      />
 
-      <Route
-        path="/message-alumni"
-        element={
-          <ProtectedRoute>
-            <MessageAlumniPage />
-          </ProtectedRoute>
-        }
-      />
+      <Route  path="/membership-request"   element={<ProtectedRoute><MembershipRequest /></ProtectedRoute>}     />
+      <Route  path="/admin"   element={<ProtectedRoute><AdminList /></ProtectedRoute>}     />
+
+
 
       <Route path="*" element={<Navigate to="/login" replace />} />
     </Routes>

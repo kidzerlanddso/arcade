@@ -1,13 +1,12 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-
-import api from "../api/axios";
+import api, { setAccessToken } from "../api/axios";
 
 function Login() {
   const navigate = useNavigate();
 
   const [formData, setFormData] = useState({
-    username: "",
+    login: "",
     password: ""
   });
   const [status, setStatus] = useState({ type: "", message: "" });
@@ -24,11 +23,16 @@ function Login() {
     setIsSubmitting(true);
 
     try {
-      const response = await api.post("/auth/login", formData);
+      const response = await api.post("/auth/login", {
+        ...formData,
+        // Keep compatibility with servers that still expect username.
+        username: formData.login
+      });
       const token = response.data.token;
       const isAdmin = Number(response.data.admin) === 1;
 
       localStorage.setItem("token", token);
+      setAccessToken(token);
       localStorage.setItem("isAdmin", String(isAdmin));
       setStatus({
         type: "success",
@@ -72,21 +76,39 @@ function Login() {
       )}
 
       <form onSubmit={handleSubmit}>
-        <input
-          type="text"
-          name="username"
-          value={formData.username}
-          placeholder="Enter your username"
-          onChange={handleChange}
-        />
+        <div className="form-field">
+          <label htmlFor="login">
+            Username or email <span className="required-mark">*</span>
+          </label>
+          <input
+            id="login"
+            type="text"
+            name="login"
+            value={formData.login}
+            placeholder="Enter your username or email"
+            onChange={handleChange}
+            required
+          />
+        </div>
 
-        <input
-          type="password"
-          name="password"
-          value={formData.password}
-          placeholder="Enter your password"
-          onChange={handleChange}
-        />
+        <div className="form-field">
+          <label htmlFor="password">
+            Password <span className="required-mark">*</span>
+          </label>
+          <input
+            id="password"
+            type="password"
+            name="password"
+            value={formData.password}
+            placeholder="Enter your password"
+            onChange={handleChange}
+            required
+          />
+        </div>
+
+        <p className="form-note">
+          <span className="required-mark">*</span> Required field
+        </p>
 
         <button className="login-button" type="submit" disabled={isSubmitting}>
           {isSubmitting ? "Signing In..." : "Sign In"}

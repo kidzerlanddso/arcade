@@ -23,8 +23,17 @@ const verifyToken = function(req, res, next) {
     // Attach the decoded user info to the request for use in controllers
     req.userId = decoded.userId;
     req.username = decoded.username;
+    req.isAdmin = decoded.admin === true || Number(decoded.admin) === 1;
     next();
   });
 };
 
-module.exports = { verifyToken };
+const verifyAdmin = function(req, res, next) {
+  if (!req.isAdmin) {
+    return res.status(403).send({ message: "Administrator access required." });
+  }
+
+  next();
+};
+
+module.exports = { verifyToken, verifyAdmin };

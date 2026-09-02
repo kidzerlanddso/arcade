@@ -1,4 +1,6 @@
 const Project = require("../models/profile.model");
+const sharp = require("sharp");
+const { uploadProfileImage: uploadToSupabase } = require("../services/supabaseStorage");
  
 // TODO: complete the code as per the instructions given README.md
 
@@ -66,6 +68,22 @@ exports.findOne = (req, res) => {
   });
 };
 
+exports.findMine = (req, res) => {
+  Project.findByUserId(req.userId, (err, data) => {
+    if (err) {
+      return res.status(500).send({
+        message: "Error retrieving your profile."
+      });
+    }
+
+    if (!data) {
+      return res.status(404).send({ message: "Your profile was not found." });
+    }
+
+    return res.send(data);
+  });
+};
+
 
 // Retrieve a single record by name
 exports.findName = (req, res) => {
@@ -91,7 +109,7 @@ exports.findName = (req, res) => {
 // Update the profile by ID
 exports.updateOne = (req, res) => {
 
-  Project.updateById(req.params.id, req.body, (err, data) => {
+  Project.updateById(req.params.id, req.body, req.userId, (err, data) => {
     if (err) {
       if (err.kind === "not_found") {
         res.status(404).send({
@@ -107,18 +125,38 @@ exports.updateOne = (req, res) => {
     }
   });
 };
-exports.uploadProfileImage = (req, res) => {
+exports.uploadProfileImage = async (req, res) => {
   if (!req.file) {
     return res.status(400).send({
       message: "No image file uploaded."
     });
   }
 
-  const imageUrl = `http://localhost:3001/uploads/${req.file.filename}`;
+  try {
+    const profileId = req.params.id;
+    const filePath = `profiles/profile-${profileId}-${Date.now()}.webp`;
 
-  res.send({
-    profile_image_url: imageUrl
-  });
+    const compressedBuffer = await sharp(req.file.buffer)
+      .resize(300, 300, { fit: "cover" })
+      .webp({ quality: 75 })
+      .toBuffer();
+
+    const imageUrl = await uploadToSupabase(
+      filePath,
+      compressedBuffer,
+      "image/webp"
+    );
+
+    res.send({
+      profile_image_url: imageUrl
+    });
+  } catch (error) {
+    console.error("Error uploading profile image:", error);
+
+    res.status(500).send({
+      message: error.message || "Error processing profile image."
+    });
+  }
 };
 
 // Retrieve a single profile by ID

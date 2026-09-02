@@ -1,10 +1,29 @@
 import { Link, Navigate, useNavigate } from "react-router-dom";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
-import api from "../api/axios";
+import api, { setAccessToken }  from "../api/axios";
+import logo from "../assets/logo.png";
 
 const isAuthenticated = () => Boolean(localStorage.getItem("token"));
 
+const getAdminFromToken = () => {
+  const currentToken = localStorage.getItem("token");
+
+  if (!currentToken) return false;
+
+  try {
+    const payload = JSON.parse(atob(currentToken.split(".")[1] || ""));
+    const adminValue = payload.admin;
+    if (adminValue !== undefined && adminValue !== null) {
+      return adminValue === true || adminValue === 1 || adminValue === "1" || adminValue === "true";
+    }
+  } catch (error) {
+    console.error("Error decoding token for admin status:", error);
+  }
+
+  const storedAdmin = localStorage.getItem("isAdmin");
+  return storedAdmin === "true" || storedAdmin === "1";
+};
 const getCurrentUserName = () => {
   const token = localStorage.getItem("token");
 
@@ -24,7 +43,12 @@ const isStrongPassword = (password) =>
 function ProtectedRoute({ children }) {
   const navigate = useNavigate();
   const userName = getCurrentUserName();
-  const [menuOpen, setMenuOpen] = useState(false);
+  const adminMenuRef = useRef(null);
+  const profileMenuRef = useRef(null);
+  const [isAdmin, setIsAdmin] = useState(() => getAdminFromToken());
+  const [adminMenuOpen, setAdminMenuOpen] = useState(false);
+  const [profileMenuOpen, setProfileMenuOpen] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [resetOpen, setResetOpen] = useState(false);
   const [formData, setFormData] = useState({
     currentPassword: "",
@@ -34,8 +58,15 @@ function ProtectedRoute({ children }) {
 
   useEffect(() => {
     const closeMenu = (event) => {
-      if (!event.target.closest(".profile-menu")) {
-        setMenuOpen(false);
+      const clickedOutsideAdmin = adminMenuRef.current && !adminMenuRef.current.contains(event.target);
+      const clickedOutsideProfile = profileMenuRef.current && !profileMenuRef.current.contains(event.target);
+
+      if (clickedOutsideAdmin) {
+        setAdminMenuOpen(false);
+      }
+
+      if (clickedOutsideProfile) {
+        setProfileMenuOpen(false);
       }
     };
 
@@ -43,10 +74,23 @@ function ProtectedRoute({ children }) {
     return () => document.removeEventListener("click", closeMenu);
   }, []);
 
-  const handleLogout = () => {
-    localStorage.removeItem("token");
-    localStorage.removeItem("isAdmin");
-    navigate("/login", { replace: true });
+  useEffect(() => {
+    setAdminMenuOpen(false);
+    setProfileMenuOpen(false);
+    setMobileMenuOpen(false);
+  }, [navigate]);
+
+  const handleLogout = async () => {
+    try {
+      await api.post("/auth/logout");
+    } catch (error) {
+      console.error("Logout request failed:", error);
+    } finally {
+      setAccessToken(null);
+      localStorage.removeItem("token");
+      localStorage.removeItem("isAdmin");
+      navigate("/login", { replace: true });
+    }
   };
 
   const handleResetPassword = async (event) => {
@@ -91,46 +135,110 @@ function ProtectedRoute({ children }) {
       <header className="app-header">
         <div className="app-header-inner">
           <Link to="/dashboard" className="app-brand" aria-label="Go to dashboard">
-            <img src="src/assets/logo.png" alt="Logo" className="app-logo" />
+            <img src={logo} alt="Logo" className="app-logo" />
           </Link>
 
-          <nav className="app-header-nav" aria-label="Main navigation">
-            <Link to="/dashboard">Dashboard</Link>
+          <button
+            type="button"
+            className="app-header-menu-toggle"
+            aria-expanded={mobileMenuOpen}
+            aria-controls="main-navigation"
+            aria-label={mobileMenuOpen ? "Close navigation menu" : "Open navigation menu"}
+            onClick={() => setMobileMenuOpen((open) => !open)}
+          >
+            <span />
+            <span />
+            <span />
+          </button>
 
-            <Link to="/profile">    Find an Alumni </Link>
-            <Link to="/membership-request">    Membership Request</Link>
+          <nav
+            id="main-navigation"
+            className={`app-header-nav${mobileMenuOpen ? " is-open" : ""}`}
+            aria-label="Main navigation"
+          >
+            <Link to="/dashboard" onClick={() => setMobileMenuOpen(false)}>Dashboard</Link>
 
-            <div className="profile-menu">
+            <Link to="/profile" onClick={() => setMobileMenuOpen(false)}>Find an Alumni</Link>
+            {isAdmin && (
+              <div className="profile-menu" ref={adminMenuRef}>
+                <button
+                  type="button"
+                  className="profile-menu-button"
+                  aria-expanded={adminMenuOpen}
+                  aria-haspopup="menu"
+                  onClick={() => {
+                    setAdminMenuOpen((open) => !open);
+                    setProfileMenuOpen(false);
+                  }}
+                >
+                  Admin ▾
+                </button>
+
+                {adminMenuOpen && (
+                  <div className="profile-menu-panel" role="menu">
+                    <Link to="/membership-request" onClick={() => {
+                      setAdminMenuOpen(false);
+                      setMobileMenuOpen(false);
+                    }}>
+                      Membership Request
+                    </Link>
+                    
+                    <Link to="/admin" onClick={() => {
+                      setAdminMenuOpen(false);
+                      setMobileMenuOpen(false);
+                    }}>
+                      Admin
+                    </Link>
+                  </div>
+                  
+                )}
+              </div>
+            )}
+
+            <div className="profile-menu" ref={profileMenuRef}>
               <button
                 type="button"
                 className="profile-menu-button"
-                onClick={() => setMenuOpen((open) => !open)}
+                aria-expanded={profileMenuOpen}
+                aria-haspopup="menu"
+                onClick={() => {
+                  setProfileMenuOpen((open) => !open);
+                  setAdminMenuOpen(false);
+                }}
               >
                 {userName} ▾
               </button>
 
-              {menuOpen && (
+              {profileMenuOpen && (
                 <div className="profile-menu-panel" role="menu">
-                  <Link to="/profile/me" onClick={() => setMenuOpen(false)}>
+                  <Link to="/profile/me" onClick={() => {
+                    setProfileMenuOpen(false);
+                    setMobileMenuOpen(false);
+                  }}>
                     Profile
                   </Link>
                   <button
                     type="button"
                     className="profile-menu-item"
                     onClick={() => {
-                      setMenuOpen(false);
+                      setProfileMenuOpen(false);
+                      setMobileMenuOpen(false);
                       setResetOpen(true);
                     }}
                   >
                     Reset Password
                   </button>
+                  <button type="button" className="btn btn-danger app-header-logout" onClick={() => {
+                    setMobileMenuOpen(false);
+                    handleLogout();
+                  }}>
+                    Logout
+                  </button>
                 </div>
               )}
             </div>
 
-            <button type="button" className="btn btn-danger app-header-logout" onClick={handleLogout}>
-              Logout
-            </button>
+            
           </nav>
         </div>
       </header>

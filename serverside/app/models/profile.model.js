@@ -12,10 +12,13 @@ const Project = function(profile) {
   this.bio = profile.bio;
 this.linkedin_url = profile.linkedin_url;
 this.profile_image_url = profile.profile_image_url;
+this.mentorship_available = profile.mentorship_available ?? false;
+this.expertise = profile.expertise || "";
+this.mentorship_availability = profile.mentorship_availability || "";
 };
 
 Project.getAll = (result) => {
-  db.query("SELECT * FROM profile", (err, res) => {
+  db.query("SELECT * FROM profile p LEFT JOIN users u ON p.user_id = u.id WHERE u.active = 1 AND u.admin = 0 ORDER BY p.firstname ASC", (err, res) => {
     if (err) {
       console.log("GetAll error: ", err);
       result(err, null);
@@ -26,7 +29,7 @@ Project.getAll = (result) => {
 };
 
 Project.findById = (id, result) => {
-  db.query("SELECT * FROM profile WHERE id = $1", [id], (err, res) => {
+  db.query("SELECT * FROM profile p LEFT JOIN users u ON p.user_id = u.id WHERE p.id = $1 AND u.active = 1 ", [id], (err, res) => {
     if (err) {
       console.log("FindById error: ", err);
       result(err, null);
@@ -42,6 +45,26 @@ Project.findById = (id, result) => {
   });
 };
 
+Project.findByUserId = (userId, result) => {
+  db.query(
+    `SELECT p.*, u."enableEmail" AS "enableEmail"
+     FROM profile p
+     INNER JOIN users u ON u.id = p.user_id
+     WHERE p.user_id = $1 AND u.active = 1
+     LIMIT 1`,
+    [userId],
+    (err, res) => {
+      if (err) {
+        console.log("FindByUserId error: ", err);
+        result(err, null);
+        return;
+      }
+
+      result(null, res.rows[0] || null);
+    }
+  );
+};
+
 Project.create = (newProfile, result) => {
   db.query(
     "INSERT INTO profile (firstname, lastname, email, current_city, current_country, year, student_id, user_id, bio, linkedin_url, profile_image_url) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11) RETURNING *",
@@ -54,8 +77,9 @@ Project.create = (newProfile, result) => {
       newProfile.student_id,
       newProfile.user_id,
       newProfile.bio,
-newProfile.linkedin_url,
-newProfile.profile_image_url],
+      newProfile.linkedin_url,
+      newProfile.profile_image_url],
+
 (err, res) => {
       if (err) {
         console.log("Create error: ", err);
@@ -67,7 +91,56 @@ newProfile.profile_image_url],
   );
 };
 
-Project.findByName = (name, result) => {
+Project.create = (newProfile, result) => {
+  db.query(
+    `INSERT INTO profile (
+      firstname,
+      lastname,
+      email,
+      current_city,
+      current_country,
+      year,
+      student_id,
+      user_id,
+      bio,
+      linkedin_url,
+      profile_image_url,
+      mentorship_available,
+      expertise,
+      mentorship_availability
+    )
+    VALUES (
+      $1, $2, $3, $4, $5, $6, $7,
+      $8, $9, $10, $11, $12, $13, $14
+    )
+    RETURNING *`,
+    [
+      newProfile.firstname,
+      newProfile.lastname,
+      newProfile.email || "",
+      newProfile.current_city || "Hamilton",
+      newProfile.current_country || "New Zealand",
+      newProfile.year,
+      newProfile.student_id,
+      newProfile.user_id,
+      newProfile.bio,
+      newProfile.linkedin_url,
+      newProfile.profile_image_url,
+      newProfile.mentorship_available ?? false,
+      newProfile.expertise || "",
+      newProfile.mentorship_availability || ""
+    ],
+    (err, res) => {
+      if (err) {
+        console.log("Create error: ", err);
+        result(err, null);
+        return;
+      }
+
+      result(null, res.rows[0]);
+    }
+  );
+};(name, result) => {
   db.query(
     "SELECT * FROM profile WHERE firstname ILIKE $1 OR lastname ILIKE $2",
     [`%${name}%`, `%${name}%`],
@@ -88,14 +161,16 @@ Project.findByName = (name, result) => {
   );
 };
 
-Project.updateById = (id, profile, result) => {
+Project.updateById = (id, profile, userId, result) => {
   const entries = Object.entries(profile);
   const fields = entries.map(([key], index) => `${key} = $${index + 1}`);
   const values = entries.map(([, value]) => value);
   values.push(id);
+  values.push(userId);
 
   db.query(
-    `UPDATE profile SET ${fields.join(", ")} WHERE id = $${fields.length + 1} RETURNING *`,
+    `UPDATE profile SET ${fields.join(", ")} WHERE id = $${fields.length + 1}
+     AND user_id = $${fields.length + 2} RETURNING *`,
     values,
     (err, res) => {
       if (err) {
