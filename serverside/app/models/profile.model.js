@@ -23,6 +23,7 @@ Project.getAll = (result) => {
     `SELECT p.*, u."enableEmail" AS "enableEmail"
      FROM profile p
      LEFT JOIN users u ON p.user_id = u.id
+     LEFT JOIN expertise e ON p.expertise_id = e.expertise_id
      WHERE u.active = 1 AND u.admin = 0
      ORDER BY p.firstname ASC`,
     (err, res) => {
@@ -42,6 +43,7 @@ Project.findById = (id, result) => {
     `SELECT p.*, u."enableEmail" AS "enableEmail"
      FROM profile p
      LEFT JOIN users u ON p.user_id = u.id
+     LEFT JOIN expertise e ON p.expertise_id = e.expertise_id
      WHERE p.id = $1 AND u.active = 1`,
     [id],
     (err, res) => {

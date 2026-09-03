@@ -605,8 +605,9 @@ const handleAccept = async (connectionId, userId) => {
                 {profile.firstname || profile.first_name || "Unknown"} {profile.lastname || profile.last_name || ""}
               </h3>
               <p><strong>{profile.current_city}</strong> {profile.current_country}</p>
-              <p><strong>Email:</strong> {profile.email || "-"}</p>
+              {/* <p><strong>Email:</strong> {profile.email || "-"}</p> */}
               <p><strong>Batch of </strong> {profile.year || profile.graduation_year || "-"}</p>
+              <p><strong>Expertise:</strong> {profile.expertise || "-"}</p>
 
              {/* Connect actions (all logged-in users; separate from admin edit buttons) */}
              <div

@@ -451,6 +451,19 @@ a {
   padding: 28px 24px 40px;
   color: $dark-text;
 }
+.half-screen{
+  width: 100%;
+  box-sizing: border-box; /* Prevents padding from breaking width */
+}
+
+/* Desktop screen override */
+@media (min-width: 768px) {
+  .half-screen {
+    width: 50%;
+    padding: 27px 20px 40px;
+  }
+}
+
 
 .page-header {
   display: flex;

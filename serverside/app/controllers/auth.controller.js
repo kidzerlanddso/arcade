@@ -243,6 +243,66 @@ exports.updateEnableEmail = function(req, res) {
   });
 };
 
+exports.getDynamicData = function(req, res) {
+  User.getDynamicData(function(err, data) {
+    if (err) {
+      return res.status(500).send({
+        message: err.message || "Unable to load dynamic data."
+      });
+    }
+
+    return res.status(200).send({
+      data: data || []
+    });
+  });
+};
+
+exports.addExpertise = function(req, res) {
+  const expertise = String(req.body?.expertise || "").trim();
+
+  if (!expertise) {
+    return res.status(400).send({ message: "Expertise value is required." });
+  }
+
+  User.addExpertise(expertise, function(err, data) {
+    if (err) {
+      return res.status(500).send({
+        message: err.message || "Unable to add expertise."
+      });
+    }
+
+    return res.status(200).send({
+      message: "Expertise added successfully.",
+      data: data || []
+    });
+  });
+};
+
+exports.deleteDynamicData = function(req, res) {
+  const expertiseName = decodeURIComponent(req.params.name || "").trim();
+
+  if (!expertiseName) {
+    return res.status(400).send({ message: "A valid expertise value is required." });
+  }
+
+  User.deleteDynamicData(expertiseName, function(err, data) {
+    if (err) {
+      if (err.kind === "not_found") {
+        return res.status(404).send({ message: "Selected expertise was not found." });
+      }
+
+      return res.status(500).send({
+        message: err.message || "Unable to delete selected expertise."
+      });
+    }
+
+    return res.status(200).send({
+      message: "Selected expertise removed.",
+      data: data || []
+    });
+  });
+};
+
 exports.getMembershipRequests = function(req, res) {
   User.getByActive(2, function(err, users) {
     if (err) {

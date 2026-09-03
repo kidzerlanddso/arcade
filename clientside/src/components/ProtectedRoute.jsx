@@ -189,6 +189,13 @@ function ProtectedRoute({ children }) {
                     }}>
                       Admin
                     </Link>
+                    
+                    <Link to="/dynamicdata" onClick={() => {
+                      setAdminMenuOpen(false);
+                      setMobileMenuOpen(false);
+                    }}>
+                      Dynamic Data
+                    </Link>
                   </div>
                   
                 )}
