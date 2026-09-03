@@ -84,6 +84,28 @@ exports.findMine = (req, res) => {
   });
 };
 
+exports.findByUser = (req, res) => {
+  const userId = Number(req.params.userId);
+
+  if (!userId) {
+    return res.status(400).send({ message: "userId is required." });
+  }
+
+  Project.findByUserId(userId, (err, data) => {
+    if (err) {
+      return res.status(500).send({
+        message: "Error retrieving profile."
+      });
+    }
+
+    if (!data) {
+      return res.status(404).send({ message: "Profile not found." });
+    }
+
+    return res.send(data);
+  });
+};
+
 
 // Retrieve a single record by name
 exports.findName = (req, res) => {

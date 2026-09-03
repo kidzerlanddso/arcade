@@ -9,7 +9,7 @@ import MessageAlumniPage from "../pages/MessageAlumniPage";
 
 import NewProfile from "../components/NewProfile";
 import MembershipRequest from "../components/membershiprequest";
-
+import AlumniProfilePage from "../pages/AlumniProfilePage";
 function AppRoutes() {
   return (
     <Routes>
@@ -60,6 +60,14 @@ function AppRoutes() {
           </ProtectedRoute>
         }
       />
+      <Route
+  path="/profile/view/:id"
+  element={
+    <ProtectedRoute>
+      <AlumniProfilePage />
+    </ProtectedRoute>
+  }
+/>
 
 
 
