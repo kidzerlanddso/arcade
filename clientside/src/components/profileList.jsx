@@ -191,6 +191,29 @@ const handleAccept = async (connectionId, userId) => {
      }
   };
 
+  const getConnectionForProfile = (profile) => {
+    const userId = Number(profile.user_id);
+    return (
+      connectionStatus[userId] || {
+        status: "none",
+        connectionId: null,
+        direction: null,
+      }
+    );
+  };
+
+  const isProfileConnected = (profile) =>
+    getConnectionForProfile(profile).status === "accepted";
+
+  // Same as Connections modal: open read-only alumni profile
+  const handleOpenConnectedProfile = (profile) => {
+    if (!profile?.id) {
+      alert("Profile not available.");
+      return;
+    }
+    navigate(`/profile/view/${profile.id}`);
+  };
+
   // Render the correct button based on connection status
   const renderConnectionActions = (profile) => {
     const userId = Number(profile.user_id);
@@ -199,18 +222,21 @@ const handleAccept = async (connectionId, userId) => {
        return null;
   
 
-    const connection = connectionStatus[userId] || {
-      status: "none",
-      connectionId: null,
-      direction: null
-    };
+    const connection = getConnectionForProfile(profile);
     const isLoading = connectingUserId === userId;
   
-    // Already connected
+    // Already connected — click opens their profile (same as Connections list)
     if(connection.status === "accepted") 
       return (
     
-      <button type="button" className="connect-button connect-button--connected" disabled>
+      <button
+        type="button"
+        className="connect-button connect-button--connected"
+        onClick={(event) => {
+          event.stopPropagation();
+          handleOpenConnectedProfile(profile);
+        }}
+      >
         Connected
       </button>
     );
@@ -528,10 +554,36 @@ const handleAccept = async (connectionId, userId) => {
         <p>Loading profiles...</p>
       ) : (
         <div className={viewMode === "list" ? "profile-list-view" : "profile-card-grid"}>
-          {visibleProfiles.map((profile) => (
-          <article className="profile-card" key={profile.id}>
+          {visibleProfiles.map((profile) => {
+            const connected = isProfileConnected(profile);
+
+            return (
+          <article
+            className={`profile-card${connected ? " profile-card--clickable" : ""}`}
+            key={profile.id}
+            onClick={
+              connected
+                ? () => handleOpenConnectedProfile(profile)
+                : undefined
+            }
+            onKeyDown={
+              connected
+                ? (event) => {
+                    if (event.key === "Enter" || event.key === " ") {
+                      event.preventDefault();
+                      handleOpenConnectedProfile(profile);
+                    }
+                  }
+                : undefined
+            }
+            role={connected ? "button" : undefined}
+            tabIndex={connected ? 0 : undefined}
+          >
             {isAdmin && viewMode === "list" && (
-              <label className="profile-select-checkbox">
+              <label
+                className="profile-select-checkbox"
+                onClick={(event) => event.stopPropagation()}
+              >
                 <input
                   type="checkbox"
                   checked={selectedProfileIds.includes(String(profile.id))}
@@ -557,13 +609,19 @@ const handleAccept = async (connectionId, userId) => {
               <p><strong>Batch of </strong> {profile.year || profile.graduation_year || "-"}</p>
 
              {/* Connect actions (all logged-in users; separate from admin edit buttons) */}
-             <div className="profile-connect-actions">
+             <div
+               className="profile-connect-actions"
+               onClick={(event) => event.stopPropagation()}
+             >
               {renderConnectionActions(profile)}
              </div>
 
 
               {isAdmin && (
-                <div className="profile-card-actions">
+                <div
+                  className="profile-card-actions"
+                  onClick={(event) => event.stopPropagation()}
+                >
                   <Link
                     className="icon-action edit-action"
                     to={`/profile/edit/${profile.id}`}
@@ -584,7 +642,8 @@ const handleAccept = async (connectionId, userId) => {
               )}
             </div>
           </article>
-          ))}
+            );
+          })}
         </div>
       )}
 

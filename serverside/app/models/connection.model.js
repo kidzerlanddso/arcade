@@ -81,6 +81,7 @@ Connection.findAcceptedByUserId = (userId, result) => {
          WHEN c.requester_id = $1 THEN c.receiver_id
          ELSE c.requester_id
        END AS other_user_id,
+       p.id AS profile_id,
        p.firstname,
        p.lastname,
        p.profile_image_url,
@@ -112,6 +113,8 @@ Connection.findPendingSentByUserId = (userId, result) => {
   db.query(
     `SELECT
        c.*,
+       c.receiver_id AS other_user_id,
+       p.id AS profile_id,
        p.firstname,
        p.lastname,
        p.profile_image_url,
@@ -140,6 +143,8 @@ Connection.findPendingReceivedByUserId = (userId, result) => {
   db.query(
     `SELECT
        c.*,
+       c.requester_id AS other_user_id,
+       p.id AS profile_id,
        p.firstname,
        p.lastname,
        p.profile_image_url,

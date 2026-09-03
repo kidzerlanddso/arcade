@@ -264,14 +264,17 @@ function MyProfilePage({ readOnly = false }) {
         }
     };
     const handleOpenConnectionProfile = async (item) => {
-        let profileId = item.profile_id;
+        // Use profile_id only — never connection.id or other_user_id as the URL id
+        let profileId = item.profile_id ? Number(item.profile_id) : null;
 
         if (!profileId && item.other_user_id) {
             try {
                 const response = await api.get(
                     `/profile/user/${item.other_user_id}`,
                 );
-                profileId = response.data?.id;
+                profileId = Number(
+                    response.data?.id ?? response.data?.data?.id,
+                );
             } catch (error) {
                 console.error("Error resolving connection profile:", error);
                 alert("Unable to open this profile.");
