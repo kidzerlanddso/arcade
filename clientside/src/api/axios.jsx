@@ -8,6 +8,14 @@ const API_URL =
 
 let memoryToken = localStorage.getItem("token");
 
+const getStoredToken = () => {
+  const currentToken = localStorage.getItem("token") || memoryToken;
+  if (currentToken) {
+    memoryToken = currentToken;
+  }
+  return currentToken;
+};
+
 export const setAccessToken = (token) => {
   memoryToken = token || null;
   if (token) {
@@ -65,7 +73,7 @@ api.interceptors.request.use(async (config) => {
     requestUrl.includes("/auth/refresh") ||
     requestUrl.includes("/auth/register");
 
-  let token = memoryToken || localStorage.getItem("token");
+  let token = memoryToken || getStoredToken();
   if (token) {
     memoryToken = token;
   }

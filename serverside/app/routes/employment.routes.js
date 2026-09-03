@@ -8,5 +8,6 @@ module.exports = app => {
   // Add new employment record
   app.post("/employment", verifyToken, employment.create);
   // Delete an employment record
+  app.patch("/employment/:id", verifyToken, employment.updateOne);
 app.delete("/employment/:id", verifyToken, employment.deleteOne);
 };

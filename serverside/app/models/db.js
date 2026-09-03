@@ -10,6 +10,8 @@ const pool = new Pool({
   ssl: dbConfig.SSL === "true" ? { rejectUnauthorized: false } : false,
 });
 
+
+
 pool.on("connect", () => {
   console.log("Successfully connected to PostgreSQL.");
 });
