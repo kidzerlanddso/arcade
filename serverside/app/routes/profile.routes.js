@@ -9,12 +9,13 @@ module.exports = app => {
   // Retrieve all profile
   app.get("/profile", projects.findAll);
   app.get("/profile/me", verifyToken, projects.findMine);
-
-  // Retrieve a single profile by ID
-  app.get("/profile/:id", projects.findOne);
+  app.get("/profile/user/:userId", verifyToken, projects.findByUser);
 
   // Retrieve a single profile by Name
   app.get("/profile/title/:title", projects.findName);
+
+  // Retrieve a single profile by ID
+  app.get("/profile/:id", projects.findOne);
 
   
   //valid JWT required
