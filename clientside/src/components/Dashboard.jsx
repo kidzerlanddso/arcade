@@ -2,13 +2,65 @@ import { Link } from "react-router-dom";
 import { useEffect, useState } from "react";
 import EventDetailsModal from "./EventDetailsModal";
 import api from "../api/axios";
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 import { defaultEvents, formatEventDate, formatEventTime } from "../data/events";
+
+const getAdminFromToken = () => {
+  const currentToken = localStorage.getItem("token");
+
+  if (!currentToken) return false;
+
+  try {
+    const payload = JSON.parse(atob(currentToken.split(".")[1] || ""));
+    const adminValue = payload.admin;
+    if (adminValue !== undefined && adminValue !== null) {
+      return adminValue === true || adminValue === 1 || adminValue === "1" || adminValue === "true";
+    }
+  } catch (error) {
+    console.error("Error decoding token for admin status:", error);
+  }
+
+  const storedAdmin = localStorage.getItem("isAdmin");
+  return storedAdmin === "true" || storedAdmin === "1";
+};
+
 
 function Dashboard() {
   const [selectedEvent, setSelectedEvent] = useState(null);
   const [events, setEvents] = useState([]);
+  const token = localStorage.getItem("token");
+  const isAdmin = getAdminFromToken();
 
   useEffect(() => {
+    const token = localStorage.getItem("token");
+
+    const fetchPendingUsers = async () => {
+      try {
+        const response = await api.get("/auth/membership-requests/pending-requests");
+
+        const pendingCount = Number(response.data?.count || 0);
+
+        if (pendingCount > 0) {
+          toast.info(`Attention: You have ${pendingCount} pending membership requests to review.`, {
+            toastId: 'pending-requests-toast', // Prevents duplicates during React StrictMode
+            position: "top-right",
+            autoClose: 5000,
+            theme: "colored",
+            
+          });
+        }
+      } catch (error) {
+        console.error("Failed to fetch pending requests:", error);
+        // Only show an error toast if it's not a 401/403 authorization denial (e.g., if a non-admin logs in)
+        if (error.response?.status !== 401 && error.response?.status !== 403) {
+          toast.error("Could not load pending membership requests.");
+        }
+      }
+    };
+
+    fetchPendingUsers();
+
     const toEventDate = (event) => {
       const rawDate = event?.date || "";
       const rawTime = event?.startTime || "00:00";
@@ -41,27 +93,17 @@ function Dashboard() {
 
   return (
     <div className="dashboard-shell">
-      {/*
-      <div className="dashboard-action-panel">
-        <Link className="primary-action" to="/profile">
-          View All Profiles
-        </Link>
-        <Link className="primary-action" to="/membership-request">
-          Membership Request
-        </Link>
-        <Link className="primary-action" to="/message-alumni">
-          Message Alumni
-        </Link>
-      </div>
-      */}
-
-      <div className="events-topbar">
+      {isAdmin && (<div className="grid place-items-center h-dvh bg-zinc-900/15">
+        <ToastContainer />
+      </div>)}
+    
+    <div className="events-topbar">
         <h1 className="events-title">
           Upcoming events
         </h1>
-        <Link className="events-icon-link" to="/events?view=calendar" aria-label="Open events calendar" title="Open events calendar">
+        {isAdmin && (<Link className="events-icon-link" to="/events?view=calendar" aria-label="Open events calendar" title="Open events calendar">
           Add Events
-        </Link>
+        </Link>)}
       </div>
 
       <div className="event-grid">

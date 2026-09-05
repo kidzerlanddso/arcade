@@ -18,7 +18,7 @@ this.mentorship_availability = profile.mentorship_availability || "";
 };
 
 Project.getAll = (result) => {
-  db.query("SELECT * FROM profile p LEFT JOIN users u ON p.user_id = u.id LEFT JOIN expertise e ON p.expertise_id = e.expertise_id WHERE u.active = 1 AND u.admin = 0 ORDER BY p.firstname ASC", (err, res) => {
+  db.query("SELECT * FROM profile p LEFT JOIN users u ON p.user_id = u.id LEFT JOIN expertise e ON e.expertise_id = ANY(p.expertise_id) WHERE u.active = 1 AND u.admin = 0 ORDER BY p.firstname ASC", (err, res) => {
     if (err) {
       console.log("GetAll error: ", err);
       result(err, null);
@@ -29,7 +29,7 @@ Project.getAll = (result) => {
 };
 
 Project.findById = (id, result) => {
-  db.query("SELECT * FROM profile p LEFT JOIN users u ON p.user_id = u.id LEFT JOIN expertise e ON p.expertise_id = e.expertise_id WHERE p.id = $1 AND u.active = 1 ", [id], (err, res) => {
+  db.query("SELECT * FROM profile p LEFT JOIN users u ON p.user_id = u.id LEFT JOIN expertise e ON e.expertise_id = ANY(p.expertise_id) WHERE p.id = $1 AND u.active = 1 ", [id], (err, res) => {
     if (err) {
       console.log("FindById error: ", err);
       result(err, null);
