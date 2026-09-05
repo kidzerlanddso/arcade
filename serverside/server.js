@@ -49,6 +49,7 @@ require("./app/routes/education.routes.js")(app);
 require("./app/routes/country.routes.js")(app);
 require("./app/routes/connection.routes.js")(app);
 require("./app/routes/event.routes.js")(app);
+require("./app/routes/data.routes.js")(app);
 // Start the server running. Once the server is running, the given function will be called, which will
 // log a simple message to the server console. Any console.log() statements in your Node.js code
 // can be seen in the terminal window used to run the server.
