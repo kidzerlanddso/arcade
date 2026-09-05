@@ -11,8 +11,7 @@ import EventDetailsPage from "../pages/EventDetailsPage";
 
 import NewProfile from "../components/NewProfile";
 import MembershipRequest from "../components/membershiprequest";
-import AdminList from "../components/adminlist";
-import DynamicData  from "../components/dynamicdata";
+import AlumniProfilePage from "../pages/AlumniProfilePage";
 
 function AppRoutes() {
   return (
@@ -64,7 +63,7 @@ function AppRoutes() {
         }
       />
 
-     <Route
+      <Route
         path="/profile/new"
         element={
           <ProtectedRoute>
@@ -73,12 +72,23 @@ function AppRoutes() {
         }
       />
 
+      <Route
+        path="/membership-request"
+        element={
+          <ProtectedRoute>
+            <MembershipRequest />
+          </ProtectedRoute>
+        }
+      />
 
-      <Route  path="/membership-request"   element={<ProtectedRoute><MembershipRequest /></ProtectedRoute>}     />
-      <Route  path="/admin"   element={<ProtectedRoute><AdminList /></ProtectedRoute>}     />
-      <Route  path="/dynamicdata"   element={<ProtectedRoute><DynamicData /></ProtectedRoute>}     />
-
-
+      <Route
+        path="/profile/view/:id"
+        element={
+          <ProtectedRoute>
+            <AlumniProfilePage />
+          </ProtectedRoute>
+        }
+      />
 
       <Route path="*" element={<Navigate to="/login" replace />} />
     </Routes>

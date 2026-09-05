@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 
 import api from "../api/axios";
+import { Link, useNavigate, useParams } from "react-router-dom";
 
 const getTokenPayload = () => {
     const token = localStorage.getItem("token");
@@ -41,7 +42,10 @@ const getAdminFromToken = () => {
     return storedAdmin === "true" || storedAdmin === "1";
 };
 
-function MyProfilePage() {
+function MyProfilePage({ readOnly = false }) {
+    const { id: viewProfileId } = useParams();
+    const isViewingOther = readOnly && Boolean(viewProfileId);
+    const navigate = useNavigate();
     const [profile, setProfile] = useState(null);
     const isAdmin = getAdminFromToken();
     const [loading, setLoading] = useState(true);
@@ -109,7 +113,69 @@ function MyProfilePage() {
     const [showEducationForm, setShowEducationForm] = useState(false);
     const [showEducationEditMode, setShowEducationEditMode] = useState(false);
     const [showEmploymentEditMode, setShowEmploymentEditMode] = useState(false);
+    const [showConnectModal, setShowConnectModal] = useState(false);
+    const [connections, setConnections] = useState([]);
+    const [pendingSent, setPendingSent] = useState([]);
+    const [pendingReceived, setPendingReceived] = useState([]);
+    const [connectToast, setConnectToast] = useState("");
+
+    const applyProfileToState = (currentProfile) => {
+        setProfile(currentProfile || null);
+        setBio(currentProfile?.bio || "");
+        setLinkedinUrl(currentProfile?.linkedin_url || "");
+        setMentorshipAvailable(
+            currentProfile?.mentorship_available ?? false,
+        );
+        setExpertise(currentProfile?.expertise || "");
+        setMentorshipAvailability(
+            currentProfile?.mentorship_availability || "",
+        );
+        setProfileImageUrl(currentProfile?.profile_image_url || "");
+        setCurrentCity(currentProfile?.current_city || "");
+        setCurrentCountry(currentProfile?.current_country || "");
+        setEmail(currentProfile?.email || "");
+        setStudentId(currentProfile?.student_id || "");
+        setFirstName(
+            currentProfile?.firstname || currentProfile?.first_name || "",
+        );
+        setLastName(
+            currentProfile?.lastname || currentProfile?.last_name || "",
+        );
+        setEnableEmail(Boolean(currentProfile?.enableEmail ?? false));
+    };
+
     useEffect(() => {
+        if (isViewingOther) {
+            setLoading(true);
+
+            api.get(`/profile/${viewProfileId}`)
+                .then(async (response) => {
+                    const currentProfile = response.data;
+                    applyProfileToState(currentProfile);
+
+                    const userId = currentProfile?.user_id;
+                    if (!userId) return;
+
+                    const [employmentResponse, educationResponse] =
+                        await Promise.all([
+                            api.get(`/employment/user/${userId}`),
+                            api.get(`/education/user/${userId}`),
+                        ]);
+
+                    setEmployment(employmentResponse.data || []);
+                    setEducation(educationResponse.data || []);
+                })
+                .catch((error) => {
+                    console.error("Error loading profile:", error);
+                    setProfile(null);
+                })
+                .finally(() => {
+                    setLoading(false);
+                });
+
+            return;
+        }
+
         const payload = getTokenPayload();
 
         if (!payload) {
@@ -120,35 +186,8 @@ function MyProfilePage() {
 
         api.get("/profile/me")
             .then((response) => {
-                const currentProfile = response.data;
-
-                setProfile(currentProfile || null);
-
-                setBio(currentProfile?.bio || "");
-                setLinkedinUrl(currentProfile?.linkedin_url || "");
-                setMentorshipAvailable(
-                    currentProfile?.mentorship_available ?? false,
-                );
-                setExpertise(currentProfile?.expertise || "");
-                setMentorshipAvailability(
-                    currentProfile?.mentorship_availability || "",
-                );
-                setProfileImageUrl(currentProfile?.profile_image_url || "");
-                setCurrentCity(currentProfile?.current_city || "");
-                setCurrentCountry(currentProfile?.current_country || "");
-                setEmail(currentProfile?.email || "");
-                setStudentId(currentProfile?.student_id || "");
-                setFirstName(
-                    currentProfile?.firstname ||
-                        currentProfile?.first_name ||
-                        "",
-                );
-                setLastName(
-                    currentProfile?.lastname || currentProfile?.last_name || "",
-                );
-                setEnableEmail(Boolean(currentProfile?.enableEmail ?? false));
+                applyProfileToState(response.data);
             })
-
             .catch((error) => {
                 console.error("Error loading current profile:", error);
                 setProfile(null);
@@ -173,8 +212,10 @@ function MyProfilePage() {
                 console.error("Error loading education history:", error);
                 setEducation([]);
             });
-    }, []);
+    }, [isViewingOther, viewProfileId]);
     useEffect(() => {
+        if (isViewingOther) return;
+
         api.get("/country")
             .then((response) => {
                 setCountries(response.data || []);
@@ -183,7 +224,7 @@ function MyProfilePage() {
                 console.error("Error loading countries:", error);
                 setCountries([]);
             });
-    }, []);
+    }, [isViewingOther]);
     const handleProfileImageChange = async (e) => {
         const file = e.target.files[0];
 
@@ -221,6 +262,33 @@ function MyProfilePage() {
         } catch (error) {
             console.error("Error updating profile image:", error);
         }
+    };
+    const handleOpenConnectionProfile = async (item) => {
+        // Use profile_id only — never connection.id or other_user_id as the URL id
+        let profileId = item.profile_id ? Number(item.profile_id) : null;
+
+        if (!profileId && item.other_user_id) {
+            try {
+                const response = await api.get(
+                    `/profile/user/${item.other_user_id}`,
+                );
+                profileId = Number(
+                    response.data?.id ?? response.data?.data?.id,
+                );
+            } catch (error) {
+                console.error("Error resolving connection profile:", error);
+                alert("Unable to open this profile.");
+                return;
+            }
+        }
+
+        if (!profileId) {
+            alert("Profile not available.");
+            return;
+        }
+
+        setShowConnectModal(false);
+        navigate(`/profile/view/${profileId}`);
     };
     const handleSave = async () => {
         try {
@@ -474,6 +542,105 @@ function MyProfilePage() {
 
         return `${year}-${month}-${day}`;
     };
+    const formatConnectionName = (item) =>
+        `${item.firstname || ""} ${item.lastname || ""}`.trim() || "Unknown";
+
+    const renderConnectionAvatar = (item) => {
+        const name = formatConnectionName(item);
+
+        if (item.profile_image_url) {
+            return (
+                <img
+                    src={item.profile_image_url}
+                    alt={name}
+                    className="connect-row-avatar"
+                />
+            );
+        }
+
+        return (
+            <div
+                className="connect-row-avatar connect-row-avatar--placeholder"
+                aria-hidden="true"
+            >
+                {(item.firstname || "U").charAt(0).toUpperCase()}
+            </div>
+        );
+    };
+
+    const loadConnections = async () => {
+        try {
+            const [connectionsResponse, pendingResponse] = await Promise.all([
+                api.get("/connection/me"),
+                api.get("/connection/pending"),
+            ]);
+
+            setConnections(connectionsResponse.data || []);
+            setPendingSent(pendingResponse.data?.sent || []);
+            setPendingReceived(pendingResponse.data?.received || []);
+        } catch (error) {
+            console.error("Error loading connections:", error);
+            alert(
+                error.response?.data?.message || "Failed to load connections.",
+            );
+        }
+    };
+
+    const handleOpenConnections = async () => {
+        setShowConnectModal(true);
+        await loadConnections();
+    };
+
+    const showConnectToast = (message) => {
+        setConnectToast(message);
+        setTimeout(() => {
+            setConnectToast("");
+        }, 3000);
+    };
+
+    const handleAcceptConnection = async (connectionId, item) => {
+        try {
+            await api.patch(`/connection/${connectionId}/accept`);
+            const name = formatConnectionName(item);
+            showConnectToast(`Connection request from ${name} accepted!`);
+            await loadConnections();
+        } catch (error) {
+            alert(
+                error.response?.data?.message ||
+                    "Failed to accept connection request.",
+            );
+        }
+    };
+
+    const handleRejectConnection = async (connectionId) => {
+        try {
+            await api.patch(`/connection/${connectionId}/reject`);
+            await loadConnections();
+        } catch (error) {
+            alert(
+                error.response?.data?.message ||
+                    "Failed to reject connection request.",
+            );
+        }
+    };
+
+    const handleCancelConnection = async (
+        connectionId,
+        successMessage = null,
+    ) => {
+        try {
+            await api.delete(`/connection/${connectionId}`);
+            if (successMessage) {
+                showConnectToast(successMessage);
+            }
+            await loadConnections();
+        } catch (error) {
+            alert(
+                error.response?.data?.message || "Failed to cancel connection.",
+            );
+        }
+    };
+
     if (loading) {
         return (
             <div className="book-list">
@@ -486,9 +653,14 @@ function MyProfilePage() {
         return (
             <div className="book-list">
                 <div className="page-header">
-                    <h2>My Profile</h2>
+                    <h2>{isViewingOther ? "Alumni Profile" : "My Profile"}</h2>
                 </div>
                 <p>No profile found for this user.</p>
+                {isViewingOther && (
+                    <Link to="/profile/me" className="profile-header-button">
+                        Back to My Profile
+                    </Link>
+                )}
             </div>
         );
     }
@@ -498,6 +670,14 @@ function MyProfilePage() {
 
     return (
         <div className="book-list">
+            {connectToast && (
+                <div
+                    className="connect-toast connect-toast--long"
+                    role="status"
+                >
+                    {connectToast}
+                </div>
+            )}
             <div className="linkedin-profile-shell">
                 <div className="linkedin-cover" />
 
@@ -505,7 +685,14 @@ function MyProfilePage() {
                     <div className="linkedin-profile-header">
                         <div
                             className="linkedin-avatar"
-                            onClick={() => setShowPhotoModal(true)}
+                            onClick={
+                                isViewingOther
+                                    ? undefined
+                                    : () => setShowPhotoModal(true)
+                            }
+                            style={
+                                isViewingOther ? { cursor: "default" } : undefined
+                            }
                         >
                             {profile.profile_image_url ? (
                                 <img
@@ -520,22 +707,24 @@ function MyProfilePage() {
                             )}
                         </div>
 
-                        <input
-                            id="profileImageInput"
-                            type="file"
-                            accept="image/*"
-                            onChange={handleProfileImageChange}
-                            style={{ display: "none" }}
-                        />
+                        {!isViewingOther && (
+                            <input
+                                id="profileImageInput"
+                                type="file"
+                                accept="image/*"
+                                onChange={handleProfileImageChange}
+                                style={{ display: "none" }}
+                            />
+                        )}
 
-                        {showPhotoModal && (
+                        {!isViewingOther && showPhotoModal && (
                             <div className="photo-modal-overlay">
                                 <div className="photo-modal">
                                     <button
                                         className="photo-modal-close"
                                         onClick={() => setShowPhotoModal(false)}
                                     >
-                                        ×
+                                        脳
                                     </button>
 
                                     <h2>Profile photo</h2>
@@ -564,8 +753,232 @@ function MyProfilePage() {
                             </div>
                         )}
 
+                        {!isViewingOther && showConnectModal && (
+                            <div
+                                className="modal-overlay"
+                                onClick={() => setShowConnectModal(false)}
+                            >
+                                <div
+                                    className="modal-card connect-modal"
+                                    onClick={(event) => event.stopPropagation()}
+                                >
+                                    <div className="modal-header">
+                                        <h3>My Connections</h3>
+                                        <button
+                                            type="button"
+                                            className="close-button"
+                                            onClick={() =>
+                                                setShowConnectModal(false)
+                                            }
+                                            aria-label="Close connections"
+                                        >
+                                            ×
+                                        </button>
+                                    </div>
+
+                                    <div className="connect-modal-body">
+                                        <section className="connect-section">
+                                            <h4>
+                                                Requests received (
+                                                {pendingReceived.length})
+                                            </h4>
+                                            {pendingReceived.length === 0 ? (
+                                                <p className="connect-empty">
+                                                    No pending requests.
+                                                </p>
+                                            ) : (
+                                                pendingReceived.map((item) => (
+                                                    <div
+                                                        key={item.id}
+                                                        className="connect-row"
+                                                    >
+                                                        <div className="connect-row-main">
+                                                            {renderConnectionAvatar(
+                                                                item,
+                                                            )}
+                                                            <div className="connect-row-info">
+                                                                <strong>
+                                                                    {formatConnectionName(
+                                                                        item,
+                                                                    )}
+                                                                </strong>
+                                                                <span>
+                                                                    {[
+                                                                        item.current_city,
+                                                                        item.current_country,
+                                                                    ]
+                                                                        .filter(
+                                                                            Boolean,
+                                                                        )
+                                                                        .join(
+                                                                            ", ",
+                                                                        ) || "—"}
+                                                                </span>
+                                                            </div>
+                                                        </div>
+                                                        <div className="connect-row-actions">
+                                                            <button
+                                                                type="button"
+                                                                className="connect-button connect-button--accept"
+                                                                onClick={() =>
+                                                                    handleAcceptConnection(
+                                                                        item.id,
+                                                                        item,
+                                                                    )
+                                                                }
+                                                            >
+                                                                Accept
+                                                            </button>
+                                                            <button
+                                                                type="button"
+                                                                className="connect-button connect-button--reject"
+                                                                onClick={() =>
+                                                                    handleRejectConnection(
+                                                                        item.id,
+                                                                    )
+                                                                }
+                                                            >
+                                                                Reject
+                                                            </button>
+                                                        </div>
+                                                    </div>
+                                                ))
+                                            )}
+                                        </section>
+
+                                        <section className="connect-section">
+                                            <h4>
+                                                Requests sent (
+                                                {pendingSent.length})
+                                            </h4>
+                                            {pendingSent.length === 0 ? (
+                                                <p className="connect-empty">
+                                                    No sent requests.
+                                                </p>
+                                            ) : (
+                                                pendingSent.map((item) => (
+                                                    <div
+                                                        key={item.id}
+                                                        className="connect-row"
+                                                    >
+                                                        <div className="connect-row-main">
+                                                            {renderConnectionAvatar(
+                                                                item,
+                                                            )}
+                                                            <div className="connect-row-info">
+                                                                <strong>
+                                                                    {formatConnectionName(
+                                                                        item,
+                                                                    )}
+                                                                </strong>
+                                                                <span className="connect-status-label">
+                                                                    Pending
+                                                                </span>
+                                                            </div>
+                                                        </div>
+                                                        <div className="connect-row-actions">
+                                                            <button
+                                                                type="button"
+                                                                className="connect-button connect-button--reject"
+                                                                onClick={() =>
+                                                                    handleCancelConnection(
+                                                                        item.id,
+                                                                        `Connection request to ${formatConnectionName(item)} cancelled!`,
+                                                                    )
+                                                                }
+                                                            >
+                                                                Cancel
+                                                            </button>
+                                                        </div>
+                                                    </div>
+                                                ))
+                                            )}
+                                        </section>
+
+                                        <section className="connect-section">
+                                            <h4>
+                                                Connections ({connections.length})
+                                            </h4>
+                                            {connections.length === 0 ? (
+                                                <p className="connect-empty">
+                                                    No connections yet.
+                                                </p>
+                                            ) : (
+                                                connections.map((item) => (
+                                                    <div
+                                                        key={item.id}
+                                                        className="connect-row connect-row--clickable"
+                                                        onClick={() =>
+                                                            handleOpenConnectionProfile(
+                                                                item,
+                                                            )
+                                                        }
+                                                        onKeyDown={(event) => {
+                                                            if (
+                                                                event.key ===
+                                                                    "Enter" ||
+                                                                event.key === " "
+                                                            ) {
+                                                                event.preventDefault();
+                                                                handleOpenConnectionProfile(
+                                                                    item,
+                                                                );
+                                                            }
+                                                        }}
+                                                        role="button"
+                                                        tabIndex={0}
+                                                    >
+                                                        <div className="connect-row-main">
+                                                            {renderConnectionAvatar(
+                                                                item,
+                                                            )}
+                                                            <div className="connect-row-info">
+                                                                <strong>
+                                                                    {formatConnectionName(
+                                                                        item,
+                                                                    )}
+                                                                </strong>
+                                                                <span>
+                                                                    {[
+                                                                        item.current_city,
+                                                                        item.current_country,
+                                                                    ]
+                                                                        .filter(
+                                                                            Boolean,
+                                                                        )
+                                                                        .join(
+                                                                            ", ",
+                                                                        ) || "—"}
+                                                                </span>
+                                                            </div>
+                                                        </div>
+                                                        <div className="connect-row-actions">
+                                                            <button
+                                                                type="button"
+                                                                className="connect-button connect-button--reject"
+                                                                onClick={(
+                                                                    e,
+                                                                ) => {
+                                                                    e.stopPropagation();
+                                                                    handleCancelConnection(
+                                                                        item.id,
+                                                                    );
+                                                                }}
+                                                            >
+                                                                Disconnect
+                                                            </button>
+                                                        </div>
+                                                    </div>
+                                                ))
+                                            )}
+                                        </section>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+
                         <div className="linkedin-profile-meta">
-                            {editing ? (
+                            {editing && !isViewingOther ? (
                                 <>
                                     <input
                                         type="text"
@@ -590,7 +1003,7 @@ function MyProfilePage() {
                             )}
 
                             <p className="linkedin-title">
-                                Graduate • Batch{" "}
+                                Graduate 鈥?Batch{" "}
                                 {profile.year || profile.graduation_year || "-"}
                             </p>
                             <p className="linkedin-location">
@@ -598,54 +1011,82 @@ function MyProfilePage() {
                             </p>
                         </div>
 
-                        {editing ? (
-                            <>
-                                <button onClick={handleSave}>Save</button>
+                        <div className="profile-header-actions">
+                            {isViewingOther ? (
+                                <Link
+                                    to="/profile/me"
+                                    className="profile-header-button"
+                                >
+                                    Back to My Profile
+                                </Link>
+                            ) : (
+                                <>
+                                    {!editing && (
+                                        <button
+                                            type="button"
+                                            className="connect-open-button"
+                                            onClick={handleOpenConnections}
+                                        >
+                                            Connections
+                                            {pendingReceived.length > 0
+                                                ? ` (${pendingReceived.length})`
+                                                : ""}
+                                        </button>
+                                    )}
 
-                                <button
-                                    onClick={() => {
-                                        setEditing(false);
-                                        setProfileImageFile(null);
-                                        setShowEmploymentForm(false);
-                                    }}
-                                >
-                                    Cancel
-                                </button>
-                            </>
-                        ) : (
-                            <button
-                                type="button"
-                                className="profile-edit-button"
-                                onClick={() => {
-                                    setShowIntroModal(true);
-                                }}
-                                aria-label="Edit intro"
-                            >
-                                <svg
-                                    width="42"
-                                    height="42"
-                                    viewBox="0 0 24 24"
-                                    fill="none"
-                                    stroke="currentColor"
-                                    strokeWidth="2.5"
-                                    strokeLinecap="round"
-                                    strokeLinejoin="round"
-                                >
-                                    <path d="M12 20h9" />
-                                    <path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z" />
-                                </svg>
-                            </button>
-                        )}
+                                    {editing && !isViewingOther ? (
+                                        <>
+                                            <button onClick={handleSave}>
+                                                Save
+                                            </button>
+
+                                            <button
+                                                onClick={() => {
+                                                    setEditing(false);
+                                                    setProfileImageFile(null);
+                                                    setShowEmploymentForm(false);
+                                                }}
+                                            >
+                                                Cancel
+                                            </button>
+                                        </>
+                                    ) : (
+                                        <button
+                                            type="button"
+                                            className="profile-edit-button"
+                                            onClick={() => {
+                                                setShowIntroModal(true);
+                                            }}
+                                            aria-label="Edit intro"
+                                        >
+                                            <svg
+                                                width="42"
+                                                height="42"
+                                                viewBox="0 0 24 24"
+                                                fill="none"
+                                                stroke="currentColor"
+                                                strokeWidth="2.5"
+                                                strokeLinecap="round"
+                                                strokeLinejoin="round"
+                                            >
+                                                <path d="M12 20h9" />
+                                                <path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z" />
+                                            </svg>
+                                        </button>
+                                    )}
+                                </>
+                            )}
+                        </div>
                     </div>
 
                     <div className="linkedin-profile-body">
                         <div
                             className="linkedin-detail-row"
-                            style={{ display: editing ? "flex" : "none" }}
+                            style={{ display: editing && !isViewingOther ? "flex" : "none" }}
                         >
                             <span className="linkedin-label">Location</span>
 
-                            {editing ? (
+                            {editing && !isViewingOther ? (
                                 <div className="location-edit-fields">
                                     <input
                                         type="text"
@@ -687,7 +1128,7 @@ function MyProfilePage() {
                         <div className="linkedin-detail-row">
                             <span className="linkedin-label">Email</span>
 
-                            {editing ? (
+                            {editing && !isViewingOther ? (
                                 <input
                                     type="email"
                                     value={email}
@@ -702,7 +1143,7 @@ function MyProfilePage() {
                         <div className="linkedin-detail-row">
                             <span className="linkedin-label">Student ID</span>
 
-                            {editing ? (
+                            {editing && !isViewingOther ? (
                                 <input
                                     type="text"
                                     value={studentId}
@@ -719,7 +1160,7 @@ function MyProfilePage() {
                         <div className="linkedin-detail-row">
                             <span className="linkedin-label">LinkedIn</span>
 
-                            {editing ? (
+                            {editing && !isViewingOther ? (
                                 <input
                                     type="url"
                                     value={linkedinUrl}
@@ -750,6 +1191,7 @@ function MyProfilePage() {
                 <div className="profile-section">
                     <div className="profile-section-header">
                         <h3>About</h3>
+                        {!isViewingOther && (
                         <button
                             type="button"
                             className="section-edit-button"
@@ -770,9 +1212,10 @@ function MyProfilePage() {
                                 <path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z" />
                             </svg>
                         </button>
+                        )}
                     </div>
 
-                    {editing ? (
+                    {editing && !isViewingOther ? (
                         <textarea
                             className="about-modal-textarea"
                             value={bio}
@@ -783,7 +1226,7 @@ function MyProfilePage() {
                         <p>{profile.bio || "Profile details coming soon."}</p>
                     )}
                 </div>
-                {showAboutModal && (
+                {showAboutModal && !isViewingOther && (
                     <div className="about-modal-overlay">
                         <div className="about-modal">
                             <h2>Edit about</h2>
@@ -817,6 +1260,7 @@ function MyProfilePage() {
                 <div className="profile-section">
                     <div className="profile-section-header">
                         <h3>Mentorship</h3>
+                        {!isViewingOther && (
                         <button
                             type="button"
                             className="section-edit-button"
@@ -837,6 +1281,7 @@ function MyProfilePage() {
                                 <path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z" />
                             </svg>
                         </button>
+                        )}
                     </div>
 
                     {showMentorshipModal ? (
@@ -873,8 +1318,7 @@ function MyProfilePage() {
                                         >
                                             {mentorshipAvailability ||
                                                 "Select days"}{" "}
-                                            ▾
-                                        </button>
+                                            鈻?                                        </button>
 
                                         {showMentorshipDaysDropdown && (
                                             <div className="mentorship-days-options">
@@ -970,6 +1414,7 @@ function MyProfilePage() {
                     <div className="profile-section-header">
                         <h3>Education</h3>
 
+                        {!isViewingOther && (
                         <div className="education-header-actions">
                             <button
                                 type="button"
@@ -1006,9 +1451,10 @@ function MyProfilePage() {
                                 </button>
                             )}
                         </div>
+                        )}
                     </div>
 
-                    {showEducationEditMode && showEducationForm && (
+                    {showEducationEditMode && !isViewingOther && showEducationForm && (
                         <div>
                             <input
                                 type="text"
@@ -1217,7 +1663,8 @@ function MyProfilePage() {
 
                                 {item.description && <p>{item.description}</p>}
 
-                                {(editing || showEducationEditMode) && (
+                                {(editing || showEducationEditMode) &&
+                                    !isViewingOther && (
                                     <button
                                         onClick={() =>
                                             handleDeleteEducation(item.id)
@@ -1229,7 +1676,7 @@ function MyProfilePage() {
                             </div>
                         ))
                     )}
-                    {showEducationEditMode && (
+                    {showEducationEditMode && !isViewingOther && (
                         <>
                             <button
                                 type="button"
@@ -1251,6 +1698,7 @@ function MyProfilePage() {
                     <div className="profile-section-header">
                         <h3>Experience</h3>
 
+                        {!isViewingOther && (
                         <div className="profile-section-actions experience-section-actions">
                             {showEmploymentEditMode && (
                                 <button
@@ -1283,9 +1731,12 @@ function MyProfilePage() {
                                 </svg>
                             </button>
                         </div>
+                        )}
                     </div>
 
-                    {showEmploymentEditMode && showEmploymentForm && (
+                    {showEmploymentEditMode &&
+                        !isViewingOther &&
+                        showEmploymentForm && (
                         <div className="intro-modal-overlay">
                             <div className="intro-modal">
                                 <div className="intro-modal-header">
@@ -1303,7 +1754,7 @@ function MyProfilePage() {
                                         }
                                         aria-label="Close"
                                     >
-                                        ×
+                                        脳
                                     </button>
                                 </div>
 
@@ -1403,7 +1854,7 @@ function MyProfilePage() {
                                         : "Present"}
                                 </div>
 
-                                {showEmploymentEditMode && (
+                                {showEmploymentEditMode && !isViewingOther && (
                                     <div className="experience-item-actions">
                                         <button
                                             type="button"
@@ -1429,7 +1880,7 @@ function MyProfilePage() {
                     )}
                 </div>
             </div>
-            {showIntroModal && (
+            {showIntroModal && !isViewingOther && (
                 <div className="intro-modal-overlay">
                     <div className="intro-modal">
                         <div className="intro-modal-header">
@@ -1443,7 +1894,7 @@ function MyProfilePage() {
                                     setEditing(false);
                                 }}
                             >
-                                ×
+                                脳
                             </button>
                         </div>
 

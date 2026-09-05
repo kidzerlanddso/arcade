@@ -23,6 +23,18 @@ const getAdminFromToken = () => {
   const storedAdmin = localStorage.getItem("isAdmin");
   return storedAdmin === "true" || storedAdmin === "1";
 };
+// Read logged-in user's users.id from JWT (Connect uses user_id, not profile.id)
+const getCurrentUserId = () => {
+  const currentToken = localStorage.getItem("token");
+  if (!currentToken) return false;
+  try {
+    const payload = JSON.parse(atob(currentToken.split(".")[1] || ""));
+    return Number(payload.userId);
+  } catch (error) {
+    console.error("Error decoding token for current user ID:", error);
+  }
+};
+
 
 function ProfileList() {
   const navigate = useNavigate();
@@ -40,12 +52,19 @@ function ProfileList() {
   const [viewMode, setViewMode] = useState("tile");
   const [selectedProfileIds, setSelectedProfileIds] = useState([]);
   const profilesPerPage = 20;
+  const currentUserId = getCurrentUserId();
+  // Connect: per-user relationship status + user id currently sending a request
+  const [connectingUserId, setConnectingUserId] = useState(null);
+  // Shape: { [user_id]: { status, connectionId, direction } }
+  const [connectionStatus, setConnectionStatus] = useState({});
   const [formData, setFormData] = useState({
     firstname: "",
     lastname: "",
     email: "",
     year: ""
   });
+  const [connectToast, setConnectToast] = useState("");
+  const [showRegister, setShowRegister] = useState(false);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -58,9 +77,11 @@ function ProfileList() {
 
     api
       .get("/profile", { signal: controller.signal })
-      .then((response) => {
+      .then(async(response) => {
         const profileData = response.data.data || response.data;
         setProfiles(profileData);
+        // After profiles load, fetch Connect status for each user
+        await loadConnectionStatuses(profileData);
       })
       .catch((error) => {
         if (error.code !== "ERR_CANCELED") {
@@ -81,6 +102,185 @@ function ProfileList() {
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
+  // Batch-fetch Connect status per card (skip self)
+  const loadConnectionStatuses = async (profileList) => {
+    const me = getCurrentUserId();
+    if (!me) return;
+
+  const others = profileList.filter((profile) => Number( profile.user_id) !== me);
+  const entries = await Promise.all(others.map(async (profile) => {
+    try {
+      const response = await api.get(`/connection/status/${profile.user_id}`);
+      return [ profile.user_id, response.data];
+    } catch (error) {
+      console.error("Error loading connection status:", error);
+      return [
+        profile.user_id,
+        {status: "none",connectionId: null,direction: null}];
+    }
+  }));
+  setConnectionStatus(Object.fromEntries(entries));
+  
+  };
+  const showConnectSuccessToast = (message) => {
+    setConnectToast(message);
+    setTimeout(() => {
+      setConnectToast("");
+    }, 3000);
+  };
+  // Send connection request: POST /connection; receiver_id must be profile.user_id
+  const handleConnect = async (profile) => { 
+    const userId = Number(profile.user_id);
+    setConnectingUserId(userId);
+    try {
+      const response = await api.post("/connection", {
+        receiver_id: userId,
+       
+      });  
+      setConnectionStatus((prev) => ({ ...prev, 
+        [userId]:
+        {
+          status: "pending",
+          connectionId: response.data.id,
+          direction: "sent"
+        } 
+       }));
+       const name = `${profile.firstname || ""} ${profile.lastname || ""}`.trim();
+       showConnectSuccessToast(
+        name ? `Connection request sent to ${name}!` : "Connection request sent successfully!");
+    } catch (error) {
+      alert(error.response?.data?.message || "Error sending connection request");
+       }
+      finally {
+        setConnectingUserId(null);
+      }
+    };
+// Accept an incoming connection request
+const handleAccept = async (connectionId, userId) => {
+  try {
+    await api.patch(`/connection/${connectionId}/accept`);
+    setConnectionStatus((prev) => ({ 
+      ...prev,
+     [userId]:
+      {
+        status: "accepted",
+        connectionId,
+        direction: null
+      } 
+     }));
+  } catch (error) {
+    alert(error.response?.data?.message || "Error accepting connection request");
+     }
+  };
+
+  // Reject an incoming connection request
+  const handleReject = async (connectionId, userId) => { 
+    try {
+      await api.patch(`/connection/${connectionId}/reject`);
+      setConnectionStatus((prev) => ({ 
+        ...prev,
+       [userId]:
+      {
+        status: "none",
+        connectionId: null,
+        direction: null,
+      } 
+     }));
+  } catch (error) {
+    alert(error.response?.data?.message || "Error rejecting connection request");
+     }
+  };
+
+  const getConnectionForProfile = (profile) => {
+    const userId = Number(profile.user_id);
+    return (
+      connectionStatus[userId] || {
+        status: "none",
+        connectionId: null,
+        direction: null,
+      }
+    );
+  };
+
+  const isProfileConnected = (profile) =>
+    getConnectionForProfile(profile).status === "accepted";
+
+  // Same as Connections modal: open read-only alumni profile
+  const handleOpenConnectedProfile = (profile) => {
+    if (!profile?.id) {
+      alert("Profile not available.");
+      return;
+    }
+    navigate(`/profile/view/${profile.id}`);
+  };
+
+  // Render the correct button based on connection status
+  const renderConnectionActions = (profile) => {
+    const userId = Number(profile.user_id);
+    // Hide Connect button on own profile card
+    if (!userId || userId === currentUserId)
+       return null;
+  
+
+    const connection = getConnectionForProfile(profile);
+    const isLoading = connectingUserId === userId;
+  
+    // Already connected — click opens their profile (same as Connections list)
+    if(connection.status === "accepted") 
+      return (
+    
+      <button
+        type="button"
+        className="connect-button connect-button--connected"
+        onClick={(event) => {
+          event.stopPropagation();
+          handleOpenConnectedProfile(profile);
+        }}
+      >
+        Connected
+      </button>
+    );
+  
+     
+  // Request sent by me, awaiting response
+  if (connection.status === "pending" && connection.direction === "sent") {
+    return (
+      <button type="button" className="connect-button connect-button--pending" disabled>
+        Pending
+      </button>
+    );
+}
+  // Request received from them; show Accept / Reject
+  if (connection.status === "pending" && connection.direction === "received") {
+    return (
+      <>
+      <button 
+        type="button" className="connect-button connect-button--accept"
+        onClick={() => handleAccept(connection.connectionId, userId)}
+      
+      >
+        Accept
+      </button>
+      <button type="button" className="connect-button connect-button--reject"
+      onClick={() => handleReject(connection.connectionId, userId)}
+      >
+        Reject
+      </button>
+    </>
+    );
+  }
+
+  // No connection: show + Connect
+  return (
+    <button type="button" className="connect-button"
+    onClick={() => handleConnect(profile)}
+    disabled={isLoading}
+    >
+      {isLoading ? "sending..." : "+ Connect"}
+     
+    </button>
+  );
+};
 
   const years = Array.from(
     new Set(
@@ -216,12 +416,15 @@ function ProfileList() {
     window.location.assign(`mailto:${mailtoRecipients}`);
   };
 
-  const [showRegister, setShowRegister] = useState(false);
-
   if (!token) return null;
 
   return (
     <div className="book-list">
+      {connectToast && (
+        <div className="connect-toast" role="status">
+          {connectToast}
+        </div>
+      )}
       <div className="page-header">
         <h2>List of Profiles</h2>
         <div className="action-row">
@@ -351,10 +554,36 @@ function ProfileList() {
         <p>Loading profiles...</p>
       ) : (
         <div className={viewMode === "list" ? "profile-list-view" : "profile-card-grid"}>
-          {visibleProfiles.map((profile) => (
-          <article className="profile-card" key={profile.id}>
+          {visibleProfiles.map((profile) => {
+            const connected = isProfileConnected(profile);
+
+            return (
+          <article
+            className={`profile-card${connected ? " profile-card--clickable" : ""}`}
+            key={profile.id}
+            onClick={
+              connected
+                ? () => handleOpenConnectedProfile(profile)
+                : undefined
+            }
+            onKeyDown={
+              connected
+                ? (event) => {
+                    if (event.key === "Enter" || event.key === " ") {
+                      event.preventDefault();
+                      handleOpenConnectedProfile(profile);
+                    }
+                  }
+                : undefined
+            }
+            role={connected ? "button" : undefined}
+            tabIndex={connected ? 0 : undefined}
+          >
             {isAdmin && viewMode === "list" && (
-              <label className="profile-select-checkbox">
+              <label
+                className="profile-select-checkbox"
+                onClick={(event) => event.stopPropagation()}
+              >
                 <input
                   type="checkbox"
                   checked={selectedProfileIds.includes(String(profile.id))}
@@ -380,8 +609,20 @@ function ProfileList() {
               <p><strong>Batch of </strong> {profile.year || profile.graduation_year || "-"}</p>
               <p><strong>Expertise:</strong> {profile.expertise || "-"}</p>
 
+             {/* Connect actions (all logged-in users; separate from admin edit buttons) */}
+             <div
+               className="profile-connect-actions"
+               onClick={(event) => event.stopPropagation()}
+             >
+              {renderConnectionActions(profile)}
+             </div>
+
+
               {isAdmin && (
-                <div className="profile-card-actions">
+                <div
+                  className="profile-card-actions"
+                  onClick={(event) => event.stopPropagation()}
+                >
                   <Link
                     className="icon-action edit-action"
                     to={`/profile/edit/${profile.id}`}
@@ -402,7 +643,8 @@ function ProfileList() {
               )}
             </div>
           </article>
-          ))}
+            );
+          })}
         </div>
       )}
 

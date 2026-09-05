@@ -4,7 +4,7 @@ const API_URL =
   import.meta.env.VITE_API_URL ||
   (import.meta.env.PROD
     ? "https://rototuna-alumni-platform.onrender.com"
-    : "http://localhost:3001");
+    : "/api");
 
 let memoryToken = localStorage.getItem("token");
 
@@ -17,8 +17,7 @@ const getStoredToken = () => {
 };
 
 export const setAccessToken = (token) => {
-  memoryToken = token;
-
+  memoryToken = token || null;
   if (token) {
     localStorage.setItem("token", token);
   } else {
@@ -26,51 +25,100 @@ export const setAccessToken = (token) => {
   }
 };
 
+const parseTokenPayload = (token) => {
+  try {
+    return JSON.parse(atob(token.split(".")[1] || ""));
+  } catch {
+    return null;
+  }
+};
+
+const isTokenExpired = (token, bufferSeconds = 30) => {
+  if (!token) return true;
+  const payload = parseTokenPayload(token);
+  if (!payload?.exp) return false;
+  return Date.now() >= payload.exp * 1000 - bufferSeconds * 1000;
+};
+
+let refreshPromise = null;
+
+const refreshAccessToken = async () => {
+  if (!refreshPromise) {
+    refreshPromise = axios
+      .post(`${API_URL}/auth/refresh`, {}, { withCredentials: true })
+      .then((response) => {
+        const { token, admin } = response.data;
+        setAccessToken(token);
+        if (admin !== undefined) {
+          localStorage.setItem("isAdmin", String(Number(admin) === 1));
+        }
+        return token;
+      })
+      .finally(() => {
+        refreshPromise = null;
+      });
+  }
+  return refreshPromise;
+};
+
 const api = axios.create({
   baseURL: API_URL,
-  withCredentials: true, // Crucial: Tells the browser to send/receive cookies automatically
+  withCredentials: true,
 });
 
-api.interceptors.request.use((req) => {
-  const token = getStoredToken();
+api.interceptors.request.use(async (config) => {
+  const requestUrl = config.url || "";
+  const isAuthRequest =
+    requestUrl.includes("/auth/login") ||
+    requestUrl.includes("/auth/refresh") ||
+    requestUrl.includes("/auth/register");
 
+  let token = memoryToken || getStoredToken();
   if (token) {
-    req.headers.Authorization = `Bearer ${token}`;
+    memoryToken = token;
   }
 
-  return req;
+  if (token && isTokenExpired(token) && !isAuthRequest) {
+    try {
+      token = await refreshAccessToken();
+    } catch {
+      setAccessToken(null);
+      if (!window.location.pathname.includes("/login")) {
+        window.location.href = "/login";
+      }
+      return Promise.reject(new Error("Session expired"));
+    }
+  }
+
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
+
+  return config;
 });
 
-// Seamlessly handle token refresh on 401 Unauthorized errors
 api.interceptors.response.use(
   (response) => response,
   async (error) => {
     const originalRequest = error.config;
-
     const requestUrl = originalRequest?.url || "";
-    const isAuthRequest = requestUrl.includes("/auth/login") || requestUrl.includes("/auth/refresh");
+    const isAuthRequest =
+      requestUrl.includes("/auth/login") ||
+      requestUrl.includes("/auth/refresh") ||
+      requestUrl.includes("/auth/register");
 
     if (error.response?.status === 401 && !originalRequest._retry && !isAuthRequest) {
       originalRequest._retry = true;
 
       try {
-        // Request a new access token. The browser automatically attaches the HttpOnly cookie.
-        const response = await axios.post(
-          `${API_URL}/auth/refresh`,
-          {},
-          { withCredentials: true }
-        );
-
-        const { token } = response.data;
-        setAccessToken(token);
-
-        // Update the failed request header and immediately retry it
+        const token = await refreshAccessToken();
         originalRequest.headers.Authorization = `Bearer ${token}`;
         return api(originalRequest);
       } catch (refreshError) {
-        // Both tokens are missing or invalid; wipe memory and kick to login
         setAccessToken(null);
-        window.location.href = "/login";
+        if (!window.location.pathname.includes("/login")) {
+          window.location.href = "/login";
+        }
         return Promise.reject(refreshError);
       }
     }

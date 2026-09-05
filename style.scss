@@ -401,6 +401,17 @@ form {
       transform: translateY(-50%);
     }
   }
+  .connect-row--clickable {
+    cursor: pointer;
+    border-radius: 8px;
+    padding-left: 0.5rem;
+    padding-right: 0.5rem;
+    transition: background 0.15s ease;
+  
+    &:hover {
+      background: #f5f8fc;
+    }
+  }
 
   h1 {
     font-size: 26px;

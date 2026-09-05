@@ -169,6 +169,7 @@ a {
   font-family: $primary-font-family;
   font-weight: 450;
   gap: 18px;
+  font-size: 1.05rem
 }
 
 .app-header-nav a {
@@ -698,6 +699,16 @@ a {
   box-shadow: 0 8px 18px rgba(15, 23, 42, 0.06);
 }
 
+.profile-card--clickable {
+  cursor: pointer;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+
+  &:hover {
+    border-color: #0a66c2;
+    box-shadow: 0 10px 22px rgba(10, 102, 194, 0.12);
+  }
+}
+
 .profile-avatar {
   width: 78px;
   height: 78px;
@@ -1005,14 +1016,44 @@ a {
   margin-bottom: 16px;
 }
 
-.close-button {
+.close-button,
+.modal-header .close-button,
+.auth-form button.close-button,
+.linkedin-profile-header button.close-button {
   border: none;
   background: transparent;
+  padding: 0;
+  border-radius: 0;
+  box-shadow: none;
   font-size: 2rem;
+  font-weight: 400;
   line-height: 1;
+  min-width: 48px;
+  min-height: 48px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   color: #6c757d;
   cursor: pointer;
 }
+
+.close-button:hover,
+.close-button:focus-visible,
+.modal-header .close-button:hover,
+.modal-header .close-button:focus-visible,
+.auth-form button.close-button:hover,
+.auth-form button.close-button:focus-visible,
+.linkedin-profile-header button.close-button:hover,
+.linkedin-profile-header button.close-button:focus-visible {
+
+  background: transparent;
+  border: none;
+  box-shadow: none;
+  transform: none;
+  opacity: 1;
+  color: $primary-blue;
+}
+
 
 .password-rules {
   list-style: disc;
@@ -2919,6 +2960,260 @@ button {
 .linkedin-avatar {
   cursor: pointer;
 }
+
+/* ========== Connect feature styles (profileList + MyProfilePage) ========== */
+.profile-connect-actions {
+  margin-top: 0.75rem;
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.connect-button {
+  padding: 0.35rem 0.75rem;
+  border-radius: 6px;
+  border: 1px solid #1a5f2a;
+  background: #1a5f2a;
+  color: #fff;
+  font-size: 0.9rem;
+  cursor: pointer;
+}
+
+.connect-button:disabled {
+  cursor: not-allowed;
+}
+
+.connect-button--pending {
+  background: #f0f0f0;
+  border-color: #ccc;
+  color: #666;
+}
+
+.connect-button--connected {
+  background: #e8f5e9;
+  border-color: #a5d6a7;
+  color: #2e7d32;
+}
+
+.connect-button--accept {
+  background: #1a5f2a;
+}
+
+.connect-button--reject {
+  background: #fff;
+  color: #333;
+  border-color: #ccc;
+}
+
+.profile-header-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  align-items: center;
+}
+
+.connect-open-button {
+  padding: 0.5rem 1rem;
+  border-radius: 20px;
+  border: 1px solid #1a5f2a;
+  background: #fff;
+  color: #1a5f2a;
+  font-size: 0.95rem;
+  cursor: pointer;
+}
+
+.connect-open-button:hover {
+  background: #f3faf5;
+}
+
+.profile-header-button,
+.profile-header-actions .profile-header-button,
+.profile-header-actions a.profile-header-button,
+.profile-header-actions button.profile-header-button {
+  padding: 10px 22px;
+  border-radius: 24px;
+  border: 1px solid #0a66c2;
+  background: #fff;
+  color: #0a66c2;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: 0.2s ease;
+}
+
+.profile-header-button:hover,
+.profile-header-actions a.profile-header-button:hover,
+.profile-header-actions button.profile-header-button:hover {
+  background: #eef6ff;
+  color: #0a66c2;
+  border-color: #0a66c2;
+}
+
+.modal-card.connect-modal {
+  width: min(560px, 100%);
+  height: 920px;
+  max-height: 85vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  padding: 22px 20px;
+  box-sizing: border-box;
+}
+
+.connect-modal .modal-header {
+  flex-shrink: 0;
+  margin-bottom: 0;
+  padding-bottom: 16px;
+  border-bottom: 1px solid #eee;
+}
+
+.connect-modal-body {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding-top: 16px;
+  padding-right: 4px;
+}
+
+.connect-modal h3,
+.connect-modal h4 {
+  margin: 0;
+}
+
+.connect-section {
+  margin-bottom: 1.25rem;
+
+  &:last-child {
+    margin-bottom: 0;
+  }
+}
+
+.connect-section h4 {
+  margin-bottom: 0.75rem;
+  font-size: 1rem;
+  color: #000;
+  font-weight: 700;
+}
+
+.connect-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.75rem 0;
+  border-bottom: 1px solid #eee;
+}
+
+.connect-row--clickable {
+  cursor: pointer;
+  border-radius: 8px;
+  padding-left: 0.5rem;
+  padding-right: 0.5rem;
+  transition: background 0.15s ease;
+
+  &:hover {
+    background: #f5f8fc;
+  }
+}
+
+.connect-row-main {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  min-width: 0;
+  flex: 1;
+}
+
+.connect-row-avatar {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  object-fit: cover;
+  flex-shrink: 0;
+}
+
+.connect-row-avatar--placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, $primary-blue 0%, #5ca7ff 100%);
+  color: #fff;
+  font-weight: 700;
+  font-size: 1rem;
+}
+
+.connect-row-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  min-width: 0;
+}
+
+.connect-row-info span {
+  color: #666;
+  font-size: 0.9rem;
+}
+
+.connect-row-actions {
+  display: flex;
+  gap: 0.5rem;
+  flex-shrink: 0;
+}
+
+.connect-empty,
+.connect-status-label {
+  color: #666;
+  font-size: 0.9rem;
+}
+
+.connect-empty {
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid #eee;
+  color: #000;
+  font-weight: 400;
+  font-size: 0.95rem;
+}
+
+.connect-status-label {
+  font-style: italic;
+}
+.connect-toast {
+  position: fixed;
+  top: 24px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 2000;
+  padding: 0.75rem 1.25rem;
+  background: #1a5f2a;
+  color: #fff;
+  border-radius: 8px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+  font-size: 0.95rem;
+  animation: connect-toast-fade 1s ease forwards;
+}
+
+@keyframes connect-toast-fade {
+  0% { opacity: 0; transform: translateX(-50%) translateY(-8px); }
+  15% { opacity: 1; transform: translateX(-50%) translateY(0); }
+  85% { opacity: 1; }
+  100% { opacity: 0; }
+}
+
+.connect-toast--long {
+  animation: connect-toast-fade-long 3s ease forwards;
+}
+
+@keyframes connect-toast-fade-long {
+  0% { opacity: 0; transform: translateX(-50%) translateY(-8px); }
+  10% { opacity: 1; transform: translateX(-50%) translateY(0); }
+  90% { opacity: 1; }
+  100% { opacity: 0; }
+}
+
 .profile-section input:not([type="checkbox"]),
 .profile-section textarea,
 .profile-section select {
