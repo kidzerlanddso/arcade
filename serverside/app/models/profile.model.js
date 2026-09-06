@@ -24,7 +24,9 @@ Project.getAll = (result) => {
       result(err, null);
       return;
     }
-  );
+
+    result(null, res.rows);
+  });
 };
 
 Project.findById = (id, result) => {
