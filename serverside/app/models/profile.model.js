@@ -33,9 +33,9 @@ Project.getAll = (result) => {
       }
       result(null, res.rows);
     }
-
-    result(null, res.rows);
-  });
+   
+  );
+  
 };
 
 Project.findById = (id, result) => {
@@ -153,7 +153,7 @@ Project.findByName = (name, result) => {
 
       result(null, []);
     }
-  );
+);
 };
 Project.getExpertise = (result) => {
   db.query(

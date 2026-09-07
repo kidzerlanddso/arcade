@@ -247,6 +247,19 @@ useEffect(() => {
 }, []);
 
 useEffect(() => {
+  if (isViewingOther || isAdmin) return;
+
+  api
+    .get("/connection/pending")
+    .then((response) => {
+      setPendingReceived(response.data?.received || []);
+    })
+    .catch((error) => {
+      console.error("Error loading pending connections:", error);
+    });
+}, [isViewingOther, isAdmin]);
+
+useEffect(() => {
   if (!profile || expertiseOptions.length === 0) return;
 
   const savedId = Array.isArray(profile.expertise_id)
@@ -1042,10 +1055,12 @@ setShowEducationForm(false);
                         <div className="profile-header-actions">
                             {isViewingOther ? (
                                 <Link
-                                    to="/profile/me"
+                                    to={isAdmin ? "/profile" : "/profile/me"}
                                     className="profile-header-button"
                                 >
-                                    Back to My Profile
+                                    {isAdmin
+                                        ? "Back to Profiles"
+                                        : "Back to My Profile"}
                                 </Link>
                             ) : (
                                 <>
@@ -1056,9 +1071,16 @@ setShowEducationForm(false);
                                             onClick={handleOpenConnections}
                                         >
                                             Connections
-                                            {pendingReceived.length > 0
-                                                ? ` (${pendingReceived.length})`
-                                                : ""}
+                                            {pendingReceived.length > 0 && (
+                                                <span
+                                                    className="connect-open-badge"
+                                                    aria-label={`${pendingReceived.length} pending connection requests`}
+                                                >
+                                                    {pendingReceived.length > 9
+                                                        ? "9+"
+                                                        : pendingReceived.length}
+                                                </span>
+                                            )}
                                         </button>
                                     )}
 
@@ -1451,6 +1473,7 @@ setShowEducationForm(false);
                 <div className="profile-section">
                     <div className="profile-section-header">
                         <h3>Education</h3>
+                        {!isViewingOther && (
                           <div className="education-header-actions">
                            <button
 
@@ -1478,8 +1501,6 @@ onClick={() => {
   </svg>
 </button>
 
-                        {!isViewingOther && (
-                        <div className="education-header-actions">
                             <button
                                 type="button"
                                 className="section-edit-button"
@@ -1500,14 +1521,10 @@ onClick={() => {
                                     <path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z" />
                                 </svg>
                             </button>
-
-                    
-
                         </div>
                         )}
                     </div>
-            </div>
-{showEducationManager && (
+{!isViewingOther && showEducationManager && (
   <div className="intro-modal-overlay">
     <div className="intro-modal">
       <div className="intro-modal-header">
@@ -1601,7 +1618,7 @@ onClick={() => {
     </div>
   </div>
 )}
-                    {showEducationForm && (
+                    {!isViewingOther && showEducationForm && (
                     <div className="intro-modal-overlay">
   <div className="intro-modal">
 
