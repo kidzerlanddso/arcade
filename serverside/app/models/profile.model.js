@@ -13,16 +13,25 @@ const Project = function (profile) {
   this.linkedin_url = profile.linkedin_url;
   this.profile_image_url = profile.profile_image_url;
   this.mentorship_available = profile.mentorship_available ?? false;
-  this.expertise = profile.expertise || "";
   this.mentorship_availability = profile.mentorship_availability || "";
 };
 
 Project.getAll = (result) => {
-  db.query("SELECT * FROM profile p LEFT JOIN users u ON p.user_id = u.id LEFT JOIN expertise e ON e.expertise_id = ANY(p.expertise_id) WHERE u.active = 1 AND u.admin = 0 ORDER BY p.firstname ASC", (err, res) => {
-    if (err) {
-      console.log("GetAll error: ", err);
-      result(err, null);
-      return;
+  // Use p.* so profile.id is not overwritten by users.id from JOIN
+  db.query(
+    `SELECT DISTINCT ON (p.id) p.*, u."enableEmail" AS "enableEmail"
+     FROM profile p
+     LEFT JOIN users u ON p.user_id = u.id
+     LEFT JOIN expertise e ON e.expertise_id = ANY(p.expertise_id)
+     WHERE u.active = 1 AND u.admin = 0
+     ORDER BY p.id, p.firstname ASC`,
+    (err, res) => {
+      if (err) {
+        console.log("GetAll error: ", err);
+        result(err, null);
+        return;
+      }
+      result(null, res.rows);
     }
 
     result(null, res.rows);
@@ -30,12 +39,21 @@ Project.getAll = (result) => {
 };
 
 Project.findById = (id, result) => {
-  db.query("SELECT * FROM profile p LEFT JOIN users u ON p.user_id = u.id LEFT JOIN expertise e ON e.expertise_id = ANY(p.expertise_id) WHERE p.id = $1 AND u.active = 1 ", [id], (err, res) => {
-    if (err) {
-      console.log("FindById error: ", err);
-      result(err, null);
-      return;
-    }
+  // Use p.* so profile.id is not overwritten by users.id from JOIN
+  db.query(
+    `SELECT p.*, u."enableEmail" AS "enableEmail"
+     FROM profile p
+     LEFT JOIN users u ON p.user_id = u.id
+     LEFT JOIN expertise e ON e.expertise_id = ANY(p.expertise_id)
+     WHERE p.id = $1 AND u.active = 1
+     LIMIT 1`,
+    [id],
+    (err, res) => {
+      if (err) {
+        console.log("FindById error: ", err);
+        result(err, null);
+        return;
+      }
 
       if (res.rows.length) {
         result(null, res.rows[0]);
@@ -68,6 +86,7 @@ Project.findByUserId = (userId, result) => {
 };
 
 Project.create = (newProfile, result) => {
+  // Do not insert removed column "expertise" (now linked via expertise_id array)
   db.query(
     `INSERT INTO profile (
       firstname,
@@ -82,28 +101,26 @@ Project.create = (newProfile, result) => {
       linkedin_url,
       profile_image_url,
       mentorship_available,
-      expertise,
       mentorship_availability
     )
     VALUES (
       $1, $2, $3, $4, $5, $6, $7,
-      $8, $9, $10, $11, $12, $13, $14
+      $8, $9, $10, $11, $12, $13
     )
     RETURNING *`,
     [
-      newProfile.firstname,
-      newProfile.lastname,
+      newProfile.firstname || "",
+      newProfile.lastname || "",
       newProfile.email || "",
       newProfile.current_city || "Hamilton",
       newProfile.current_country || "New Zealand",
-      newProfile.year,
-      newProfile.student_id,
+      newProfile.year || null,
+      newProfile.student_id || null,
       newProfile.user_id,
-      newProfile.bio,
-      newProfile.linkedin_url,
-      newProfile.profile_image_url,
+      newProfile.bio || null,
+      newProfile.linkedin_url || null,
+      newProfile.profile_image_url || null,
       newProfile.mentorship_available ?? false,
-      newProfile.expertise || "",
       newProfile.mentorship_availability || "",
     ],
     (err, res) => {
