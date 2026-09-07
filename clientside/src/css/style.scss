@@ -2795,19 +2795,26 @@ button {
   color-scheme: light;
 }
 .add-experience-button {
-  background: #0a66c2;
-  color: white;
-  border: 1px solid #0a66c2;
-  border-radius: 20px;
-  padding: 9px 16px;
-  font-size: 15px;
-  font-weight: 600;
+  background: transparent !important;
+  color: #404040!important;
+  border: none !important;
+  border-radius: 50%;
+
+  width: 48px;
+  height: 48px;
+  padding: 12px !important;
+
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
   cursor: pointer;
 }
 
 .add-experience-button:hover {
-  background: #004182;
-  border-color: #004182;
+  background: #f3f2ef !important;
+  border: none !important;
 }
 .profile-section .add-record-button {
   background: #0a66c2 !important;
@@ -2815,6 +2822,9 @@ button {
   border: 1px solid #0a66c2 !important;
   border-radius: 20px !important;
   padding: 9px 18px !important;
+  width: auto !important;
+  height: auto !important;
+  min-width: auto !important;
   font-size: 15px !important;
   font-weight: 600 !important;
   cursor: pointer !important;
@@ -2823,6 +2833,10 @@ button {
 .profile-section .add-record-button:hover {
   background: #004182 !important;
   border-color: #004182 !important;
+}
+
+.profile-section .add-record-button:hover {
+  background: #f3f2ef !important;
 }
 .profile-section-header {
   display: flex;
@@ -2838,6 +2852,7 @@ button {
 .profile-section-actions {
   display: flex;
   align-items: center;
+  justify-content: flex-end;
   gap: 8px;
 }
 .experience-item {
@@ -3273,15 +3288,23 @@ button {
     text-overflow: ellipsis;
   }
 }
+ .mentorship-field-help {
+   display: block;
+   margin-top: 6px;
+   margin-bottom: 12px;
+   color: #6b7280;
+   font-size: 14px;
+ }
 
 .mentorship-days-options {
-  position: absolute;
-  top: 46px;
-  left: 0;
-  width: 260px;
+  position: static;
+margin-top: 4px;
+  width: 100%;
+  box-sizing: border-box;
   background: white;
-  border: 1px solid #d0d0d0;
-  border-radius: 6px;
+  border: 1px solid #ccc;
+  border-radius: 8px;  
+    z-index: 1000;
   padding: 6px 0;
   z-index: 50;
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.12);
@@ -3299,6 +3322,7 @@ button {
     background: #f3f3f3;
   }
 }
+
 .profile-edit-button {
   background: transparent !important;
   border: none !important;
@@ -3428,10 +3452,12 @@ button {
 .intro-modal-body {
   padding: 24px;
   overflow-y: auto;
+  overflow-x: hidden;
   display: flex;
   flex-direction: column;
   gap: 18px;
   flex: 1;
+  min-height: 0;
 }
 .intro-modal-body::-webkit-scrollbar {
   width: 8px;
@@ -3623,4 +3649,303 @@ input:checked + .slider::before {
 
 .about-save-button:hover {
   background: #004182 !important;
+}
+.linkedin-experience-item {
+  padding: 22px 0;
+  border-bottom: 1px solid #e5e5e5;
+}
+
+.linkedin-experience-item:last-child {
+  border-bottom: none;
+}
+
+.linkedin-experience-content {
+  text-align: left;
+}
+
+.experience-job-title {
+  margin: 0 0 4px 0;
+  font-size: 18px;
+  font-weight: 600;
+  color: #191919;
+}
+
+.experience-company {
+  font-size: 16px;
+  color: #191919;
+  margin-bottom: 4px;
+}
+
+.experience-date {
+  font-size: 15px;
+  color: #666;
+  margin-bottom: 10px;
+}
+
+.experience-description {
+  margin: 10px 0 0 0;
+  font-size: 16px;
+  line-height: 1.5;
+  color: #333;
+}
+
+.experience-item-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 14px;
+}
+
+.experience-item-actions button {
+  padding: 6px 16px;
+  background: white !important;
+  color: #0a66c2 !important;
+  border: 1px solid #0a66c2 !important;
+  border-radius: 20px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.experience-cancel-button {
+  background: transparent !important;
+  color: #0a66c2 !important;
+  border: 1px solid #0a66c2 !important;
+  border-radius: 22px;
+  padding: 9px 18px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.experience-cancel-button:hover {
+  background: #eef5fb !important;
+}
+.education-error-message {
+  color: #cc1016;
+  font-size: 14px;
+  margin-top: 5px;
+  text-align: left;
+}
+.education-field-group {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+.education-add-form {
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+
+  width: 100%;
+  padding: 28px 34px 10px;
+  box-sizing: border-box;
+}
+
+.education-add-form input,
+.education-add-form textarea,
+.education-field-group {
+  width: 100% !important;
+  box-sizing: border-box;
+}
+
+.education-add-form input {
+  min-height: 58px;
+}
+
+.education-add-form textarea {
+  min-height: 120px;
+  resize: vertical;
+}
+
+.education-error-message {
+  color: #cc1016;
+  font-size: 14px;
+  margin-top: 6px;
+}
+
+.education-add-form textarea {
+  min-height: 110px;
+  resize: vertical;
+}
+
+.education-add-form button {
+  align-self: end;
+  justify-self: start;
+}
+.education-modal-footer {
+  grid-column: 1 / -1;
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  width: 100%;
+  padding: 16px 20px 4px;
+  box-sizing: border-box;
+}
+
+.education-modal-footer .add-record-button {
+  margin: 0 !important;
+}
+.education-modal {
+  max-height: 85vh;
+  overflow-y: auto;
+}
+.mentorship-modal {
+  min-height: 520px;
+  max-height: 85vh;
+  height: 85vh;
+}
+
+.mentorship-edit-fields {
+  padding: 30px 36px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.mentorship-edit-fields input[type="text"] {
+  width: 100% !important;
+  min-height: 58px;
+  box-sizing: border-box;
+}
+
+.mentorship-days-dropdown {
+  width: 100%;
+}
+
+.mentorship-days-dropdown>button {
+  width: 100%;
+  min-height: 58px;
+  text-align: left;
+  padding: 0 18px;
+  box-sizing: border-box;
+}
+.mentorship-expertise-select {
+  width: 100%;
+  padding: 12px 14px;
+  border: 1px solid #d1d5db;
+  border-radius: 10px;
+  background-color: white;
+  font-size: 16px;
+  color: #1f2937;
+  cursor: pointer;
+  box-sizing: border-box;
+}
+
+.mentorship-expertise-select:focus {
+  outline: none;
+  border-color: #1976d2;
+}
+.mentorship-availability-select {
+  width: 100%;
+  height: 70px;
+  padding: 12px 14px;
+  border: 1px solid #d1d5db;
+  border-radius: 10px;
+  background-color: white;
+  font-size: 16px;
+  color: #1f2937;
+  text-align: left;
+  cursor: pointer;
+  box-sizing: border-box;
+}
+
+.mentorship-availability-select:focus {
+  outline: none;
+  border-color: #1976d2;
+}
+.mentorship-days-options {
+  overflow: visible;
+  background: white;
+  border: 1px solid #d1d5db;
+  border-radius: 10px;
+  padding: 10px 14px;
+  box-sizing: border-box;
+}
+.linkedin-add-button {
+  width: 48px !important;
+  height: 48px !important;
+  min-width: 48px !important;
+  padding: 12px !important;
+
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+
+  background-color: rgb(244, 242, 238) !important;
+  border: none !important;
+  border-radius: 50% !important;
+
+  color: rgba(0, 0, 0, 0.9) !important;
+
+  cursor: pointer;
+  box-sizing: border-box;
+}
+
+.linkedin-add-button svg {
+  width: 24px;
+  height: 24px;
+  fill: currentColor;
+}
+
+.linkedin-add-button:hover {
+  background-color: rgb(225, 223, 219) !important;
+}
+.profile-section .profile-section-actions {
+  display: flex !important;
+  flex-direction: row !important;
+  align-items: center !important;
+  justify-content: flex-end !important;
+  gap: 8px !important;
+}
+.education-header-actions {
+  display: flex !important;
+  flex-direction: row !important;
+  align-items: center !important;
+  justify-content: flex-end !important;
+  gap: 8px !important;
+}
+.experience-manager-item {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 20px;
+
+  padding: 20px 0;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.experience-manager-item:last-child {
+  border-bottom: none;
+}
+
+.experience-manager-info {
+  flex: 1;
+}
+
+.experience-manager-item .section-edit-button {
+  flex-shrink: 0;
+  margin-left: auto;
+}
+.intro-modal-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.employment-delete-modal-button {
+  background: transparent;
+  border: none;
+  color: #333;
+  font-size: 16px;
+  font-weight: 500;
+  cursor: pointer;
+  padding: 10px 0;
+}
+.education-delete-button {
+  background: transparent;
+  border: none;
+  color: #333;
+  font-size: 16px;
+  font-weight: 600;
+  padding: 0;
+  cursor: pointer;
+  font-family: inherit;
 }

@@ -9,7 +9,8 @@ module.exports = app => {
   // Retrieve all profile
   app.get("/profile", projects.findAll);
   app.get("/profile/me", verifyToken, projects.findMine);
-  app.get("/profile/user/:userId", verifyToken, projects.findByUser);
+app.get("/profile/user/:userId", verifyToken, projects.findByUser);
+app.get("/profile/expertise/options", verifyToken, projects.getExpertise);
 
   // Retrieve a single profile by Name
   app.get("/profile/title/:title", projects.findName);
