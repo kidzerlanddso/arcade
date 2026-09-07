@@ -65,14 +65,24 @@ function Register({ isOpen, onClose }) {
     }
 
     const payload = {
-      firstname: formData.firstName,
-      lastname: formData.lastName,
-      year: formData.yearOfGraduation,
-      student_id: formData.studentId,
-      username: formData.username,
+      firstname: formData.firstName.trim() || "",
+      lastname: formData.lastName.trim() || "",
+      year: formData.yearOfGraduation
+        ? Number(formData.yearOfGraduation)
+        : null,
+      student_id: formData.studentId.trim() || null,
+      username: formData.username.trim(),
       password: formData.password,
-      email: formData.email
+      email: formData.email.trim()
     };
+
+    if (!payload.username || !payload.password || !payload.email) {
+      setStatus({
+        type: "error",
+        message: "Username, email, and password are required."
+      });
+      return;
+    }
 
     setIsSubmitting(true);
 

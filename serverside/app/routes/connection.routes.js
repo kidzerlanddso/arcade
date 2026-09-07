@@ -1,12 +1,57 @@
 module.exports = (app) => {
-    const connection = require("../controllers/connection.controller.js");
-    const { verifyToken } = require("../middleware/authJwt.js");
-  
-    app.post("/connection", verifyToken, connection.sendRequest);
-    app.get("/connection/me", verifyToken, connection.getMyConnections);
-    app.get("/connection/pending", verifyToken, connection.getPending);
-    app.get("/connection/status/:userId", verifyToken, connection.getStatus);
-    app.patch("/connection/:id/accept", verifyToken, connection.acceptRequest);
-    app.patch("/connection/:id/reject", verifyToken, connection.rejectRequest);
-    app.delete("/connection/:id", verifyToken, connection.cancelRequest);
+  const connection = require("../controllers/connection.controller.js");
+  const { verifyToken } = require("../middleware/authJwt.js");
+
+  // Connect is for alumni accounts only — admins cannot use it
+  const rejectAdminConnect = (req, res, next) => {
+    if (req.isAdmin) {
+      return res.status(403).send({
+        message: "Connect is not available for admin accounts.",
+      });
+    }
+    next();
   };
+
+  app.post(
+    "/connection",
+    verifyToken,
+    rejectAdminConnect,
+    connection.sendRequest,
+  );
+  app.get(
+    "/connection/me",
+    verifyToken,
+    rejectAdminConnect,
+    connection.getMyConnections,
+  );
+  app.get(
+    "/connection/pending",
+    verifyToken,
+    rejectAdminConnect,
+    connection.getPending,
+  );
+  app.get(
+    "/connection/status/:userId",
+    verifyToken,
+    rejectAdminConnect,
+    connection.getStatus,
+  );
+  app.patch(
+    "/connection/:id/accept",
+    verifyToken,
+    rejectAdminConnect,
+    connection.acceptRequest,
+  );
+  app.patch(
+    "/connection/:id/reject",
+    verifyToken,
+    rejectAdminConnect,
+    connection.rejectRequest,
+  );
+  app.delete(
+    "/connection/:id",
+    verifyToken,
+    rejectAdminConnect,
+    connection.cancelRequest,
+  );
+};

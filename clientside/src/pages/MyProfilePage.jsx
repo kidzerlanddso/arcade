@@ -614,6 +614,7 @@ setShowEducationForm(false);
     };
 
     const handleOpenConnections = async () => {
+        if (isAdmin) return;
         setShowConnectModal(true);
         await loadConnections();
     };
@@ -697,7 +698,7 @@ setShowEducationForm(false);
 
     return (
         <div className="book-list">
-            {connectToast && (
+            {connectToast && !isAdmin && (
                 <div
                     className="connect-toast connect-toast--long"
                     role="status"
@@ -780,7 +781,7 @@ setShowEducationForm(false);
                             </div>
                         )}
 
-                        {!isViewingOther && showConnectModal && (
+                        {!isViewingOther && !isAdmin && showConnectModal && (
                             <div
                                 className="modal-overlay"
                                 onClick={() => setShowConnectModal(false)}
@@ -1030,7 +1031,7 @@ setShowEducationForm(false);
                             )}
 
                             <p className="linkedin-title">
-                            Graduate • Batch{" "}
+                                Batch of {" "}
                                 {profile.year || profile.graduation_year || "-"}
                             </p>
                             <p className="linkedin-location">
@@ -1048,7 +1049,7 @@ setShowEducationForm(false);
                                 </Link>
                             ) : (
                                 <>
-                                    {!editing && (
+                                    {!editing && !isAdmin && (
                                         <button
                                             type="button"
                                             className="connect-open-button"
