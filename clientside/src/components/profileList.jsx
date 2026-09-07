@@ -23,7 +23,8 @@ const getAdminFromToken = () => {
   const storedAdmin = localStorage.getItem("isAdmin");
   return storedAdmin === "true" || storedAdmin === "1";
 };
-// Read logged-in user's users.id from JWT (Connect uses user_id, not profile.id)
+// Read the logged-in user's users.id from the JWT.
+// Connect APIs use user_id (users.id), not profile.id.
 const getCurrentUserId = () => {
   const currentToken = localStorage.getItem("token");
   if (!currentToken) return false;
@@ -53,7 +54,7 @@ function ProfileList() {
   const [selectedProfileIds, setSelectedProfileIds] = useState([]);
   const profilesPerPage = 20;
   const currentUserId = getCurrentUserId();
-  // Connect: per-user relationship status + user id currently sending a request
+  // Connect state: relationship per alumni card + which userId is currently sending
   const [connectingUserId, setConnectingUserId] = useState(null);
   // Shape: { [user_id]: { status, connectionId, direction } }
   const [connectionStatus, setConnectionStatus] = useState({});
@@ -80,8 +81,10 @@ function ProfileList() {
       .then(async(response) => {
         const profileData = response.data.data || response.data;
         setProfiles(profileData);
-        // After profiles load, fetch Connect status for each user
-        await loadConnectionStatuses(profileData);
+        // Admins do not use Connect — skip relationship status loading
+        if (!isAdmin) {
+          await loadConnectionStatuses(profileData);
+        }
       })
       .catch((error) => {
         if (error.code !== "ERR_CANCELED") {
@@ -102,8 +105,9 @@ function ProfileList() {
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  // Batch-fetch Connect status per card (skip self)
+  // Load Connect status for each alumni card (skip self and skip for admins)
   const loadConnectionStatuses = async (profileList) => {
+    if (isAdmin) return;
     const me = getCurrentUserId();
     if (!me) return;
 
@@ -128,8 +132,9 @@ function ProfileList() {
       setConnectToast("");
     }, 3000);
   };
-  // Send connection request: POST /connection; receiver_id must be profile.user_id
-  const handleConnect = async (profile) => { 
+  // Send a connection request (receiver_id must be profile.user_id)
+  const handleConnect = async (profile) => {
+    if (isAdmin) return; 
     const userId = Number(profile.user_id);
     setConnectingUserId(userId);
     try {
@@ -214,10 +219,12 @@ const handleAccept = async (connectionId, userId) => {
     navigate(`/profile/view/${profile.id}`);
   };
 
-  // Render the correct button based on connection status
+  // Render Connect buttons by relationship status (alumni only; hidden for admins)
   const renderConnectionActions = (profile) => {
+    if (isAdmin) return null;
+
     const userId = Number(profile.user_id);
-    // Hide Connect button on own profile card
+    // Hide Connect on the current user's own card
     if (!userId || userId === currentUserId)
        return null;
   
@@ -420,7 +427,7 @@ const handleAccept = async (connectionId, userId) => {
 
   return (
     <div className="book-list">
-      {connectToast && (
+      {connectToast && !isAdmin && (
         <div className="connect-toast" role="status">
           {connectToast}
         </div>
@@ -555,7 +562,8 @@ const handleAccept = async (connectionId, userId) => {
       ) : (
         <div className={viewMode === "list" ? "profile-list-view" : "profile-card-grid"}>
           {visibleProfiles.map((profile) => {
-            const connected = isProfileConnected(profile);
+            // Connected alumni cards are clickable; admins skip Connect UX
+            const connected = !isAdmin && isProfileConnected(profile);
 
             return (
           <article
@@ -609,13 +617,15 @@ const handleAccept = async (connectionId, userId) => {
               <p><strong>Batch of </strong> {profile.year || profile.graduation_year || "-"}</p>
               <p><strong>Expertise:</strong> {profile.expertise || "-"}</p>
 
-             {/* Connect actions (all logged-in users; separate from admin edit buttons) */}
+             {/* Connect actions — alumni users only */}
+             {!isAdmin && (
              <div
                className="profile-connect-actions"
                onClick={(event) => event.stopPropagation()}
              >
               {renderConnectionActions(profile)}
              </div>
+             )}
 
 
               {isAdmin && (

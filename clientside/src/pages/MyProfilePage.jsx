@@ -315,7 +315,6 @@ function MyProfilePage({ readOnly = false }) {
                 bio: bio,
                 linkedin_url: linkedinUrl,
                 mentorship_available: mentorshipAvailable,
-                expertise: expertise,
                 mentorship_availability: mentorshipAvailability,
                 profile_image_url: imageUrl,
                 current_city: currentCity,
@@ -351,14 +350,12 @@ function MyProfilePage({ readOnly = false }) {
         try {
             await api.patch(`/profile/${profile.id}`, {
                 mentorship_available: mentorshipAvailable,
-                expertise: expertise,
                 mentorship_availability: mentorshipAvailability,
             });
 
             setProfile((prev) => ({
                 ...prev,
                 mentorship_available: mentorshipAvailable,
-                expertise: expertise,
                 mentorship_availability: mentorshipAvailability,
             }));
 
@@ -587,6 +584,7 @@ function MyProfilePage({ readOnly = false }) {
     };
 
     const handleOpenConnections = async () => {
+        if (isAdmin) return;
         setShowConnectModal(true);
         await loadConnections();
     };
@@ -670,7 +668,7 @@ function MyProfilePage({ readOnly = false }) {
 
     return (
         <div className="book-list">
-            {connectToast && (
+            {connectToast && !isAdmin && (
                 <div
                     className="connect-toast connect-toast--long"
                     role="status"
@@ -753,7 +751,7 @@ function MyProfilePage({ readOnly = false }) {
                             </div>
                         )}
 
-                        {!isViewingOther && showConnectModal && (
+                        {!isViewingOther && !isAdmin && showConnectModal && (
                             <div
                                 className="modal-overlay"
                                 onClick={() => setShowConnectModal(false)}
@@ -1003,7 +1001,7 @@ function MyProfilePage({ readOnly = false }) {
                             )}
 
                             <p className="linkedin-title">
-                                Graduate 鈥?Batch{" "}
+                                Graduate — Batch{" "}
                                 {profile.year || profile.graduation_year || "-"}
                             </p>
                             <p className="linkedin-location">
@@ -1021,7 +1019,7 @@ function MyProfilePage({ readOnly = false }) {
                                 </Link>
                             ) : (
                                 <>
-                                    {!editing && (
+                                    {!editing && !isAdmin && (
                                         <button
                                             type="button"
                                             className="connect-open-button"

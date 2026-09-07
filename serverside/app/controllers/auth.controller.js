@@ -29,6 +29,17 @@ exports.register = function(req, res) {
     student_id: req.body.studentId || req.body.student_id || null
   };
 
+  // Empty strings from the signup form should become null for numeric/optional DB fields
+  if (profileData.year === "" || profileData.year === undefined) {
+    profileData.year = null;
+  } else if (profileData.year !== null) {
+    const parsedYear = Number(profileData.year);
+    profileData.year = Number.isFinite(parsedYear) ? parsedYear : null;
+  }
+  if (profileData.student_id === "") {
+    profileData.student_id = null;
+  }
+
   User.create(user, profileData, function(err, data) {
     if (err) {
       const isDuplicateUsername =
