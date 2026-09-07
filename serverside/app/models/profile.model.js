@@ -33,7 +33,9 @@ Project.getAll = (result) => {
       }
       result(null, res.rows);
     }
-  );
+
+    result(null, res.rows);
+  });
 };
 
 Project.findById = (id, result) => {

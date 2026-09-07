@@ -1001,7 +1001,7 @@ function MyProfilePage({ readOnly = false }) {
                             )}
 
                             <p className="linkedin-title">
-                                Graduate — Batch{" "}
+                                Batch of {" "}
                                 {profile.year || profile.graduation_year || "-"}
                             </p>
                             <p className="linkedin-location">
