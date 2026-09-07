@@ -127,7 +127,17 @@ exports.findName = (req, res) => {
 };
 
 
-
+exports.getExpertise = (req, res) => {
+  Project.getExpertise((err, data) => {
+    if (err) {
+      res.status(500).send({
+        message: "Error retrieving expertise."
+      });
+    } else {
+      res.send(data);
+    }
+  });
+};
 // Update the profile by ID
 exports.updateOne = (req, res) => {
 

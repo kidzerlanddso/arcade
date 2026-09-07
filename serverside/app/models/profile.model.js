@@ -136,7 +136,20 @@ Project.findByName = (name, result) => {
     }
   );
 };
+Project.getExpertise = (result) => {
+  db.query(
+    "SELECT expertise_id, expertise FROM expertise ORDER BY expertise ASC",
+    (err, res) => {
+      if (err) {
+        console.log("Error while getting expertise:", err);
+        result(err, null);
+        return;
+      }
 
+      result(null, res.rows);
+    }
+  );
+};
 Project.updateById = (id, profile, userId, result) => {
   const entries = Object.entries(profile);
   const fields = entries.map(([key], index) => `${key} = $${index + 1}`);

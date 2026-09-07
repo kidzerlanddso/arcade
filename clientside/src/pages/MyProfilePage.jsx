@@ -56,6 +56,8 @@ function MyProfilePage({ readOnly = false }) {
     const [enableEmail, setEnableEmail] = useState("");
     const [mentorshipAvailable, setMentorshipAvailable] = useState(false);
     const [expertise, setExpertise] = useState("");
+    const [expertiseId, setExpertiseId] = useState("");
+const [expertiseOptions, setExpertiseOptions] = useState([]);
     const [mentorshipAvailability, setMentorshipAvailability] = useState("");
     const mentorshipDays = [
         "Monday",
@@ -103,7 +105,6 @@ function MyProfilePage({ readOnly = false }) {
     const [showMentorshipDaysDropdown, setShowMentorshipDaysDropdown] =
         useState(false);
     const [education, setEducation] = useState([]);
-    const [educationBackup, setEducationBackup] = useState([]);
     const [institution, setInstitution] = useState("");
     const [qualification, setQualification] = useState("");
     const [fieldOfStudy, setFieldOfStudy] = useState("");
@@ -111,39 +112,48 @@ function MyProfilePage({ readOnly = false }) {
     const [educationEndDate, setEducationEndDate] = useState("");
     const [educationDescription, setEducationDescription] = useState("");
     const [showEducationForm, setShowEducationForm] = useState(false);
-    const [showEducationEditMode, setShowEducationEditMode] = useState(false);
-    const [showEmploymentEditMode, setShowEmploymentEditMode] = useState(false);
-    const [showConnectModal, setShowConnectModal] = useState(false);
-    const [connections, setConnections] = useState([]);
-    const [pendingSent, setPendingSent] = useState([]);
-    const [pendingReceived, setPendingReceived] = useState([]);
-    const [connectToast, setConnectToast] = useState("");
+const [showConnectModal, setShowConnectModal] = useState(false);
+const [connections, setConnections] = useState([]);
+const [pendingSent, setPendingSent] = useState([]);
+const [pendingReceived, setPendingReceived] = useState([]);
+const [connectToast, setConnectToast] = useState("");
 
-    const applyProfileToState = (currentProfile) => {
-        setProfile(currentProfile || null);
-        setBio(currentProfile?.bio || "");
-        setLinkedinUrl(currentProfile?.linkedin_url || "");
-        setMentorshipAvailable(
-            currentProfile?.mentorship_available ?? false,
-        );
-        setExpertise(currentProfile?.expertise || "");
-        setMentorshipAvailability(
-            currentProfile?.mentorship_availability || "",
-        );
-        setProfileImageUrl(currentProfile?.profile_image_url || "");
-        setCurrentCity(currentProfile?.current_city || "");
-        setCurrentCountry(currentProfile?.current_country || "");
-        setEmail(currentProfile?.email || "");
-        setStudentId(currentProfile?.student_id || "");
-        setFirstName(
-            currentProfile?.firstname || currentProfile?.first_name || "",
-        );
-        setLastName(
-            currentProfile?.lastname || currentProfile?.last_name || "",
-        );
-        setEnableEmail(Boolean(currentProfile?.enableEmail ?? false));
-    };
+const [showEducationManager, setShowEducationManager] = useState(false);
+const [editingEducationId, setEditingEducationId] = useState(null);
+const [showExperienceManager, setShowExperienceManager] = useState(false);
 
+const applyProfileToState = (currentProfile) => {
+    setProfile(currentProfile || null);
+    setBio(currentProfile?.bio || "");
+    setLinkedinUrl(currentProfile?.linkedin_url || "");
+    setMentorshipAvailable(
+        currentProfile?.mentorship_available ?? false,
+    );
+    setExpertise(currentProfile?.expertise || "");
+
+    setExpertiseId(
+        Array.isArray(currentProfile?.expertise_id) &&
+        currentProfile.expertise_id.length > 0
+            ? String(currentProfile.expertise_id[0])
+            : ""
+    );
+
+    setMentorshipAvailability(
+        currentProfile?.mentorship_availability || "",
+    );
+    setProfileImageUrl(currentProfile?.profile_image_url || "");
+    setCurrentCity(currentProfile?.current_city || "");
+    setCurrentCountry(currentProfile?.current_country || "");
+    setEmail(currentProfile?.email || "");
+    setStudentId(currentProfile?.student_id || "");
+    setFirstName(
+        currentProfile?.firstname || currentProfile?.first_name || "",
+    );
+    setLastName(
+        currentProfile?.lastname || currentProfile?.last_name || "",
+    );
+    setEnableEmail(Boolean(currentProfile?.enableEmail ?? false));
+};
     useEffect(() => {
         if (isViewingOther) {
             setLoading(true);
@@ -224,7 +234,36 @@ function MyProfilePage({ readOnly = false }) {
                 console.error("Error loading countries:", error);
                 setCountries([]);
             });
-    }, [isViewingOther]);
+}, [isViewingOther]);
+
+useEffect(() => {
+  api.get("/profile/expertise/options")
+    .then((response) => {
+      setExpertiseOptions(response.data || []);
+    })
+    .catch((error) => {
+      console.error("Error loading expertise options:", error);
+    });
+}, []);
+
+useEffect(() => {
+  if (!profile || expertiseOptions.length === 0) return;
+
+  const savedId = Array.isArray(profile.expertise_id)
+    ? profile.expertise_id[0]
+    : profile.expertise_id;
+
+  if (!savedId) return;
+
+  const selected = expertiseOptions.find(
+    (item) => String(item.expertise_id) === String(savedId)
+  );
+
+  if (selected) {
+    setExpertiseId(String(savedId));
+    setExpertise(selected.expertise);
+  }
+}, [profile, expertiseOptions]);
     const handleProfileImageChange = async (e) => {
         const file = e.target.files[0];
 
@@ -315,7 +354,7 @@ function MyProfilePage({ readOnly = false }) {
                 bio: bio,
                 linkedin_url: linkedinUrl,
                 mentorship_available: mentorshipAvailable,
-                expertise: expertise,
+            expertise_id: expertiseId ? [Number(expertiseId)] : [],
                 mentorship_availability: mentorshipAvailability,
                 profile_image_url: imageUrl,
                 current_city: currentCity,
@@ -351,13 +390,14 @@ function MyProfilePage({ readOnly = false }) {
         try {
             await api.patch(`/profile/${profile.id}`, {
                 mentorship_available: mentorshipAvailable,
-                expertise: expertise,
-                mentorship_availability: mentorshipAvailability,
+            expertise_id: expertiseId ? [Number(expertiseId)] : [],
+               mentorship_availability: mentorshipAvailability,
             });
 
             setProfile((prev) => ({
                 ...prev,
                 mentorship_available: mentorshipAvailable,
+                expertise_id: expertiseId ? Number(expertiseId) : null,
                 expertise: expertise,
                 mentorship_availability: mentorshipAvailability,
             }));
@@ -388,7 +428,7 @@ function MyProfilePage({ readOnly = false }) {
             setEndDate("");
             setDescription("");
             setShowEmploymentForm(false);
-            setShowEmploymentEditMode(false);
+        
         } catch (error) {
             console.error("Error adding employment:", error);
         }
@@ -404,7 +444,7 @@ function MyProfilePage({ readOnly = false }) {
         setEndDate(job.end_date ? String(job.end_date).split("T")[0] : "");
         setDescription(job.description || "");
 
-        setShowEmploymentEditMode(true);
+
         setShowEmploymentForm(true);
     };
     const handleUpdateEmployment = async () => {
@@ -434,7 +474,7 @@ function MyProfilePage({ readOnly = false }) {
 
             setEditingEmploymentId(null);
             setShowEmploymentForm(false);
-            setShowEmploymentEditMode(false);
+        
         } catch (error) {
             console.error("Error updating employment:", error);
         }
@@ -447,24 +487,43 @@ function MyProfilePage({ readOnly = false }) {
         }
 
         try {
-            const response = await api.post("/education", {
-                user_id: payload.userId,
-                institution: institution,
-                qualification: qualification,
-                field_of_study: fieldOfStudy,
-                start_date: educationStartDate,
-                end_date: educationEndDate || null,
-                description: educationDescription,
-            });
+           let response;
 
-            setEducation([...education, response.data]);
+if (editingEducationId) {
+  response = await api.patch(`/education/${editingEducationId}`, {
+    institution: institution,
+    qualification: qualification,
+    field_of_study: fieldOfStudy,
+    start_date: educationStartDate,
+    end_date: educationEndDate || null,
+    description: educationDescription,
+  });
 
+  setEducation(
+    education.map((item) =>
+      item.id === editingEducationId ? response.data : item
+    )
+  );
+} else {
+  response = await api.post("/education", {
+    user_id: payload.userId,
+    institution: institution,
+    qualification: qualification,
+    field_of_study: fieldOfStudy,
+    start_date: educationStartDate,
+    end_date: educationEndDate || null,
+    description: educationDescription,
+  });
+
+  setEducation([...education, response.data]);
+}
             setInstitution("");
             setQualification("");
             setFieldOfStudy("");
             setEducationStartDate("");
             setEducationEndDate("");
             setEducationDescription("");
+            setEditingEducationId(null);
             setShowEducationForm(false);
         } catch (error) {
             console.error("Error adding education:", error);
@@ -491,46 +550,14 @@ function MyProfilePage({ readOnly = false }) {
             await api.delete(`/education/${id}`);
 
             setEducation(education.filter((item) => item.id !== id));
+            setEditingEducationId(null);
+setShowEducationForm(false);
         } catch (error) {
             console.error("Error deleting education:", error);
         }
     };
-    const handleSaveEducationChanges = async () => {
-        try {
-            const responses = await Promise.all(
-                education.map((item) =>
-                    api.patch(`/education/${item.id}`, {
-                        institution: item.institution,
-                        qualification: item.qualification,
-                        field_of_study: item.field_of_study,
-                        start_date: formatDateForInput(item.start_date),
-                        end_date: item.end_date
-                            ? formatDateForInput(item.end_date)
-                            : null,
-                        description: item.description || "",
-                    }),
-                ),
-            );
-
-            setEducation(responses.map((response) => response.data));
-            setShowEducationEditMode(false);
-            setShowEducationForm(false);
-        } catch (error) {
-            console.error("Error updating education:", error);
-        }
-    };
-    const handleCancelEducationChanges = () => {
-        setEducation(educationBackup);
-        setShowEducationEditMode(false);
-        setShowEducationForm(false);
-    };
-    const handleEducationChange = (id, field, value) => {
-        setEducation((prev) =>
-            prev.map((item) =>
-                item.id === id ? { ...item, [field]: value } : item,
-            ),
-        );
-    };
+    
+  
     const formatDateForInput = (dateValue) => {
         if (!dateValue) return "";
 
@@ -1003,7 +1030,7 @@ function MyProfilePage({ readOnly = false }) {
                             )}
 
                             <p className="linkedin-title">
-                                Graduate 鈥?Batch{" "}
+                            Graduate • Batch{" "}
                                 {profile.year || profile.graduation_year || "-"}
                             </p>
                             <p className="linkedin-location">
@@ -1284,147 +1311,178 @@ function MyProfilePage({ readOnly = false }) {
                         )}
                     </div>
 
-                    {showMentorshipModal ? (
-                        <div className="mentorship-edit-fields">
-                            <label className="mentorship-checkbox">
-                                <input
-                                    type="checkbox"
-                                    checked={mentorshipAvailable}
-                                    onChange={(e) =>
-                                        setMentorshipAvailable(e.target.checked)
-                                    }
-                                />
-                                Available for mentorship
-                            </label>
-                            {mentorshipAvailable && (
-                                <>
-                                    <input
-                                        type="text"
-                                        value={expertise}
-                                        onChange={(e) =>
-                                            setExpertise(e.target.value)
-                                        }
-                                        placeholder="Areas of expertise"
-                                    />
+  {showMentorshipModal ? (
+  <div className="intro-modal-overlay">
+    <div className="intro-modal mentorship-modal">
 
-                                    <div className="mentorship-days-dropdown">
-                                        <button
-                                            type="button"
-                                            onClick={() =>
-                                                setShowMentorshipDaysDropdown(
-                                                    !showMentorshipDaysDropdown,
-                                                )
-                                            }
-                                        >
-                                            {mentorshipAvailability ||
-                                                "Select days"}{" "}
-                                            鈻?                                        </button>
+<div className="intro-modal-header">
+  <h2>Edit mentorship</h2>
 
-                                        {showMentorshipDaysDropdown && (
-                                            <div className="mentorship-days-options">
-                                                {mentorshipDays.map((day) => (
-                                                    <label key={day}>
-                                                        <input
-                                                            type="checkbox"
-                                                            checked={mentorshipAvailability
-                                                                .split(",")
-                                                                .map((item) =>
-                                                                    item.trim(),
-                                                                )
-                                                                .includes(day)}
-                                                            onChange={() =>
-                                                                handleMentorshipDayChange(
-                                                                    day,
-                                                                )
-                                                            }
-                                                        />
-                                                        {day}
-                                                    </label>
-                                                ))}
+        <button
+          type="button"
+          className="intro-modal-close"
+          onClick={() => {
+            setMentorshipAvailable(profile.mentorship_available);
+            setExpertise(profile.expertise || "");
+            setMentorshipAvailability(profile.mentorship_availability || "");
+            setShowMentorshipDaysDropdown(false);
+            setShowMentorshipModal(false);
+          }}
+          aria-label="Close"
+        >
+          ×
+        </button>
+      </div>
 
-                                                <button
-                                                    type="button"
-                                                    className="mentorship-days-save"
-                                                    onClick={
-                                                        handleSaveMentorship
-                                                    }
-                                                >
-                                                    Save
-                                                </button>
-                                            </div>
-                                        )}
-                                    </div>
-                                </>
-                            )}
+    <div className="intro-modal-body mentorship-edit-fields">
+      <label className="mentorship-checkbox">
+        <input
+          type="checkbox"
+          checked={mentorshipAvailable}
+          onChange={(e) => setMentorshipAvailable(e.target.checked)}
+        />
+        Available for mentorship
+      </label>
+{mentorshipAvailable && (
+  <>
+  <label className="mentorship-field-label">
+  Expertise
+</label>
+    <select
+    className="mentorship-expertise-select"
+  value={expertiseId}
+  onChange={(e) => {
+    setExpertiseId(e.target.value);
 
-                            <div className="mentorship-edit-actions">
-                                <button
-                                    type="button"
-                                    onClick={() => {
-                                        setMentorshipAvailable(
-                                            profile.mentorship_available,
-                                        );
-                                        setExpertise(profile.expertise || "");
-                                        setMentorshipAvailability(
-                                            profile.mentorship_availability ||
-                                                "",
-                                        );
-                                        setShowMentorshipDaysDropdown(false);
-                                        setShowMentorshipModal(false);
-                                    }}
-                                >
-                                    Cancel
-                                </button>
+    const selected = expertiseOptions.find(
+      (item) => String(item.expertise_id) === e.target.value
+    );
 
-                                {!mentorshipAvailable && (
-                                    <button
-                                        type="button"
-                                        onClick={handleSaveMentorship}
-                                    >
-                                        Save
-                                    </button>
-                                )}
-                            </div>
-                        </div>
-                    ) : (
-                        <>
-                            <p>
-                                <strong>Available for mentorship:</strong>{" "}
-                                {mentorshipAvailable ? "Yes" : "No"}
-                            </p>
+    setExpertise(selected?.expertise || "");
+  }}
+>
+  <option value="">Select expertise</option>
 
-                            {mentorshipAvailable && (
-                                <>
-                                    <p>
-                                        <strong>Expertise:</strong>{" "}
-                                        {expertise || "-"}
-                                    </p>
+  {expertiseOptions.map((item) => (
+    <option key={item.expertise_id} value={item.expertise_id}>
+      {item.expertise}
+    </option>
+  ))}
+</select>
+<label className="mentorship-field-label">
+  Availability
+</label>
 
-                                    <p>
-                                        <strong>Availability:</strong>{" "}
-                                        {mentorshipAvailability || "-"}
-                                    </p>
-                                </>
-                            )}
-                        </>
-                    )}
-                </div>
+<small className="mentorship-field-help">
+  Choose one or more days when you are available to mentor.
+</small>
+    <div className="mentorship-days-dropdown">
+      <button
+        type="button"
+        className="mentorship-availability-select"
+        onClick={() =>
+          setShowMentorshipDaysDropdown(!showMentorshipDaysDropdown)
+        }
+      >
+        {mentorshipAvailability || "Select days"} ▾
+      </button>
+
+      {showMentorshipDaysDropdown && (
+        <div className="mentorship-days-options">
+          {mentorshipDays.map((day) => (
+            <label key={day}>
+              <input
+                type="checkbox"
+                checked={mentorshipAvailability
+                  .split(",")
+                  .map((item) => item.trim())
+                  .includes(day)}
+                onChange={() => handleMentorshipDayChange(day)}
+              />
+              {day}
+            </label>
+          ))}
+
+          
+      
+        </div>
+      )}
+           
+      
+    </div>
+  </>
+)}
+</div>
+
+<div className="intro-modal-footer">
+  <button
+    type="button"
+    className="intro-save-button"
+    onClick={handleSaveMentorship}
+  >
+    Save
+  </button>
+    </div>
+  </div>
+  </div>
+  ) : (
+    <>
+      <p>
+        <strong>Available for mentorship:</strong>{" "}
+        {mentorshipAvailable ? "Yes" : "No"}
+      </p>
+
+      {mentorshipAvailable && (
+  <>
+    <p>
+      <strong>Expertise:</strong> {expertise || "-"}
+    </p>
+
+    <p>
+      <strong>Availability:</strong> {mentorshipAvailability || "-"}
+    </p>
+  </>
+)}
+    </>
+    )}
+</div>
                 {/* Education Section */}
                 <div className="profile-section">
                     <div className="profile-section-header">
                         <h3>Education</h3>
+                          <div className="education-header-actions">
+                           <button
+
+  type="button"
+  className="linkedin-add-button"
+onClick={() => {
+  setEditingEducationId(null);
+  setInstitution("");
+  setQualification("");
+  setFieldOfStudy("");
+  setEducationStartDate("");
+  setEducationEndDate("");
+  setEducationDescription("");
+  setShowEducationForm(true);
+}}
+  aria-label="Add education"
+>
+  <svg
+    viewBox="0 0 24 24"
+    width="24"
+    height="24"
+    aria-hidden="true"
+  >
+    <path d="M11 5h2v14h-2zM5 11h14v2H5z" />
+  </svg>
+</button>
 
                         {!isViewingOther && (
                         <div className="education-header-actions">
                             <button
                                 type="button"
                                 className="section-edit-button"
-                                onClick={() => {
-                                    setEducationBackup(
-                                        education.map((item) => ({ ...item })),
-                                    );
-                                    setShowEducationEditMode(true);
-                                }}
+                                onClick={() => setShowEducationManager(true)}
                                 aria-label="Edit Education"
                             >
                                 <svg
@@ -1442,20 +1500,124 @@ function MyProfilePage({ readOnly = false }) {
                                 </svg>
                             </button>
 
-                            {showEducationEditMode && (
-                                <button
-                                    className="add-experience-button"
-                                    onClick={() => setShowEducationForm(true)}
-                                >
-                                    +
-                                </button>
-                            )}
+                    
+
                         </div>
                         )}
                     </div>
+            </div>
+{showEducationManager && (
+  <div className="intro-modal-overlay">
+    <div className="intro-modal">
+      <div className="intro-modal-header">
+        <h2>Education</h2>
 
-                    {showEducationEditMode && !isViewingOther && showEducationForm && (
-                        <div>
+        <button
+          type="button"
+          className="intro-modal-close"
+          onClick={() => setShowEducationManager(false)}
+          aria-label="Close"
+        >
+          ×
+        </button>
+      </div>
+
+      <div className="intro-modal-body">
+    {education.length === 0 ? (
+  <p>No education added.</p>
+) : (
+  education.map((item) => (
+    <div key={item.id} className="experience-manager-item">
+
+      <div className="experience-manager-info">
+        <strong>{item.institution || "-"}</strong>
+
+        <div>{item.qualification || "-"}</div>
+
+        {(item.field_of_study || item.fieldOfStudy) && (
+          <div>
+            {item.field_of_study || item.fieldOfStudy}
+          </div>
+        )}
+
+        <div>
+          {item.start_date
+            ? new Date(item.start_date).toLocaleDateString("en-GB")
+            : ""}
+
+          {" - "}
+
+          {item.end_date
+            ? new Date(item.end_date).toLocaleDateString("en-GB")
+            : "Present"}
+        </div>
+      </div>
+
+     <button
+  type="button"
+  className="section-edit-button"
+  onClick={() => {
+    setEditingEducationId(item.id);
+
+    setInstitution(item.institution || "");
+    setQualification(item.qualification || "");
+    setFieldOfStudy(item.field_of_study || item.fieldOfStudy || "");
+
+    setEducationStartDate(
+      item.start_date ? String(item.start_date).split("T")[0] : ""
+    );
+
+    setEducationEndDate(
+      item.end_date ? String(item.end_date).split("T")[0] : ""
+    );
+
+    setEducationDescription(item.description || "");
+
+    setShowEducationManager(false);
+    setShowEducationForm(true);
+  }}
+  aria-label="Edit education"
+>
+        <svg
+          width="28"
+          height="28"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2.5"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        >
+          <path d="M12 20h9" />
+          <path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z" />
+        </svg>
+      </button>
+
+    </div>
+  ))
+)}
+      </div>
+    </div>
+  </div>
+)}
+                    {showEducationForm && (
+                    <div className="intro-modal-overlay">
+  <div className="intro-modal">
+
+    <div className="intro-modal-header">
+    <h2>{editingEducationId ? "Edit education" : "Add education"}</h2>
+
+      <button
+        type="button"
+        className="intro-modal-close"
+        onClick={() => setShowEducationForm(false)}
+        aria-label="Close"
+      >
+        ×
+      </button>
+    </div>
+
+    <div className="intro-modal-body">
                             <input
                                 type="text"
                                 value={institution}
@@ -1505,215 +1667,96 @@ function MyProfilePage({ readOnly = false }) {
                                 placeholder="Education description"
                             />
 
-                            <button
-                                className="add-record-button"
-                                onClick={handleAddEducation}
-                            >
-                                Add Education
-                            </button>
-                        </div>
-                    )}
+                           </div>
 
+<div className="intro-modal-footer">
+ 
+{editingEducationId && (
+  <button
+    type="button"
+    className="education-delete-button"
+    onClick={() => handleDeleteEducation(editingEducationId)}
+  >
+    Delete education
+  </button>
+)}
+  <button
+    type="button"
+    className="intro-save-button"
+    onClick={handleAddEducation}
+  >
+    {editingEducationId ? "Save" : "Add"}
+  </button>
+</div>
+
+</div>
+                        </div>
+                
+)}
                     {education.length === 0 ? (
                         <span>No education history added.</span>
                     ) : (
                         education.map((item) => (
                             <div key={item.id} className="experience-item">
-                                {showEducationEditMode ? (
-                                    <div className="education-edit-field">
-                                        <label
-                                            htmlFor={`institution-${item.id}`}
-                                        >
-                                            Institution
-                                        </label>
+                                <strong>{item.institution || "-"}</strong>
 
-                                        <input
-                                            id={`institution-${item.id}`}
-                                            name="institution"
-                                            type="text"
-                                            value={item.institution || ""}
-                                            onChange={(e) =>
-                                                handleEducationChange(
-                                                    item.id,
-                                                    "institution",
-                                                    e.target.value,
-                                                )
-                                            }
-                                        />
-                                    </div>
-                                ) : (
-                                    <strong>{item.institution || "-"}</strong>
-                                )}
+                              <div>{item.qualification || "-"}</div>
 
-                                {showEducationEditMode ? (
-                                    <div className="education-edit-field">
-                                        <label
-                                            htmlFor={`qualification-${item.id}`}
-                                        >
-                                            Qualification
-                                        </label>
+                               <div>{item.field_of_study || "-"}</div>
 
-                                        <input
-                                            id={`qualification-${item.id}`}
-                                            name="qualification"
-                                            type="text"
-                                            value={item.qualification || ""}
-                                            onChange={(e) =>
-                                                handleEducationChange(
-                                                    item.id,
-                                                    "qualification",
-                                                    e.target.value,
-                                                )
-                                            }
-                                        />
-                                    </div>
-                                ) : (
-                                    <div>{item.qualification || "-"}</div>
-                                )}
-
-                                {showEducationEditMode ? (
-                                    <div className="education-edit-field">
-                                        <label htmlFor={`field-${item.id}`}>
-                                            Field of Study
-                                        </label>
-
-                                        <input
-                                            id={`field-${item.id}`}
-                                            name="field_of_study"
-                                            type="text"
-                                            value={item.field_of_study || ""}
-                                            onChange={(e) =>
-                                                handleEducationChange(
-                                                    item.id,
-                                                    "field_of_study",
-                                                    e.target.value,
-                                                )
-                                            }
-                                        />
-                                    </div>
-                                ) : (
-                                    <div>{item.field_of_study || "-"}</div>
-                                )}
-
-                                {showEducationEditMode ? (
-                                    <div className="education-dates-edit">
-                                        <div className="education-edit-field">
-                                            <label
-                                                htmlFor={`start-date-${item.id}`}
-                                            >
-                                                Start Date
-                                            </label>
-
-                                            <input
-                                                id={`start-date-${item.id}`}
-                                                name="start_date"
-                                                type="date"
-                                                value={formatDateForInput(
-                                                    item.start_date,
-                                                )}
-                                                onChange={(e) =>
-                                                    handleEducationChange(
-                                                        item.id,
-                                                        "start_date",
-                                                        e.target.value,
-                                                    )
-                                                }
-                                            />
-                                        </div>
-
-                                        <div className="education-edit-field">
-                                            <label
-                                                htmlFor={`end-date-${item.id}`}
-                                            >
-                                                End Date
-                                            </label>
-
-                                            <input
-                                                id={`end-date-${item.id}`}
-                                                name="end_date"
-                                                type="date"
-                                                value={formatDateForInput(
-                                                    item.end_date,
-                                                )}
-                                                onChange={(e) =>
-                                                    handleEducationChange(
-                                                        item.id,
-                                                        "end_date",
-                                                        e.target.value,
-                                                    )
-                                                }
-                                            />
-                                        </div>
-                                    </div>
-                                ) : (
-                                    <div>
-                                        {item.start_date
-                                            ? new Date(
-                                                  item.start_date,
-                                              ).toLocaleDateString("en-NZ")
-                                            : "-"}
-                                        {" - "}
-                                        {item.end_date
-                                            ? new Date(
-                                                  item.end_date,
-                                              ).toLocaleDateString("en-NZ")
-                                            : "Present"}
-                                    </div>
-                                )}
+                                <div>
+  {item.start_date
+    ? new Date(item.start_date).toLocaleDateString("en-NZ")
+    : "-"}
+  {" - "}
+  {item.end_date
+    ? new Date(item.end_date).toLocaleDateString("en-NZ")
+    : "Present"}
+</div>
 
                                 {item.description && <p>{item.description}</p>}
 
-                                {(editing || showEducationEditMode) &&
-                                    !isViewingOther && (
-                                    <button
-                                        onClick={() =>
-                                            handleDeleteEducation(item.id)
-                                        }
-                                    >
-                                        Delete
-                                    </button>
-                                )}
+                               
                             </div>
                         ))
                     )}
-                    {showEducationEditMode && !isViewingOther && (
-                        <>
-                            <button
-                                type="button"
-                                className="education-save-button"
-                                onClick={handleSaveEducationChanges}
-                            >
-                                Save
-                            </button>
-                            <button
-                                type="button"
-                                onClick={handleCancelEducationChanges}
-                            >
-                                Cancel
-                            </button>
-                        </>
-                    )}
-                </div>
-                <div className="profile-section">
-                    <div className="profile-section-header">
-                        <h3>Experience</h3>
+                    </div>
+
+<div className="profile-section">
+  <div className="profile-section-header">
+    <h3>Experience</h3>
 
                         {!isViewingOther && (
                         <div className="profile-section-actions experience-section-actions">
-                            {showEmploymentEditMode && (
-                                <button
-                                    type="button"
-                                    className="add-experience-button"
-                                    onClick={() => setShowEmploymentForm(true)}
-                                >
-                                    Add
-                                </button>
-                            )}
+                            <button
+  type="button"
+  className="linkedin-add-button"
+  onClick={() => {
+  setEditingEmploymentId(null);
+
+  setJobTitle("");
+  setCompany("");
+  setStartDate("");
+  setEndDate("");
+  setDescription("");
+  setShowEmploymentForm(true);
+}}
+  aria-label="Add experience"
+>
+  <svg
+    viewBox="0 0 24 24"
+    width="24"
+    height="24"
+    aria-hidden="true"
+  >
+    <path d="M11 5h2v14h-2zM5 11h14v2H5z" />
+  </svg>
+</button>
 
                             <button
                                 type="button"
                                 className="section-edit-button"
-                                onClick={() => setShowEmploymentEditMode(true)}
+                            onClick={() => setShowExperienceManager(true)}
                                 aria-label="Edit Experience"
                             >
                                 <svg
@@ -1733,10 +1776,74 @@ function MyProfilePage({ readOnly = false }) {
                         </div>
                         )}
                     </div>
+{showExperienceManager && (
+  <div className="intro-modal-overlay">
+    <div className="intro-modal">
+      <div className="intro-modal-header">
+        <h2>Experience</h2>
 
-                    {showEmploymentEditMode &&
-                        !isViewingOther &&
-                        showEmploymentForm && (
+        <button
+          type="button"
+          className="intro-modal-close"
+          onClick={() => setShowExperienceManager(false)}
+          aria-label="Close"
+        >
+          ×
+        </button>
+      </div>
+
+      <div className="intro-modal-body">
+    {employment.length === 0 ? (
+  <p>No experience added.</p>
+) : (
+  employment.map((job) => (
+    <div key={job.id} className="experience-manager-item">
+      <div className="experience-manager-info">
+        <strong>{job.job_title}</strong>
+        <div>{job.company}</div>
+
+        <div>
+          {job.start_date
+            ? new Date(job.start_date).toLocaleDateString("en-GB")
+            : ""}
+          {" - "}
+          {job.end_date
+            ? new Date(job.end_date).toLocaleDateString("en-GB")
+            : "Present"}
+        </div>
+      </div>
+
+      <button
+        type="button"
+        className="section-edit-button"
+        onClick={() => {
+          setShowExperienceManager(false);
+          handleEditEmployment(job);
+        }}
+        aria-label="Edit experience"
+      >
+        <svg
+          width="28"
+          height="28"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2.5"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        >
+          <path d="M12 20h9" />
+          <path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z" />
+        </svg>
+      </button>
+    </div>
+  ))
+)}
+      </div>
+    </div>
+  </div>
+)}
+                    {showEmploymentForm && (
                         <div className="intro-modal-overlay">
                             <div className="intro-modal">
                                 <div className="intro-modal-header">
@@ -1754,7 +1861,7 @@ function MyProfilePage({ readOnly = false }) {
                                         }
                                         aria-label="Close"
                                     >
-                                        脳
+                                        ×
                                     </button>
                                 </div>
 
@@ -1815,6 +1922,15 @@ function MyProfilePage({ readOnly = false }) {
                                 </div>
 
                                 <div className="intro-modal-footer">
+                                    {editingEmploymentId && (
+  <button
+    type="button"
+    className="employment-delete-modal-button"
+    onClick={() => handleDeleteEmployment(editingEmploymentId)}
+  >
+    Delete experience
+  </button>
+)}
                                     <button
                                         type="button"
                                         className="intro-save-button"
@@ -1854,27 +1970,7 @@ function MyProfilePage({ readOnly = false }) {
                                         : "Present"}
                                 </div>
 
-                                {showEmploymentEditMode && !isViewingOther && (
-                                    <div className="experience-item-actions">
-                                        <button
-                                            type="button"
-                                            onClick={() =>
-                                                handleEditEmployment(job)
-                                            }
-                                        >
-                                            Edit
-                                        </button>
-
-                                        <button
-                                            type="button"
-                                            onClick={() =>
-                                                handleDeleteEmployment(job.id)
-                                            }
-                                        >
-                                            Delete
-                                        </button>
-                                    </div>
-                                )}
+                               
                             </div>
                         ))
                     )}
@@ -2026,6 +2122,7 @@ function MyProfilePage({ readOnly = false }) {
                 </div>
             )}
         </div>
+
     );
 }
 
