@@ -4036,40 +4036,35 @@ input:checked + .slider::before {
 }
 
 .site-footer-inner {
-  width: min(1100px, 100%);
+  width: min(1200px, 100%);
   margin: 0 auto;
   padding: 56px 24px 36px;
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: flex-start;
-  gap: 48px 72px;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  align-items: start;
+  gap: 32px 40px;
+}
+
+.site-footer-col {
+  min-width: 0;
 }
 
 .site-footer-brand {
   display: flex;
-  align-items: center;
-  justify-content: flex-start;
-  margin-right: auto;
+  align-items: flex-start;
+  justify-content: center;
 }
 
 .site-footer-logo {
   display: block;
-  max-width: 300px;
+  width: 100%;
+  max-width: 140px;
 }
 
 .site-footer-logo img {
   width: 100%;
   height: auto;
   display: block;
-  filter: brightness(0) invert(1);
-}
-
-.site-footer-info {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 40px 64px;
-  margin-left: auto;
 }
 
 .site-footer-block h4 {
@@ -4096,8 +4091,9 @@ input:checked + .slider::before {
 
 .site-footer-find-us-row {
   display: flex;
-  align-items: flex-start;
-  gap: 16px;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 14px;
 }
 
 .site-footer-address {
@@ -4107,9 +4103,8 @@ input:checked + .slider::before {
 .site-footer-map {
   position: relative;
   display: block;
-  flex: 0 0 auto;
-  width: 160px;
-  height: 110px;
+  width: 100%;
+  height: 180px;
   border-radius: 10px;
   overflow: hidden;
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
@@ -4178,43 +4173,35 @@ input:checked + .slider::before {
 
 @media (max-width: 768px) {
   .site-footer-inner {
+    grid-template-columns: 1fr;
     padding-top: 40px;
     gap: 28px;
     text-align: center;
-    justify-content: center;
+    justify-items: center;
   }
 
   .site-footer-brand {
-    margin-right: 0;
     justify-content: center;
     width: 100%;
   }
 
   .site-footer-logo {
-    max-width: 220px;
+    max-width: 120px;
     margin: 0 auto;
   }
 
-  .site-footer-info {
-    width: 100%;
-    flex-direction: column;
-    align-items: center;
-    gap: 28px;
-    margin-left: 0;
-  }
-
-  .site-footer-block {
+  .site-footer-col {
     width: 100%;
   }
 
   .site-footer-find-us-row {
-    justify-content: center;
-    flex-wrap: wrap;
+    align-items: center;
   }
 
   .site-footer-map {
-    width: 200px;
-    height: 130px;
+    width: min(100%, 320px);
+    height: 200px;
+    margin: 0 auto;
   }
 
   .site-footer-base-inner {

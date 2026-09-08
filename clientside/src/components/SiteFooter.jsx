@@ -1,4 +1,4 @@
-import logo from "../assets/logo.png";
+import logo from "../assets/logo_footer_white.png";
 
 const RHS_BASE = "https://www.rhs.school.nz";
 
@@ -13,7 +13,7 @@ function SiteFooter() {
       <div className="site-footer-pattern" aria-hidden="true" />
       <footer className="site-footer">
         <div className="site-footer-inner">
-          <div className="site-footer-brand">
+          <div className="site-footer-col site-footer-brand">
             <a
               href={RHS_BASE}
               target="_blank"
@@ -25,54 +25,52 @@ function SiteFooter() {
             </a>
           </div>
 
-          <div className="site-footer-info">
-            <div className="site-footer-block">
-              <h4>Contact Us</h4>
-              <a href="tel:+6478540541">(07) 854 0541</a>
-              <a href="mailto:communication@rhs.school.nz">
-                communication@rhs.school.nz
+          <div className="site-footer-col site-footer-block">
+            <h4>Contact Us</h4>
+            <a href="tel:+6478540541">(07) 854 0541</a>
+            <a href="mailto:communication@rhs.school.nz">
+              communication@rhs.school.nz
+            </a>
+            <p>
+              P.O. Box 21116,
+              <br />
+              Rototuna, Hamilton,
+              <br />
+              NZ, 3256
+            </p>
+          </div>
+
+          <div className="site-footer-col site-footer-block site-footer-find-us">
+            <h4>Find Us</h4>
+            <div className="site-footer-find-us-row">
+              <a
+                href={MAPS_URL}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="site-footer-address"
+              >
+                56 Kimbrae Drive,
+                <br />
+                Rototuna North,
+                <br />
+                Hamilton, NZ, 3281
               </a>
-              <p>
-                P.O. Box 21116,
-                <br />
-                Rototuna, Hamilton,
-                <br />
-                NZ, 3256
-              </p>
-            </div>
 
-            <div className="site-footer-block site-footer-find-us">
-              <h4>Find Us</h4>
-              <div className="site-footer-find-us-row">
-                <a
-                  href={MAPS_URL}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="site-footer-address"
-                >
-                  56 Kimbrae Drive,
-                  <br />
-                  Rototuna North,
-                  <br />
-                  Hamilton, NZ, 3281
-                </a>
-
-                <a
-                  href={MAPS_URL}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="site-footer-map"
-                  aria-label="Open school location in Google Maps"
-                >
-                  <iframe
-                    title="Rototuna High Schools map"
-                    src={MAP_EMBED_URL}
-                    loading="lazy"
-                    referrerPolicy="no-referrer-when-downgrade"
-                    allowFullScreen
-                  />
-                </a>
-              </div>
+              <a
+                href={MAPS_URL}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="site-footer-map"
+                aria-label="Open school location in Google Maps"
+              >
+                <iframe
+                  title="Rototuna High Schools map"
+                  src={MAP_EMBED_URL}
+                  loading="lazy"
+                  referrerPolicy="no-referrer-when-downgrade"
+                  allowFullScreen
+                />
+              </a>
             </div>
           </div>
         </div>
