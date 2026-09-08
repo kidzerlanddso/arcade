@@ -25,7 +25,6 @@ function EventDetailsModal({ event, onClose }) {
           style={{ backgroundImage: `url(${event.image})` }}
         />
         <div className="event-modal-content">
-          <span className="event-badge">{event.price}</span>
           <h2 id="event-modal-title">{event.title}</h2>
           <p className="event-modal-description">{event.description}</p>
           <dl className="event-details-list">
