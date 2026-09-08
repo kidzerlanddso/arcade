@@ -122,6 +122,83 @@ const [connectToast, setConnectToast] = useState("");
 const [showEducationManager, setShowEducationManager] = useState(false);
 const [editingEducationId, setEditingEducationId] = useState(null);
 const [showExperienceManager, setShowExperienceManager] = useState(false);
+const [connectionStatus, setConnectionStatus] = useState({});
+
+const loadConnectionStatuses = async (profileList = []) => {
+    const payload = getTokenPayload();
+    const me = payload?.userId ? Number(payload.userId) : null;
+
+    if (!me || !Array.isArray(profileList) || profileList.length === 0) {
+        return;
+    }
+
+    const others = profileList.filter(
+        (connectedProfile) => Number(connectedProfile.user_id) !== me,
+    );
+
+    const entries = await Promise.all(
+        others.map(async (connectedProfile) => {
+            try {
+                const response = await api.get(
+                    `/connection/status/${connectedProfile.user_id}`,
+                );
+
+                return [
+                    Number(connectedProfile.user_id),
+                    response.data || {
+                        status: "none",
+                        connectionId: null,
+                        direction: null,
+                    },
+                ];
+            } catch (error) {
+                console.error("Error loading connection status:", error);
+                return [
+                    Number(connectedProfile.user_id),
+                    {
+                        status: "none",
+                        connectionId: null,
+                        direction: null,
+                    },
+                ];
+            }
+        }),
+    );
+
+    setConnectionStatus((prev) => ({
+        ...prev,
+        ...Object.fromEntries(entries),
+    }));
+};
+
+const getConnectionForProfile = (connectedProfile) => {
+    const userId = Number(connectedProfile?.user_id);
+    return (
+        connectionStatus[userId] || {
+            status: "none",
+            connectionId: null,
+            direction: null,
+        }
+    );
+};
+
+const isProfileConnected = (connectedProfile) =>
+    getConnectionForProfile(connectedProfile).status === "accepted";
+
+const currentLoggedInUserId = getTokenPayload()?.userId
+    ? Number(getTokenPayload().userId)
+    : null;
+
+const isCurrentUserProfile =
+    Boolean(profile?.user_id) &&
+    currentLoggedInUserId !== null &&
+    Number(profile.user_id) === currentLoggedInUserId;
+
+const isCurrentProfileConnected =
+    Boolean(profile?.user_id) && isProfileConnected(profile);
+
+const shouldShowProfile =
+    isCurrentUserProfile || isCurrentProfileConnected || isAdmin;
 
 const applyProfileToState = (currentProfile) => {
     setProfile(currentProfile || null);
@@ -167,11 +244,21 @@ const applyProfileToState = (currentProfile) => {
                     const userId = currentProfile?.user_id;
                     if (!userId) return;
 
-                    const [employmentResponse, educationResponse] =
+                    const [statusResponse, employmentResponse, educationResponse] =
                         await Promise.all([
+                            api.get(`/connection/status/${userId}`),
                             api.get(`/employment/user/${userId}`),
                             api.get(`/education/user/${userId}`),
                         ]);
+
+                    setConnectionStatus((prev) => ({
+                        ...prev,
+                        [Number(userId)]: statusResponse.data || {
+                            status: "none",
+                            connectionId: null,
+                            direction: null,
+                        },
+                    }));
 
                     setEmployment(employmentResponse.data || []);
                     setEducation(educationResponse.data || []);
@@ -720,7 +807,8 @@ setShowEducationForm(false);
                     {connectToast}
                 </div>
             )}
-            <div className="linkedin-profile-shell">
+            
+              <div className="linkedin-profile-shell">
                 <div className="linkedin-cover" />
 
                 <div className="linkedin-profile-card">
@@ -766,7 +854,7 @@ setShowEducationForm(false);
                                         className="photo-modal-close"
                                         onClick={() => setShowPhotoModal(false)}
                                     >
-                                        脳
+                                        x
                                     </button>
 
                                     <h2>Profile photo</h2>
@@ -1019,7 +1107,8 @@ setShowEducationForm(false);
                             </div>
                         )}
 
-                        <div className="linkedin-profile-meta">
+                        
+                          <div className="linkedin-profile-meta">
                             {editing && !isViewingOther ? (
                                 <>
                                     <input
@@ -1051,7 +1140,7 @@ setShowEducationForm(false);
                             <p className="linkedin-location">
                                 {currentCity}, {currentCountry}
                             </p>
-                        </div>
+                        </div>                        
 
                         <div className="profile-header-actions">
                             {isViewingOther ? (
@@ -1130,7 +1219,8 @@ setShowEducationForm(false);
                         </div>
                     </div>
 
-                    <div className="linkedin-profile-body">
+                    {shouldShowProfile && (
+                      <div className="linkedin-profile-body">
                         <div
                             className="linkedin-detail-row"
                             style={{ display: editing && !isViewingOther ? "flex" : "none" }}
@@ -1236,10 +1326,11 @@ setShowEducationForm(false);
                                 </span>
                             )}
                         </div>
-                    </div>
+                    </div>)}
                 </div>
                 {/* About Section */}
-                <div className="profile-section">
+                {shouldShowProfile && (
+                  <div className="profile-section">
                     <div className="profile-section-header">
                         <h3>About</h3>
                         {!isViewingOther && (
@@ -1276,7 +1367,7 @@ setShowEducationForm(false);
                     ) : (
                         <p>{profile.bio || "Profile details coming soon."}</p>
                     )}
-                </div>
+                </div>)}
                 {showAboutModal && !isViewingOther && (
                     <div className="about-modal-overlay">
                         <div className="about-modal">
@@ -1308,7 +1399,8 @@ setShowEducationForm(false);
                     </div>
                 )}
   {/* Mentorship Section */}
-                <div className="profile-section">
+                {shouldShowProfile && (
+                  <div className="profile-section">
                     <div className="profile-section-header">
                         <h3>Mentorship</h3>
                         {!isViewingOther && (
@@ -1469,282 +1561,256 @@ setShowEducationForm(false);
 )}
     </>
     )}
-</div>
+</div>)}
 {/* Education Section */}
 
-                <div className="profile-section">
-                    <div className="profile-section-header">
-                        <h3>Education</h3>
-                        
-                          <div className="education-header-actions">
-                          {!isViewingOther && ( <button
+{shouldShowProfile && (
+    <div className="profile-section">
+        <div className="profile-section-header">
+            <h3>Education</h3>
 
-                              type="button"
-                              className="linkedin-add-button"
-                              onClick={() => {
-                                setEditingEducationId(null);
-                                setInstitution("");
-                                setQualification("");
-                                setFieldOfStudy("");
-                                setEducationStartDate("");
-                                setEducationEndDate("");
-                                setEducationDescription("");
-                                setShowEducationForm(true);
-                              }}
-                              aria-label="Add education"
-                            >
-                              <svg
-                                viewBox="0 0 24 24"
-                                width="24"
-                                height="24"
-                                aria-hidden="true"
-                              >
-                                <path d="M11 5h2v14h-2zM5 11h14v2H5z" />
-                              </svg>
-                            </button>
-                            )}
+            <div className="education-header-actions">
+                {!isViewingOther && (
+                    <button
+                        type="button"
+                        className="linkedin-add-button"
+                        onClick={() => {
+                            setEditingEducationId(null);
+                            setInstitution("");
+                            setQualification("");
+                            setFieldOfStudy("");
+                            setEducationStartDate("");
+                            setEducationEndDate("");
+                            setEducationDescription("");
+                            setShowEducationForm(true);
+                        }}
+                        aria-label="Add education"
+                    >
+                        <svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true">
+                            <path d="M11 5h2v14h-2zM5 11h14v2H5z" />
+                        </svg>
+                    </button>
+                )}
 
-                        {canAccess && (
-                        <div className="education-header-actions">
-                            <button
-                                type="button"
-                                className="section-edit-button"
-                                onClick={() => setShowEducationManager(true)}
-                                aria-label="Edit Education"
-                            >
-                                <svg
-                                    width="28"
-                                    height="28"
-                                    viewBox="0 0 24 24"
-                                    fill="none"
-                                    stroke="currentColor"
-                                    strokeWidth="2.5"
-                                    strokeLinecap="round"
-                                    strokeLinejoin="round"
-                                >
-                                    <path d="M12 20h9" />
-                                    <path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z" />
-                                </svg>
-                            </button>
-                        </div>
+                {canAccess && (
+                    <button
+                        type="button"
+                        className="section-edit-button"
+                        onClick={() => setShowEducationManager(true)}
+                        aria-label="Edit Education"
+                    >
+                        <svg
+                            width="28"
+                            height="28"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth="2.5"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                        >
+                            <path d="M12 20h9" />
+                            <path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z" />
+                        </svg>
+                    </button>
+                )}
+            </div>
+        </div>
+
+        {!isViewingOther && showEducationManager && (
+            <div className="intro-modal-overlay">
+                <div className="intro-modal">
+                    <div className="intro-modal-header">
+                        <h2>Education</h2>
+
+                        <button
+                            type="button"
+                            className="intro-modal-close"
+                            onClick={() => setShowEducationManager(false)}
+                            aria-label="Close"
+                        >
+                            ×
+                        </button>
+                    </div>
+
+                    <div className="intro-modal-body">
+                        {education.length === 0 ? (
+                            <p>No education added.</p>
+                        ) : (
+                            education.map((item) => (
+                                <div key={item.id} className="experience-manager-item">
+                                    <div className="experience-manager-info">
+                                        <strong>{item.institution || "-"}</strong>
+
+                                        <div>{item.qualification || "-"}</div>
+
+                                        {(item.field_of_study || item.fieldOfStudy) && (
+                                            <div>{item.field_of_study || item.fieldOfStudy}</div>
+                                        )}
+
+                                        <div>
+                                            {item.start_date
+                                                ? new Date(item.start_date).toLocaleDateString("en-GB")
+                                                : ""}
+                                            {" - "}
+                                            {item.end_date
+                                                ? new Date(item.end_date).toLocaleDateString("en-GB")
+                                                : "Present"}
+                                        </div>
+                                    </div>
+
+                                    <button
+                                        type="button"
+                                        className="section-edit-button"
+                                        onClick={() => {
+                                            setEditingEducationId(item.id);
+                                            setInstitution(item.institution || "");
+                                            setQualification(item.qualification || "");
+                                            setFieldOfStudy(item.field_of_study || item.fieldOfStudy || "");
+                                            setEducationStartDate(
+                                                item.start_date ? String(item.start_date).split("T")[0] : ""
+                                            );
+                                            setEducationEndDate(
+                                                item.end_date ? String(item.end_date).split("T")[0] : ""
+                                            );
+                                            setEducationDescription(item.description || "");
+                                            setShowEducationManager(false);
+                                            setShowEducationForm(true);
+                                        }}
+                                        aria-label="Edit education"
+                                    >
+                                        <svg
+                                            width="28"
+                                            height="28"
+                                            viewBox="0 0 24 24"
+                                            fill="none"
+                                            stroke="currentColor"
+                                            strokeWidth="2.5"
+                                            strokeLinecap="round"
+                                            strokeLinejoin="round"
+                                        >
+                                            <path d="M12 20h9" />
+                                            <path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z" />
+                                        </svg>
+                                    </button>
+                                </div>
+                            ))
                         )}
                     </div>
-{!isViewingOther && showEducationManager && (
-  <div className="intro-modal-overlay">
-    <div className="intro-modal">
-      <div className="intro-modal-header">
-        <h2>Education</h2>
-
-        <button
-          type="button"
-          className="intro-modal-close"
-          onClick={() => setShowEducationManager(false)}
-          aria-label="Close"
-        >
-          ×
-        </button>
-      </div>
-
-      <div className="intro-modal-body">
-    {education.length === 0 ? (
-  <p>No education added.</p>
-) : (
-  education.map((item) => (
-    <div key={item.id} className="experience-manager-item">
-
-      <div className="experience-manager-info">
-        <strong>{item.institution || "-"}</strong>
-
-        <div>{item.qualification || "-"}</div>
-
-        {(item.field_of_study || item.fieldOfStudy) && (
-          <div>
-            {item.field_of_study || item.fieldOfStudy}
-          </div>
+                </div>
+            </div>
         )}
 
-        <div>
-          {item.start_date
-            ? new Date(item.start_date).toLocaleDateString("en-GB")
-            : ""}
+        {!isViewingOther && showEducationForm && (
+            <div className="intro-modal-overlay">
+                <div className="intro-modal">
+                    <div className="intro-modal-header">
+                        <h2>{editingEducationId ? "Edit education" : "Add education"}</h2>
 
-          {" - "}
+                        <button
+                            type="button"
+                            className="intro-modal-close"
+                            onClick={() => setShowEducationForm(false)}
+                            aria-label="Close"
+                        >
+                            ×
+                        </button>
+                    </div>
 
-          {item.end_date
-            ? new Date(item.end_date).toLocaleDateString("en-GB")
-            : "Present"}
-        </div>
-      </div>
+                    <div className="intro-modal-body">
+                        <input
+                            type="text"
+                            value={institution}
+                            onChange={(e) => setInstitution(e.target.value)}
+                            placeholder="Institution"
+                        />
 
-     <button
-  type="button"
-  className="section-edit-button"
-  onClick={() => {
-    setEditingEducationId(item.id);
+                        <input
+                            type="text"
+                            value={qualification}
+                            onChange={(e) => setQualification(e.target.value)}
+                            placeholder="Qualification"
+                        />
 
-    setInstitution(item.institution || "");
-    setQualification(item.qualification || "");
-    setFieldOfStudy(item.field_of_study || item.fieldOfStudy || "");
+                        <input
+                            type="text"
+                            value={fieldOfStudy}
+                            onChange={(e) => setFieldOfStudy(e.target.value)}
+                            placeholder="Field of study"
+                        />
 
-    setEducationStartDate(
-      item.start_date ? String(item.start_date).split("T")[0] : ""
-    );
+                        <input
+                            type="date"
+                            value={educationStartDate}
+                            onChange={(e) => setEducationStartDate(e.target.value)}
+                        />
 
-    setEducationEndDate(
-      item.end_date ? String(item.end_date).split("T")[0] : ""
-    );
+                        <input
+                            type="date"
+                            value={educationEndDate}
+                            onChange={(e) => setEducationEndDate(e.target.value)}
+                        />
 
-    setEducationDescription(item.description || "");
+                        <textarea
+                            value={educationDescription}
+                            onChange={(e) => setEducationDescription(e.target.value)}
+                            placeholder="Education description"
+                        />
+                    </div>
 
-    setShowEducationManager(false);
-    setShowEducationForm(true);
-  }}
-  aria-label="Edit education"
->
-        <svg
-          width="28"
-          height="28"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="2.5"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        >
-          <path d="M12 20h9" />
-          <path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z" />
-        </svg>
-      </button>
-
-    </div>
-  ))
-)}
-      </div>
-    </div>
-  </div>
-)}
-                    {!isViewingOther && showEducationForm && (
-                    <div className="intro-modal-overlay">
-  <div className="intro-modal">
-
-    <div className="intro-modal-header">
-    <h2>{editingEducationId ? "Edit education" : "Add education"}</h2>
-
-      <button
-        type="button"
-        className="intro-modal-close"
-        onClick={() => setShowEducationForm(false)}
-        aria-label="Close"
-      >
-        ×
-      </button>
-    </div>
-
-    <div className="intro-modal-body">
-                            <input
-                                type="text"
-                                value={institution}
-                                onChange={(e) => setInstitution(e.target.value)}
-                                placeholder="Institution"
-                            />
-
-                            <input
-                                type="text"
-                                value={qualification}
-                                onChange={(e) =>
-                                    setQualification(e.target.value)
-                                }
-                                placeholder="Qualification"
-                            />
-
-                            <input
-                                type="text"
-                                value={fieldOfStudy}
-                                onChange={(e) =>
-                                    setFieldOfStudy(e.target.value)
-                                }
-                                placeholder="Field of study"
-                            />
-
-                            <input
-                                type="date"
-                                value={educationStartDate}
-                                onChange={(e) =>
-                                    setEducationStartDate(e.target.value)
-                                }
-                            />
-
-                            <input
-                                type="date"
-                                value={educationEndDate}
-                                onChange={(e) =>
-                                    setEducationEndDate(e.target.value)
-                                }
-                            />
-
-                            <textarea
-                                value={educationDescription}
-                                onChange={(e) =>
-                                    setEducationDescription(e.target.value)
-                                }
-                                placeholder="Education description"
-                            />
-
-                           </div>
-
-                          <div className="intro-modal-footer">                          
-                            {editingEducationId && (
-                              <button
+                    <div className="intro-modal-footer">
+                        {editingEducationId && (
+                            <button
                                 type="button"
                                 className="education-delete-button"
                                 onClick={() => handleDeleteEducation(editingEducationId)}
-                              >
-                                Delete education
-                              </button>
-                            )}
-                            <button
-                              type="button"
-                              className="intro-save-button"
-                              onClick={handleAddEducation}
                             >
-                              {editingEducationId ? "Save" : "Add"}
+                                Delete education
                             </button>
-                          </div>
+                        )}
 
-                          </div>
-                        </div>
-                
-)}
-                    {education.length === 0 ? (
-                        <span>No education history added.</span>
-                    ) : (
-                        education.map((item) => (
-                            <div key={item.id} className="experience-item">
-                                <strong>{item.institution || "-"}</strong>
+                        <button
+                            type="button"
+                            className="intro-save-button"
+                            onClick={handleAddEducation}
+                        >
+                            {editingEducationId ? "Save" : "Add"}
+                        </button>
+                    </div>
+                </div>
+            </div>
+        )}
 
-                                <div>{item.qualification || "-"}</div>
+        {education.length === 0 ? (
+            <span>No education history added.</span>
+        ) : (
+            education.map((item) => (
+                <div key={item.id} className="experience-item">
+                    <strong>{item.institution || "-"}</strong>
 
-                                <div>{item.field_of_study || "-"}</div>
+                    <div>{item.qualification || "-"}</div>
 
-                                <div>
-                                  {item.start_date
-                                    ? new Date(item.start_date).toLocaleDateString("en-NZ")
-                                    : "-"}
-                                  {" - "}
-                                  {item.end_date
-                                    ? new Date(item.end_date).toLocaleDateString("en-NZ")
-                                    : "Present"}
-                                </div>
+                    <div>{item.field_of_study || "-"}</div>
 
-                                {item.description && <p>{item.description}</p>}
-
-                               
-                            </div>
-                        ))
-                    )}
+                    <div>
+                        {item.start_date
+                            ? new Date(item.start_date).toLocaleDateString("en-NZ")
+                            : "-"}
+                        {" - "}
+                        {item.end_date
+                            ? new Date(item.end_date).toLocaleDateString("en-NZ")
+                            : "Present"}
                     </div>
 
-<div className="profile-section">
+                    {item.description && <p>{item.description}</p>}
+                </div>
+            ))
+        )}
+    </div>
+)}
+
+{shouldShowProfile && (
+  <div className="profile-section">
   <div className="profile-section-header">
     <h3>Experience</h3>
 
@@ -2000,7 +2066,7 @@ setShowEducationForm(false);
                             </div>
                         ))
                     )}
-                </div>
+                </div>)}
             </div>
             {showIntroModal && !isViewingOther && (
                 <div className="intro-modal-overlay">

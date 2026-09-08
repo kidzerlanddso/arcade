@@ -33,7 +33,6 @@ module.exports = (app) => {
   app.get(
     "/connection/status/:userId",
     verifyToken,
-    rejectAdminConnect,
     connection.getStatus,
   );
   app.patch(
