@@ -122,6 +122,83 @@ const [connectToast, setConnectToast] = useState("");
 const [showEducationManager, setShowEducationManager] = useState(false);
 const [editingEducationId, setEditingEducationId] = useState(null);
 const [showExperienceManager, setShowExperienceManager] = useState(false);
+const [connectionStatus, setConnectionStatus] = useState({});
+
+const loadConnectionStatuses = async (profileList = []) => {
+    const payload = getTokenPayload();
+    const me = payload?.userId ? Number(payload.userId) : null;
+
+    if (!me || !Array.isArray(profileList) || profileList.length === 0) {
+        return;
+    }
+
+    const others = profileList.filter(
+        (connectedProfile) => Number(connectedProfile.user_id) !== me,
+    );
+
+    const entries = await Promise.all(
+        others.map(async (connectedProfile) => {
+            try {
+                const response = await api.get(
+                    `/connection/status/${connectedProfile.user_id}`,
+                );
+
+                return [
+                    Number(connectedProfile.user_id),
+                    response.data || {
+                        status: "none",
+                        connectionId: null,
+                        direction: null,
+                    },
+                ];
+            } catch (error) {
+                console.error("Error loading connection status:", error);
+                return [
+                    Number(connectedProfile.user_id),
+                    {
+                        status: "none",
+                        connectionId: null,
+                        direction: null,
+                    },
+                ];
+            }
+        }),
+    );
+
+    setConnectionStatus((prev) => ({
+        ...prev,
+        ...Object.fromEntries(entries),
+    }));
+};
+
+const getConnectionForProfile = (connectedProfile) => {
+    const userId = Number(connectedProfile?.user_id);
+    return (
+        connectionStatus[userId] || {
+            status: "none",
+            connectionId: null,
+            direction: null,
+        }
+    );
+};
+
+const isProfileConnected = (connectedProfile) =>
+    getConnectionForProfile(connectedProfile).status === "accepted";
+
+const currentLoggedInUserId = getTokenPayload()?.userId
+    ? Number(getTokenPayload().userId)
+    : null;
+
+const isCurrentUserProfile =
+    Boolean(profile?.user_id) &&
+    currentLoggedInUserId !== null &&
+    Number(profile.user_id) === currentLoggedInUserId;
+
+const isCurrentProfileConnected =
+    Boolean(profile?.user_id) && isProfileConnected(profile);
+
+const shouldShowProfile =
+    isCurrentUserProfile || isCurrentProfileConnected || isAdmin;
 
 const applyProfileToState = (currentProfile) => {
     setProfile(currentProfile || null);
@@ -167,11 +244,21 @@ const applyProfileToState = (currentProfile) => {
                     const userId = currentProfile?.user_id;
                     if (!userId) return;
 
-                    const [employmentResponse, educationResponse] =
+                    const [statusResponse, employmentResponse, educationResponse] =
                         await Promise.all([
+                            api.get(`/connection/status/${userId}`),
                             api.get(`/employment/user/${userId}`),
                             api.get(`/education/user/${userId}`),
                         ]);
+
+                    setConnectionStatus((prev) => ({
+                        ...prev,
+                        [Number(userId)]: statusResponse.data || {
+                            status: "none",
+                            connectionId: null,
+                            direction: null,
+                        },
+                    }));
 
                     setEmployment(employmentResponse.data || []);
                     setEducation(educationResponse.data || []);
@@ -707,7 +794,8 @@ setShowEducationForm(false);
                     {connectToast}
                 </div>
             )}
-            <div className="linkedin-profile-shell">
+            
+              <div className="linkedin-profile-shell">
                 <div className="linkedin-cover" />
 
                 <div className="linkedin-profile-card">
@@ -753,7 +841,7 @@ setShowEducationForm(false);
                                         className="photo-modal-close"
                                         onClick={() => setShowPhotoModal(false)}
                                     >
-                                        脳
+                                        x
                                     </button>
 
                                     <h2>Profile photo</h2>
@@ -1006,7 +1094,8 @@ setShowEducationForm(false);
                             </div>
                         )}
 
-                        <div className="linkedin-profile-meta">
+                        
+                          <div className="linkedin-profile-meta">
                             {editing && !isViewingOther ? (
                                 <>
                                     <input
@@ -1038,7 +1127,7 @@ setShowEducationForm(false);
                             <p className="linkedin-location">
                                 {currentCity}, {currentCountry}
                             </p>
-                        </div>
+                        </div>                        
 
                         <div className="profile-header-actions">
                             {isViewingOther ? (
@@ -1108,7 +1197,8 @@ setShowEducationForm(false);
                         </div>
                     </div>
 
-                    <div className="linkedin-profile-body">
+                    {shouldShowProfile && (
+                      <div className="linkedin-profile-body">
                         <div
                             className="linkedin-detail-row"
                             style={{ display: editing && !isViewingOther ? "flex" : "none" }}
@@ -1214,10 +1304,11 @@ setShowEducationForm(false);
                                 </span>
                             )}
                         </div>
-                    </div>
+                    </div>)}
                 </div>
                 {/* About Section */}
-                <div className="profile-section">
+                {shouldShowProfile && (
+                  <div className="profile-section">
                     <div className="profile-section-header">
                         <h3>About</h3>
                         {!isViewingOther && (
@@ -1254,7 +1345,7 @@ setShowEducationForm(false);
                     ) : (
                         <p>{profile.bio || "Profile details coming soon."}</p>
                     )}
-                </div>
+                </div>)}
                 {showAboutModal && !isViewingOther && (
                     <div className="about-modal-overlay">
                         <div className="about-modal">
@@ -1286,7 +1377,8 @@ setShowEducationForm(false);
                     </div>
                 )}
   {/* Mentorship Section */}
-                <div className="profile-section">
+                {shouldShowProfile && (
+                  <div className="profile-section">
                     <div className="profile-section-header">
                         <h3>Mentorship</h3>
                         {!isViewingOther && (
@@ -1447,10 +1539,11 @@ setShowEducationForm(false);
 )}
     </>
     )}
-</div>
+</div>)}
 {/* Education Section */}
 
-                <div className="profile-section">
+                {shouldShowProfile && (
+                  <div className="profile-section">
                     <div className="profile-section-header">
                         <h3>Education</h3>
                         
@@ -1724,9 +1817,10 @@ setShowEducationForm(false);
                             </div>
                         ))
                     )}
-                    </div>
+                    </div>)}
 
-<div className="profile-section">
+{shouldShowProfile && (
+  <div className="profile-section">
   <div className="profile-section-header">
     <h3>Experience</h3>
 
@@ -1982,7 +2076,7 @@ setShowEducationForm(false);
                             </div>
                         ))
                     )}
-                </div>
+                </div>)}
             </div>
             {showIntroModal && !isViewingOther && (
                 <div className="intro-modal-overlay">

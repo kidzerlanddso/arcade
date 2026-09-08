@@ -563,19 +563,19 @@ const handleAccept = async (connectionId, userId) => {
         <div className={viewMode === "list" ? "profile-list-view" : "profile-card-grid"}>
           {visibleProfiles.map((profile) => {
             // Connected alumni cards are clickable; admins skip Connect UX
-            const connected = !isAdmin && isProfileConnected(profile);
+            const connected = isAdmin || isProfileConnected(profile);
 
             return (
           <article
             className={`profile-card${connected ? " profile-card--clickable" : ""}`}
             key={profile.id}
             onClick={
-              connected || isAdmin
+              connected
                 ? () => handleOpenConnectedProfile(profile)
                 : undefined
             }
             onKeyDown={
-              connected || isAdmin
+              connected 
                 ? (event) => {
                     if (event.key === "Enter" || event.key === " ") {
                       event.preventDefault();
