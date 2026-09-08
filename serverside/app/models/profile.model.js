@@ -37,6 +37,8 @@ Project.getAll = (result) => {
   
 };
 
+
+
 Project.findById = (id, result) => {
   // Use p.* so profile.id is not overwritten by users.id from JOIN
   db.query(
@@ -160,6 +162,21 @@ Project.getExpertise = (result) => {
     (err, res) => {
       if (err) {
         console.log("Error while getting expertise:", err);
+        result(err, null);
+        return;
+      }
+
+      result(null, res.rows);
+    }
+  );
+};
+Project.getExpertiseSubcategories = (expertiseId, result) => {
+  db.query(
+    "SELECT subcategory_id, expertise_id, subcategory FROM expertise_subcategory WHERE expertise_id = $1 ORDER BY subcategory ASC",
+    [expertiseId],
+    (err, res) => {
+      if (err) {
+        console.log("Error while getting expertise subcategories:", err);
         result(err, null);
         return;
       }

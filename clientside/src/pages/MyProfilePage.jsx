@@ -57,7 +57,9 @@ function MyProfilePage({ readOnly = false }) {
     const [mentorshipAvailable, setMentorshipAvailable] = useState(false);
     const [expertise, setExpertise] = useState("");
     const [expertiseId, setExpertiseId] = useState("");
+    const [subcategoryId, setSubcategoryId] = useState("");
     const [expertiseOptions, setExpertiseOptions] = useState([]);
+    const [subcategoryOptions, setSubcategoryOptions] = useState([]);
     const [mentorshipAvailability, setMentorshipAvailability] = useState("");
     const mentorshipDays = [
         "Monday",
@@ -246,6 +248,22 @@ useEffect(() => {
       console.error("Error loading expertise options:", error);
     });
 }, []);
+useEffect(() => {
+  if (!expertiseId) {
+    setSubcategoryOptions([]);
+    return;
+  }
+
+  api
+    .get(`/profile/expertise/${expertiseId}/subcategories`)
+    .then((response) => {
+      setSubcategoryOptions(response.data || []);
+    })
+    .catch((error) => {
+      console.error("Error loading expertise subcategories:", error);
+      setSubcategoryOptions([]);
+    });
+}, [expertiseId]);
 
 useEffect(() => {
   if (isViewingOther || isAdmin) return;
@@ -276,6 +294,13 @@ useEffect(() => {
   if (selected) {
     setExpertiseId(String(savedId));
     setExpertise(selected.expertise);
+    const savedSubcategoryId = Array.isArray(profile.subcategory_id)
+  ? profile.subcategory_id[0]
+  : profile.subcategory_id;
+
+if (savedSubcategoryId) {
+  setSubcategoryId(String(savedSubcategoryId));
+}
   }
 }, [profile, expertiseOptions]);
     const handleProfileImageChange = async (e) => {
@@ -369,6 +394,7 @@ useEffect(() => {
                 linkedin_url: linkedinUrl,
                 mentorship_available: mentorshipAvailable,
             expertise_id: expertiseId ? [Number(expertiseId)] : [],
+            subcategory_id: subcategoryId ? [Number(subcategoryId)] : [],
                 mentorship_availability: mentorshipAvailability,
                 profile_image_url: imageUrl,
                 current_city: currentCity,
@@ -403,15 +429,16 @@ useEffect(() => {
     const handleSaveMentorship = async () => {
         try {
             await api.patch(`/profile/${profile.id}`, {
-                mentorship_available: mentorshipAvailable,
-            expertise_id: expertiseId ? [Number(expertiseId)] : [],
-               mentorship_availability: mentorshipAvailability,
-            });
-
+  mentorship_available: mentorshipAvailable,
+  expertise_id: expertiseId ? [Number(expertiseId)] : [],
+  subcategory_id: subcategoryId ? [Number(subcategoryId)] : [],
+  mentorship_availability: mentorshipAvailability,
+});
             setProfile((prev) => ({
                 ...prev,
                 mentorship_available: mentorshipAvailable,
                 expertise_id: expertiseId ? Number(expertiseId) : null,
+                subcategory_id: subcategoryId ? Number(subcategoryId) : null,
                 expertise: expertise,
                 mentorship_availability: mentorshipAvailability,
             }));
@@ -1377,6 +1404,7 @@ setShowEducationForm(false);
   value={expertiseId}
   onChange={(e) => {
     setExpertiseId(e.target.value);
+    setSubcategoryId("");
 
     const selected = expertiseOptions.find(
       (item) => String(item.expertise_id) === e.target.value
@@ -1390,6 +1418,24 @@ setShowEducationForm(false);
   {expertiseOptions.map((item) => (
     <option key={item.expertise_id} value={item.expertise_id}>
       {item.expertise}
+    </option>
+  ))}
+</select>
+<label className="mentorship-field-label">
+  Subcategory
+</label>
+
+<select
+  className="mentorship-availability-select"
+  value={subcategoryId}
+  onChange={(e) => setSubcategoryId(e.target.value)}
+  disabled={!expertiseId}
+>
+  <option value="">Select subcategory</option>
+
+  {subcategoryOptions.map((item) => (
+    <option key={item.subcategory_id} value={item.subcategory_id}>
+      {item.subcategory}
     </option>
   ))}
 </select>
@@ -1459,8 +1505,18 @@ setShowEducationForm(false);
       {mentorshipAvailable && (
   <>
     <p>
-      <strong>Expertise:</strong> {expertise || "-"}
-    </p>
+
+  <strong>Expertise:</strong>{" "}
+  {expertise || "-"}
+  {subcategoryId && (
+    <>
+      {" < "}
+      {subcategoryOptions.find(
+        (item) => String(item.subcategory_id) === String(subcategoryId)
+      )?.subcategory || ""}
+    </>
+  )}
+</p>
 
     <p>
       <strong>Availability:</strong> {mentorshipAvailability || "-"}
@@ -1505,7 +1561,6 @@ setShowEducationForm(false);
                             )}
 
                         {canAccess && (
-                        <div className="education-header-actions">
                             <button
                                 type="button"
                                 className="section-edit-button"
@@ -1525,10 +1580,10 @@ setShowEducationForm(false);
                                     <path d="M12 20h9" />
                                     <path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z" />
                                 </svg>
-                            </button>
-                        </div>
-                        )}
-                    </div>
+                           </button>
+)}
+</div>
+</div>
 {!isViewingOther && showEducationManager && (
   <div className="intro-modal-overlay">
     <div className="intro-modal">
@@ -2148,7 +2203,6 @@ setShowEducationForm(false);
                 </div>
             )}
         </div>
-
     );
 }
 
