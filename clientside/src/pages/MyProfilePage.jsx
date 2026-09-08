@@ -57,7 +57,7 @@ function MyProfilePage({ readOnly = false }) {
     const [mentorshipAvailable, setMentorshipAvailable] = useState(false);
     const [expertise, setExpertise] = useState("");
     const [expertiseId, setExpertiseId] = useState("");
-const [expertiseOptions, setExpertiseOptions] = useState([]);
+    const [expertiseOptions, setExpertiseOptions] = useState([]);
     const [mentorshipAvailability, setMentorshipAvailability] = useState("");
     const mentorshipDays = [
         "Monday",
@@ -68,6 +68,7 @@ const [expertiseOptions, setExpertiseOptions] = useState([]);
         "Saturday",
         "Sunday",
     ];
+    const canAccess = isAdmin || !isViewingOther;
     const handleMentorshipDayChange = (day) => {
         const selectedDays = mentorshipAvailability
             .split(",")
@@ -1284,7 +1285,7 @@ setShowEducationForm(false);
                         </div>
                     </div>
                 )}
-                {/* Mentorship Section */}
+  {/* Mentorship Section */}
                 <div className="profile-section">
                     <div className="profile-section-header">
                         <h3>Mentorship</h3>
@@ -1447,38 +1448,41 @@ setShowEducationForm(false);
     </>
     )}
 </div>
-                {/* Education Section */}
+{/* Education Section */}
+
                 <div className="profile-section">
                     <div className="profile-section-header">
                         <h3>Education</h3>
+                        
                           <div className="education-header-actions">
-                           <button
+                          {!isViewingOther && ( <button
 
-  type="button"
-  className="linkedin-add-button"
-onClick={() => {
-  setEditingEducationId(null);
-  setInstitution("");
-  setQualification("");
-  setFieldOfStudy("");
-  setEducationStartDate("");
-  setEducationEndDate("");
-  setEducationDescription("");
-  setShowEducationForm(true);
-}}
-  aria-label="Add education"
->
-  <svg
-    viewBox="0 0 24 24"
-    width="24"
-    height="24"
-    aria-hidden="true"
-  >
-    <path d="M11 5h2v14h-2zM5 11h14v2H5z" />
-  </svg>
-</button>
+                              type="button"
+                              className="linkedin-add-button"
+                              onClick={() => {
+                                setEditingEducationId(null);
+                                setInstitution("");
+                                setQualification("");
+                                setFieldOfStudy("");
+                                setEducationStartDate("");
+                                setEducationEndDate("");
+                                setEducationDescription("");
+                                setShowEducationForm(true);
+                              }}
+                              aria-label="Add education"
+                            >
+                              <svg
+                                viewBox="0 0 24 24"
+                                width="24"
+                                height="24"
+                                aria-hidden="true"
+                              >
+                                <path d="M11 5h2v14h-2zM5 11h14v2H5z" />
+                              </svg>
+                            </button>
+                            )}
 
-                        {!isViewingOther && (
+                        {canAccess && (
                         <div className="education-header-actions">
                             <button
                                 type="button"
@@ -1670,27 +1674,26 @@ onClick={() => {
 
                            </div>
 
-<div className="intro-modal-footer">
- 
-{editingEducationId && (
-  <button
-    type="button"
-    className="education-delete-button"
-    onClick={() => handleDeleteEducation(editingEducationId)}
-  >
-    Delete education
-  </button>
-)}
-  <button
-    type="button"
-    className="intro-save-button"
-    onClick={handleAddEducation}
-  >
-    {editingEducationId ? "Save" : "Add"}
-  </button>
-</div>
+                          <div className="intro-modal-footer">                          
+                            {editingEducationId && (
+                              <button
+                                type="button"
+                                className="education-delete-button"
+                                onClick={() => handleDeleteEducation(editingEducationId)}
+                              >
+                                Delete education
+                              </button>
+                            )}
+                            <button
+                              type="button"
+                              className="intro-save-button"
+                              onClick={handleAddEducation}
+                            >
+                              {editingEducationId ? "Save" : "Add"}
+                            </button>
+                          </div>
 
-</div>
+                          </div>
                         </div>
                 
 )}
@@ -1701,19 +1704,19 @@ onClick={() => {
                             <div key={item.id} className="experience-item">
                                 <strong>{item.institution || "-"}</strong>
 
-                              <div>{item.qualification || "-"}</div>
+                                <div>{item.qualification || "-"}</div>
 
-                               <div>{item.field_of_study || "-"}</div>
+                                <div>{item.field_of_study || "-"}</div>
 
                                 <div>
-  {item.start_date
-    ? new Date(item.start_date).toLocaleDateString("en-NZ")
-    : "-"}
-  {" - "}
-  {item.end_date
-    ? new Date(item.end_date).toLocaleDateString("en-NZ")
-    : "Present"}
-</div>
+                                  {item.start_date
+                                    ? new Date(item.start_date).toLocaleDateString("en-NZ")
+                                    : "-"}
+                                  {" - "}
+                                  {item.end_date
+                                    ? new Date(item.end_date).toLocaleDateString("en-NZ")
+                                    : "Present"}
+                                </div>
 
                                 {item.description && <p>{item.description}</p>}
 
@@ -1727,34 +1730,37 @@ onClick={() => {
   <div className="profile-section-header">
     <h3>Experience</h3>
 
-                        {!isViewingOther && (
+                        
                         <div className="profile-section-actions experience-section-actions">
-                            <button
-  type="button"
-  className="linkedin-add-button"
-  onClick={() => {
-  setEditingEmploymentId(null);
+                            {!isViewingOther && (
+                              <button
+                                type="button"
+                                className="linkedin-add-button"
+                                onClick={() => {
+                                setEditingEmploymentId(null);
 
-  setJobTitle("");
-  setCompany("");
-  setStartDate("");
-  setEndDate("");
-  setDescription("");
-  setShowEmploymentForm(true);
-}}
-  aria-label="Add experience"
->
-  <svg
-    viewBox="0 0 24 24"
-    width="24"
-    height="24"
-    aria-hidden="true"
-  >
-    <path d="M11 5h2v14h-2zM5 11h14v2H5z" />
-  </svg>
-</button>
+                                setJobTitle("");
+                                setCompany("");
+                                setStartDate("");
+                                setEndDate("");
+                                setDescription("");
+                                setShowEmploymentForm(true);
+                              }}
+                                aria-label="Add experience"
+                              >
+                                <svg
+                                  viewBox="0 0 24 24"
+                                  width="24"
+                                  height="24"
+                                  aria-hidden="true"
+                                >
+                                  <path d="M11 5h2v14h-2zM5 11h14v2H5z" />
+                                </svg>
+                            </button>
+                            )}
 
-                            <button
+                            {canAccess && (
+                              <button
                                 type="button"
                                 className="section-edit-button"
                             onClick={() => setShowExperienceManager(true)}
@@ -1774,8 +1780,9 @@ onClick={() => {
                                     <path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z" />
                                 </svg>
                             </button>
+                            )}
                         </div>
-                        )}
+                        
                     </div>
 {showExperienceManager && (
   <div className="intro-modal-overlay">
@@ -1924,14 +1931,14 @@ onClick={() => {
 
                                 <div className="intro-modal-footer">
                                     {editingEmploymentId && (
-  <button
-    type="button"
-    className="employment-delete-modal-button"
-    onClick={() => handleDeleteEmployment(editingEmploymentId)}
-  >
-    Delete experience
-  </button>
-)}
+                                      <button
+                                        type="button"
+                                        className="employment-delete-modal-button"
+                                        onClick={() => handleDeleteEmployment(editingEmploymentId)}
+                                      >
+                                        Delete experience
+                                      </button>
+                                    )}
                                     <button
                                         type="button"
                                         className="intro-save-button"
@@ -1991,7 +1998,7 @@ onClick={() => {
                                     setEditing(false);
                                 }}
                             >
-                                脳
+                                ×
                             </button>
                         </div>
 

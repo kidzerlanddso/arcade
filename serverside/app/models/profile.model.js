@@ -32,10 +32,9 @@ Project.getAll = (result) => {
         return;
       }
       result(null, res.rows);
-    }
+    })
 
-    result(null, res.rows);
-  });
+  
 };
 
 Project.findById = (id, result) => {
