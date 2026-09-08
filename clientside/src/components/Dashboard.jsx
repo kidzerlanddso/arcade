@@ -29,13 +29,12 @@ const getAdminFromToken = () => {
 function Dashboard() {
   const [selectedEvent, setSelectedEvent] = useState(null);
   const [events, setEvents] = useState([]);
-  const token = localStorage.getItem("token");
   const isAdmin = getAdminFromToken();
 
   useEffect(() => {
-    const token = localStorage.getItem("token");
-
     const fetchPendingUsers = async () => {
+      if (!isAdmin) return;
+
       try {
         const response = await api.get("/auth/membership-requests/pending-requests");
 
@@ -89,7 +88,7 @@ function Dashboard() {
         console.error("Unable to load dashboard events:", error);
         setEvents(getUpcomingEvents(defaultEvents));
       });
-  }, []);
+  }, [isAdmin]);
 
   return (
     <div className="dashboard-shell">
@@ -102,7 +101,7 @@ function Dashboard() {
           Upcoming events
         </h1>
         {isAdmin && (<Link className="events-icon-link" to="/events?view=calendar" aria-label="Open events calendar" title="Open events calendar">
-          Add Events
+          Manage Events
         </Link>)}
       </div>
 
@@ -127,7 +126,6 @@ function Dashboard() {
               className="event-image"
               style={{ backgroundImage: `linear-gradient(180deg, rgba(12,18,28,0.04), rgba(12,18,28,0.12)), url(${event.image})` }}
             >
-              <span className="event-badge">{event.price}</span>
             </div>
             <div className="event-copy">
               <h3>{event.title}</h3>

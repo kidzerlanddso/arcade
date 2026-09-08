@@ -27,6 +27,7 @@ const getAdminFromToken = () => {
 function AdminList() {
   const navigate = useNavigate();
   const [admins, setAdmins] = useState([]);
+  const [eventRegistrations, setEventRegistrations] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [viewMode, setViewMode] = useState("list");
@@ -46,11 +47,14 @@ function AdminList() {
       return;
     }
 
-    api
-      .get("/admin", { signal: controller.signal })
-      .then((response) => {
-        const adminData = response.data.data || response.data;
+    Promise.all([
+      api.get("/admin", { signal: controller.signal }),
+      api.get("/events/attendees", { signal: controller.signal }),
+    ])
+      .then(([adminResponse, registrationsResponse]) => {
+        const adminData = adminResponse.data.data || adminResponse.data;
         setAdmins(Array.isArray(adminData) ? adminData : []);
+        setEventRegistrations(registrationsResponse.data || []);
       })
       .catch((error) => {
         if (error.code !== "ERR_CANCELED") {
@@ -242,6 +246,32 @@ function AdminList() {
           })}
         </div>
       )}
+
+      <section className="admin-event-registrations">
+        <h2>Event registrations</h2>
+        {eventRegistrations.length === 0 ? (
+          <p>No users have joined any events.</p>
+        ) : (
+          [...new Map(eventRegistrations.map((row) => [row.eventId, row])).values()].map((event) => {
+            const rows = eventRegistrations.filter((row) => row.eventId === event.eventId);
+
+            return (
+              <article className="admin-event-registration-card" key={event.eventId}>
+                <h3>{event.title}</h3>
+                <p>{rows.length} joined</p>
+                <ul>
+                  {rows.map((row) => (
+                    <li key={`${row.eventId}-${row.userId}`}>
+                      <strong>{[row.firstname, row.lastname].filter(Boolean).join(" ") || row.username}</strong>
+                      <span>{row.email || row.username} · {row.status}</span>
+                    </li>
+                  ))}
+                </ul>
+              </article>
+            );
+          })
+        )}
+      </section>
     </div>
   );
 }

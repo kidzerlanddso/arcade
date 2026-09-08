@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import EventDetailsModal from "../components/EventDetailsModal";
 import api from "../api/axios";
@@ -21,6 +21,8 @@ function EventsPage() {
   const [calendarMonth, setCalendarMonth] = useState(() => new Date());
   const [isMonthPickerOpen, setIsMonthPickerOpen] = useState(false);
   const [isCalendarViewMenuOpen, setIsCalendarViewMenuOpen] = useState(false);
+  const [registeringEventId, setRegisteringEventId] = useState(null);
+  const imageInputRef = useRef(null);
   const [newEvent, setNewEvent] = useState({
     title: "",
     date: "",
@@ -73,6 +75,22 @@ function EventsPage() {
     });
     setEditingEventId(event.id);
     setShowAddEvent(true);
+  };
+
+  const handleRegister = async (event, clickEvent) => {
+    clickEvent.stopPropagation();
+    setRegisteringEventId(event.id);
+
+    try {
+      await api.post(`/events/${event.id}/join`);
+      setEvents((currentEvents) => currentEvents.map((currentEvent) => (
+        currentEvent.id === event.id ? { ...currentEvent, userJoined: true } : currentEvent
+      )));
+    } catch (error) {
+      setErrorMessage(error.response?.data?.message || "Unable to register for event.");
+    } finally {
+      setRegisteringEventId(null);
+    }
   };
 
   const visibleEvents = events.filter((event) => {
@@ -152,7 +170,18 @@ function EventsPage() {
             <input type="time" name="startTime" value={toTimeInputValue(newEvent.startTime)} onChange={handleNewEventChange} required />
             <input type="time" name="endTime" value={toTimeInputValue(newEvent.endTime)} onChange={handleNewEventChange} required />
             <input name="location" value={newEvent.location} onChange={handleNewEventChange} placeholder="Rototuna location" required />
-            <input name="price" value={newEvent.price} onChange={handleNewEventChange} placeholder="Price" required />
+            <div className="event-image-field">
+              <input ref={imageInputRef} name="image" type="url" value={newEvent.image} onChange={handleNewEventChange} placeholder="Photo URL" />
+              <button
+                className="event-image-edit-button"
+                type="button"
+                aria-label="Edit event image URL"
+                title="Edit event image URL"
+                onClick={() => imageInputRef.current?.focus()}
+              >
+                ✎
+              </button>
+            </div>
           </div>
           <textarea name="description" value={newEvent.description} onChange={handleNewEventChange} placeholder="Event description" rows="4" required />
           <div className="add-event-form-actions">
@@ -267,11 +296,27 @@ function EventsPage() {
               <strong>{formatEventDate(event.date)} · {formatEventTime(event.startTime)} - {formatEventTime(event.endTime)}</strong>
               <span>{event.location}</span>
             </div>
-            <div><strong>Enabled</strong><span>{event.price}</span></div>
-            <div><strong>Total: —</strong><span>No registration types</span></div>
-            <div className="event-attendance"><strong>—</strong><span>No data</span></div>
+            <div><strong>Enabled</strong></div>
+            <div>
+              <strong>Total: {(event.pendingRegistrations || 0) + (event.confirmedRegistrations || 0)}</strong>
+              <span>Pending: {event.pendingRegistrations || 0} · Confirmed: {event.confirmedRegistrations || 0}</span>
+            </div>
+            <div className="event-attendance">
+              <strong>{event.attendedCount || 0}</strong>
+              <span>Attended</span>
+            </div>
             <div className="event-tags"><span>event</span><span>alumni</span></div>
             <div className="event-row-actions">
+              {!isAdmin && (
+                <button
+                  className="event-register-button"
+                  type="button"
+                  disabled={event.userJoined || registeringEventId === event.id}
+                  onClick={(clickEvent) => handleRegister(event, clickEvent)}
+                >
+                  {registeringEventId === event.id ? "Registering..." : event.userJoined ? "Registered" : "Register"}
+                </button>
+              )}
               {isAdmin && <button className="edit-event-button" type="button" onClick={(clickEvent) => handleEditEvent(event, clickEvent)}>Edit</button>}
             </div>
           </article>
