@@ -210,8 +210,8 @@ const handleAccept = async (connectionId, userId) => {
   const isProfileConnected = (profile) =>
     getConnectionForProfile(profile).status === "accepted";
 
-  // Same as Connections modal: open read-only alumni profile
-  const handleOpenConnectedProfile = (profile) => {
+  // Open read-only alumni profile (connected alumni, or any profile for admins)
+  const handleOpenProfileView = (profile) => {
     if (!profile?.id) {
       alert("Profile not available.");
       return;
@@ -241,7 +241,7 @@ const handleAccept = async (connectionId, userId) => {
         className="connect-button connect-button--connected"
         onClick={(event) => {
           event.stopPropagation();
-          handleOpenConnectedProfile(profile);
+          handleOpenProfileView(profile);
         }}
       >
         Connected
@@ -562,12 +562,13 @@ const handleAccept = async (connectionId, userId) => {
       ) : (
         <div className={viewMode === "list" ? "profile-list-view" : "profile-card-grid"}>
           {visibleProfiles.map((profile) => {
-            // Connected alumni cards are clickable; admins skip Connect UX
-            const connected = !isAdmin && isProfileConnected(profile);
+            // Admins can open any card; alumni open only connected profiles
+            const canOpenProfile =
+              isAdmin || isProfileConnected(profile);
 
             return (
           <article
-            className={`profile-card${connected ? " profile-card--clickable" : ""}`}
+            className={`profile-card${canOpenProfile ? " profile-card--clickable" : ""}`}
             key={profile.id}
             onClick={
               connected || isAdmin
@@ -579,13 +580,13 @@ const handleAccept = async (connectionId, userId) => {
                 ? (event) => {
                     if (event.key === "Enter" || event.key === " ") {
                       event.preventDefault();
-                      handleOpenConnectedProfile(profile);
+                      handleOpenProfileView(profile);
                     }
                   }
                 : undefined
             }
-            role={connected ? "button" : undefined}
-            tabIndex={connected ? 0 : undefined}
+            role={canOpenProfile ? "button" : undefined}
+            tabIndex={canOpenProfile ? 0 : undefined}
           >
             {isAdmin && viewMode === "list" && (
               <label
