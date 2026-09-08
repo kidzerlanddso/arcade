@@ -138,6 +138,19 @@ exports.getExpertise = (req, res) => {
     }
   });
 };
+exports.getExpertiseSubcategories = (req, res) => {
+  const expertiseId = req.params.expertiseId;
+
+  Project.getExpertiseSubcategories(expertiseId, (err, data) => {
+    if (err) {
+      res.status(500).send({
+        message: "Error retrieving expertise subcategories."
+      });
+    } else {
+      res.send(data);
+    }
+  });
+};
 // Update the profile by ID
 exports.updateOne = (req, res) => {
 
