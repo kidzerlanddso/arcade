@@ -32,9 +32,8 @@ Project.getAll = (result) => {
         return;
       }
       result(null, res.rows);
-    }
-   
-  );
+    })
+
   
 };
 

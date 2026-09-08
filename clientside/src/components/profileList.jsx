@@ -571,12 +571,12 @@ const handleAccept = async (connectionId, userId) => {
             className={`profile-card${canOpenProfile ? " profile-card--clickable" : ""}`}
             key={profile.id}
             onClick={
-              canOpenProfile
-                ? () => handleOpenProfileView(profile)
+              connected || isAdmin
+                ? () => handleOpenConnectedProfile(profile)
                 : undefined
             }
             onKeyDown={
-              canOpenProfile
+              connected || isAdmin
                 ? (event) => {
                     if (event.key === "Enter" || event.key === " ") {
                       event.preventDefault();

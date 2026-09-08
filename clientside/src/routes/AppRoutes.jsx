@@ -18,7 +18,7 @@ import AlumniProfilePage from "../pages/AlumniProfilePage";
 function AppRoutes() {
   return (
     <Routes>
-      <Route path="/login" element={<AuthPage />} />
+      <Route path="/login" element={<AuthPage />}  />
 
       <Route        path="/dashboard"        element={<ProtectedRoute><Dashboard /></ProtectedRoute>}      />
 
@@ -27,7 +27,7 @@ function AppRoutes() {
       <Route        path="/events"        element={<ProtectedRoute><EventsPage /></ProtectedRoute>}      />
 
       <Route        path="/events/:eventId"        element={<ProtectedRoute><EventDetailsPage /></ProtectedRoute>}      />
-      
+
       <Route        path="/data/dynamicdata"        element={<ProtectedRoute><DynamicData /></ProtectedRoute>}      />
 
       <Route        path="/dynamicdata"        element={<ProtectedRoute><DynamicData /></ProtectedRoute>}      />

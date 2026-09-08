@@ -1,162 +1,90 @@
 # Rototuna Alumni Platform
+
 ## Project Progress Report
 
-**Project:** Alumni management and digital archive platform for Rototuna Senior High School  
-**Report date:** 28 August 2026  
+**Project:** Alumni management and digital archive platform for Rototuna Senior High School
+**Report date:** 7 September 2026
 **Current branch:** Aza
 
 ## Project Overview
 
-The application is a full-stack alumni platform with a React frontend, an Express backend, and PostgreSQL data storage. It supports alumni registration, account approval, authentication, profile management, employment and education history, events, messaging, profile search, and administrator workflows.
+The application is a full-stack alumni management system for Rototuna Senior High School. It supports alumni registration, admin approval, profile management, event pages, expertise filters, messaging, and administrative reporting workflows.
 
-## Timeline
+## Current Status
 
-### 20-24 August 2026: Core platform and deployment work
+The project has a working frontend and backend foundation with login, admin approval, profile management, ProtectedRoute access control, dynamic data management, and dashboard reporting implemented. The most recent work completed focused on route correctness, admin access flow, backend runtime stability, and verification of the build and server startup.
 
-- Built and extended the React/Vite client application and Express API.
-- Added authentication forms and protected application routes.
-- Added JWT access-token handling and refresh-token cookies.
-- Added deployment configuration for a production API hosted on Render and a frontend hosted on Vercel.
-- Added Supabase Storage integration for profile image uploads.
-- Improved the AlumniConnect logo and production asset handling.
-- Added profile editing improvements, location fields, profile photos, and profile data updates.
-- Added duplicate username handling with a clear registration response.
+## Recent Completed Work
 
-### 25 August 2026: Education and profile features
+- Fixed protected route configuration so admin and dynamic-data pages load correctly without redirecting to login.
+- Corrected the frontend route aliases for /dynamicdata and /admin.
+- Verified the React/Vite frontend builds successfully.
+- Cleared a stale backend process blocking port 3001.
+- Restarted the Express server and confirmed the API is running on port 3001.
+- Resolved the backend startup issue that had been causing the 502/route failure symptoms.
+- Confirmed the app is in a usable state for continued development and testing.
 
-- Added education history to user profiles.
-- Added education API routes, controllers, and database model support.
-- Continued profile and employment history improvements.
+## Work Timeline (Updated: 2026-09-07)
 
-### 26 August 2026: Registration approval and identity fixes
+* **2026-09-07**: fixed protected route configuration for admin and dynamic data pages, cleared stale backend port 3001 lock, verified the React build succeeds, and confirmed the API server is running correctly after route/backend fixes (bcsazar)
 
-- Changed new registrations to pending status using `active = 2`.
-- Prevented pending users from logging in until an administrator approves their account.
-- Added the message: `Admin needs to approve your account.`
-- Added administrator-only membership request access.
-- Added administrator approval workflow to change a user from `active = 2` to `active = 1`.
-- Fixed login compatibility for `login`, `username`, and email identifiers.
-- Fixed token restoration after page reload so authenticated profile updates continue to work.
-- Added `/profile/me` to load the authenticated user's own profile.
-- Removed the unsafe fallback that could show another user's profile.
-- Restricted profile updates to the authenticated profile owner.
-- Fixed route ordering so `/profile/me` is not interpreted as `/profile/:id`.
+* **2026-09-07**: added toastify notification on dashboard (bcsazar)
 
-### 27 August 2026: Search, views, and reporting
+* **2026-09-06**: Merge branch 'Aza' of https://github.com/jiangshan123/rototuna-alumni-platform into Aza (bcsazar)
 
-- Added profile sorting by first name and last name.
-- Added client-side pagination with 20 profiles per page.
-- Added administrator-only Tile view and List view options.
-- Added selected-record checkboxes in List view.
-- Added a filtered-result Select all checkbox.
-- Added Excel report export using the `xlsx` library.
-- Added selected-recipient email support that copies addresses and opens the default email client.
-- Added responsive styling for desktop, tablet, and mobile layouts.
+* **2026-09-06**: added toastify notification on dashboard (bcsazar)
 
-## Delivered Features
+* **2026-09-06**: Merge pull request #46 from jiangshan123/main (bcsazar)
 
-### Authentication and security
+* **2026-09-06**: Merge branch 'Aza' into main (bcsazar)
 
-- User registration and login.
-- Username or email login support.
-- Password hashing with bcrypt.
-- Short-lived JWT access tokens.
-- HttpOnly refresh-token cookies.
-- Refresh-token endpoint and logout cookie clearing.
-- Protected routes and bearer-token middleware.
-- Pending-account restriction until administrator approval.
-- Administrator-only membership request and approval operations.
-- Duplicate username handling for PostgreSQL and MySQL error formats.
-- Profile update ownership checks.
+* **2026-09-06**: added toastify notification on dashboard (bcsazar)
 
-### Alumni profiles
+* **2026-09-04**: Merge origin/main; keep Connect profile view and safe profile id select. (µ’%’Ã’%’%)
 
-- Search profiles by name or city.
-- Filter profiles by graduation year.
-- Sort by first name or last name in ascending or descending order.
-- Tile and list presentation modes for administrators.
-- Profile cards with name, location, email, and batch year.
-- Profile creation and editing.
-- Profile photo upload and Supabase-hosted image storage.
-- Current profile lookup based on the authenticated user identity.
-- Responsive profile layouts for mobile screens.
+* **2026-09-04**: finished alumni connection module and axios refresh issue (µ’%’Ã’%’%)
 
-### Administrator workflows
+* **2026-09-04**: Merge origin/main with Connect feature (µ’%’Ã’%’%)
 
-- View pending membership requests.
-- View applicant first name, last name, username, user ID, and batch.
-- Approve pending accounts.
-- Export selected profile records to an Excel workbook.
-- Copy selected profile email addresses and open the default email client.
-- Add new profiles from the profile management screen.
+* **2026-09-03**: Merge pull request #45 from jiangshan123/Aza (bcsazar)
 
-### Employment and education
+* **2026-09-03**: Add alumni Connect feature with profile view and auth proxy fixes (µ’%’Ã’%’%)
 
-- Add and display employment history.
-- Add and display education history.
-- Store company, job title, dates, descriptions, institutions, qualifications, and fields of study.
+* **2026-09-03**: Merge pull request #43 from jiangshan123/main (bcsazar)
 
-### Events and messaging
+* **2026-09-03**: pull from Aza. (bcsazar)
 
-- Events page and event cards.
-- Event detail modal.
-- Add-event workflow for supported users.
-- Alumni messaging page and recipient selection workflow.
-- Message composition, templates, attachments, and scheduling fields.
+* **2026-09-03**: added expertise list, updated profile list view (bcsazar)
 
-### Responsive experience
+* **2026-09-03**: Merge branch 'mohesh' into main (bcsazar)
 
-- Responsive navigation bar with mobile menu.
-- Stable profile dropdown behavior.
-- Responsive cards, forms, modals, event grids, and message layouts.
-- Mobile-friendly list controls, sorting, pagination, and administrator actions.
+* **2026-09-03**: Update events calendar (Mohesh2001e)
 
-## Current Technical Structure
+* **2026-09-02**: Merge pull request #41 from jiangshan123/main (bcsazar)
 
-### Frontend
+* **2026-09-02**: Merge pull request #40 from jiangshan123/Aza (bcsazar)
 
-- React 19 with Vite.
-- React Router for application navigation.
-- Axios for API requests.
-- Sass stylesheet in `clientside/src/css/style.scss`.
-- `xlsx` for Excel workbook generation in the browser.
+* **2026-09-02**: profile page updated with enableEmail button (bcsazar)
 
-### Backend
+* **2026-09-01**: Merge pull request #39 from jiangshan123/Aza (bcsazar)
 
-- Node.js and Express.
-- PostgreSQL through the `pg` package.
-- JWT authentication with bcrypt password hashing.
-- Cookie parsing and credentialed CORS.
-- Supabase Storage for profile images.
-- Separate route, controller, model, and middleware layers.
+* **2026-09-01**: db and server config updates (bcsazar)
 
-### Main API areas
+* **2026-09-01**: Merge pull request #38 from jiangshan123/Aza (bcsazar)
 
-- `/auth`: registration, login, refresh, logout, membership requests, approval.
-- `/profile`: profile listing, current profile, profile details, updates, deletion, images.
-- `/employment`: employment history operations.
-- `/education`: education history operations.
-- `/country`: country lookup data.
+* **2026-09-01**: admin addition, email and export option (bcsazar)
 
-## Verification Completed
+* **2026-09-01**: Merge pull request #37 from jiangshan123/Aza (bcsazar)
 
-- Client production builds pass with `npm --prefix clientside run build`.
-- Focused ESLint checks pass for recently changed components.
-- Editor diagnostics pass for changed files.
-- Node syntax checks pass for changed backend files.
-- `git diff --check` passes for recent changes.
-- Local `/auth/refresh` and `/profile/me` route behavior was verified during development.
+* **2026-09-01**: Merge pull request #36 from jiangshan123/main (bcsazar)
 
-## Known Follow-up Items
+* **2026-09-01**: admin addition, email and export option (bcsazar)
 
-- Review the `xlsx` dependency audit warning and consider a supported upgrade or alternative export strategy.
-- Run full end-to-end tests against the deployed frontend and backend.
-- Add automated backend tests for authentication, account approval, profile ownership, and cookie clearing.
-- Add automated frontend tests for list selection, filtering, pagination, Excel export, and email actions.
-- Consider server-side pagination for very large alumni datasets.
-- Review and disable or remove unused legacy files and duplicate development artifacts before release.
-- Ensure production cookies use `secure: true` and HTTPS-only deployment settings.
+* **2026-09-01**: Add Rototuna Alumni Connect project (Mohesh2001e)
 
-## Overall Status
+## Next Steps
 
-The platform has a working full-stack foundation and a broad set of user and administrator features. Authentication, account approval, profile ownership, responsive layouts, profile management, and administrator reporting workflows are implemented. The next stage should focus on automated testing, production hardening, dependency review, and cleanup of legacy code before final release.
+- Continue browser-level validation of the admin and approval workflows.
+- Test membership approval and bulk-update operations against the live database.
+- Confirm image upload works with valid cloud storage credentials.
+- Review production hardening before release.
