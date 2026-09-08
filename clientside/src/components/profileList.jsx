@@ -58,12 +58,6 @@ function ProfileList() {
   const [connectingUserId, setConnectingUserId] = useState(null);
   // Shape: { [user_id]: { status, connectionId, direction } }
   const [connectionStatus, setConnectionStatus] = useState({});
-  const [formData, setFormData] = useState({
-    firstname: "",
-    lastname: "",
-    email: "",
-    year: ""
-  });
   const [connectToast, setConnectToast] = useState("");
   const [showRegister, setShowRegister] = useState(false);
 
@@ -75,6 +69,31 @@ function ProfileList() {
       navigate("/login", { replace: true });
       return;
     }
+
+    const loadConnectionStatuses = async (profileList) => {
+      if (isAdmin) return;
+      const me = getCurrentUserId();
+      if (!me) return;
+
+      const others = profileList.filter(
+        (profile) => Number(profile.user_id) !== me
+      );
+      const entries = await Promise.all(
+        others.map(async (profile) => {
+          try {
+            const response = await api.get(`/connection/status/${profile.user_id}`);
+            return [profile.user_id, response.data];
+          } catch (error) {
+            console.error("Error loading connection status:", error);
+            return [
+              profile.user_id,
+              { status: "none", connectionId: null, direction: null },
+            ];
+          }
+        })
+      );
+      setConnectionStatus(Object.fromEntries(entries));
+    };
 
     api
       .get("/profile", { signal: controller.signal })
@@ -98,34 +117,8 @@ function ProfileList() {
       });
 
     return () => controller.abort();
-  }, [navigate]);
+  }, [isAdmin, navigate]);
 
-  const handleChange = (event) => {
-    const { name, value } = event.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
-  };
-
-  // Load Connect status for each alumni card (skip self and skip for admins)
-  const loadConnectionStatuses = async (profileList) => {
-    if (isAdmin) return;
-    const me = getCurrentUserId();
-    if (!me) return;
-
-  const others = profileList.filter((profile) => Number( profile.user_id) !== me);
-  const entries = await Promise.all(others.map(async (profile) => {
-    try {
-      const response = await api.get(`/connection/status/${profile.user_id}`);
-      return [ profile.user_id, response.data];
-    } catch (error) {
-      console.error("Error loading connection status:", error);
-      return [
-        profile.user_id,
-        {status: "none",connectionId: null,direction: null}];
-    }
-  }));
-  setConnectionStatus(Object.fromEntries(entries));
-  
-  };
   const showConnectSuccessToast = (message) => {
     setConnectToast(message);
     setTimeout(() => {
@@ -562,21 +555,20 @@ const handleAccept = async (connectionId, userId) => {
       ) : (
         <div className={viewMode === "list" ? "profile-list-view" : "profile-card-grid"}>
           {visibleProfiles.map((profile) => {
-            // Admins can open any card; alumni open only connected profiles
-            const canOpenProfile =
-              isAdmin || isProfileConnected(profile);
+            // Connected alumni cards are clickable; admins skip Connect UX
+            const connected = isAdmin || isProfileConnected(profile);
 
             return (
           <article
-            className={`profile-card${canOpenProfile ? " profile-card--clickable" : ""}`}
+            className={`profile-card${connected ? " profile-card--clickable" : ""}`}
             key={profile.id}
             onClick={
-              connected || isAdmin
-                ? () => handleOpenConnectedProfile(profile)
+              connected
+                ? () => handleOpenProfileView(profile)
                 : undefined
             }
             onKeyDown={
-              connected || isAdmin
+              connected 
                 ? (event) => {
                     if (event.key === "Enter" || event.key === " ") {
                       event.preventDefault();
@@ -585,8 +577,8 @@ const handleAccept = async (connectionId, userId) => {
                   }
                 : undefined
             }
-            role={canOpenProfile ? "button" : undefined}
-            tabIndex={canOpenProfile ? 0 : undefined}
+            role={connected ? "button" : undefined}
+            tabIndex={connected ? 0 : undefined}
           >
             {isAdmin && viewMode === "list" && (
               <label
