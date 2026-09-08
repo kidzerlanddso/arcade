@@ -57,7 +57,9 @@ function MyProfilePage({ readOnly = false }) {
     const [mentorshipAvailable, setMentorshipAvailable] = useState(false);
     const [expertise, setExpertise] = useState("");
     const [expertiseId, setExpertiseId] = useState("");
+    const [subcategoryId, setSubcategoryId] = useState("");
     const [expertiseOptions, setExpertiseOptions] = useState([]);
+    const [subcategoryOptions, setSubcategoryOptions] = useState([]);
     const [mentorshipAvailability, setMentorshipAvailability] = useState("");
     const mentorshipDays = [
         "Monday",
@@ -333,6 +335,22 @@ useEffect(() => {
       console.error("Error loading expertise options:", error);
     });
 }, []);
+useEffect(() => {
+  if (!expertiseId) {
+    setSubcategoryOptions([]);
+    return;
+  }
+
+  api
+    .get(`/profile/expertise/${expertiseId}/subcategories`)
+    .then((response) => {
+      setSubcategoryOptions(response.data || []);
+    })
+    .catch((error) => {
+      console.error("Error loading expertise subcategories:", error);
+      setSubcategoryOptions([]);
+    });
+}, [expertiseId]);
 
 useEffect(() => {
   if (isViewingOther || isAdmin) return;
@@ -363,6 +381,13 @@ useEffect(() => {
   if (selected) {
     setExpertiseId(String(savedId));
     setExpertise(selected.expertise);
+    const savedSubcategoryId = Array.isArray(profile.subcategory_id)
+  ? profile.subcategory_id[0]
+  : profile.subcategory_id;
+
+if (savedSubcategoryId) {
+  setSubcategoryId(String(savedSubcategoryId));
+}
   }
 }, [profile, expertiseOptions]);
     const handleProfileImageChange = async (e) => {
@@ -456,6 +481,7 @@ useEffect(() => {
                 linkedin_url: linkedinUrl,
                 mentorship_available: mentorshipAvailable,
             expertise_id: expertiseId ? [Number(expertiseId)] : [],
+            subcategory_id: subcategoryId ? [Number(subcategoryId)] : [],
                 mentorship_availability: mentorshipAvailability,
                 profile_image_url: imageUrl,
                 current_city: currentCity,
@@ -490,15 +516,16 @@ useEffect(() => {
     const handleSaveMentorship = async () => {
         try {
             await api.patch(`/profile/${profile.id}`, {
-                mentorship_available: mentorshipAvailable,
-            expertise_id: expertiseId ? [Number(expertiseId)] : [],
-               mentorship_availability: mentorshipAvailability,
-            });
-
+  mentorship_available: mentorshipAvailable,
+  expertise_id: expertiseId ? [Number(expertiseId)] : [],
+  subcategory_id: subcategoryId ? [Number(subcategoryId)] : [],
+  mentorship_availability: mentorshipAvailability,
+});
             setProfile((prev) => ({
                 ...prev,
                 mentorship_available: mentorshipAvailable,
                 expertise_id: expertiseId ? Number(expertiseId) : null,
+                subcategory_id: subcategoryId ? Number(subcategoryId) : null,
                 expertise: expertise,
                 mentorship_availability: mentorshipAvailability,
             }));
@@ -1469,6 +1496,7 @@ setShowEducationForm(false);
   value={expertiseId}
   onChange={(e) => {
     setExpertiseId(e.target.value);
+    setSubcategoryId("");
 
     const selected = expertiseOptions.find(
       (item) => String(item.expertise_id) === e.target.value
@@ -1482,6 +1510,24 @@ setShowEducationForm(false);
   {expertiseOptions.map((item) => (
     <option key={item.expertise_id} value={item.expertise_id}>
       {item.expertise}
+    </option>
+  ))}
+</select>
+<label className="mentorship-field-label">
+  Subcategory
+</label>
+
+<select
+  className="mentorship-availability-select"
+  value={subcategoryId}
+  onChange={(e) => setSubcategoryId(e.target.value)}
+  disabled={!expertiseId}
+>
+  <option value="">Select subcategory</option>
+
+  {subcategoryOptions.map((item) => (
+    <option key={item.subcategory_id} value={item.subcategory_id}>
+      {item.subcategory}
     </option>
   ))}
 </select>
@@ -1551,8 +1597,18 @@ setShowEducationForm(false);
       {mentorshipAvailable && (
   <>
     <p>
-      <strong>Expertise:</strong> {expertise || "-"}
-    </p>
+
+  <strong>Expertise:</strong>{" "}
+  {expertise || "-"}
+  {subcategoryId && (
+    <>
+      {" < "}
+      {subcategoryOptions.find(
+        (item) => String(item.subcategory_id) === String(subcategoryId)
+      )?.subcategory || ""}
+    </>
+  )}
+</p>
 
     <p>
       <strong>Availability:</strong> {mentorshipAvailability || "-"}
@@ -1564,33 +1620,102 @@ setShowEducationForm(false);
 </div>)}
 {/* Education Section */}
 
-{shouldShowProfile && (
-    <div className="profile-section">
-        <div className="profile-section-header">
-            <h3>Education</h3>
+                <div className="profile-section">
+                    <div className="profile-section-header">
+                        <h3>Education</h3>
+                        
+                          <div className="education-header-actions">
+                          {!isViewingOther && ( <button
 
-            <div className="education-header-actions">
-                {!isViewingOther && (
-                    <button
-                        type="button"
-                        className="linkedin-add-button"
-                        onClick={() => {
-                            setEditingEducationId(null);
-                            setInstitution("");
-                            setQualification("");
-                            setFieldOfStudy("");
-                            setEducationStartDate("");
-                            setEducationEndDate("");
-                            setEducationDescription("");
-                            setShowEducationForm(true);
-                        }}
-                        aria-label="Add education"
-                    >
-                        <svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true">
-                            <path d="M11 5h2v14h-2zM5 11h14v2H5z" />
-                        </svg>
-                    </button>
-                )}
+                              type="button"
+                              className="linkedin-add-button"
+                              onClick={() => {
+                                setEditingEducationId(null);
+                                setInstitution("");
+                                setQualification("");
+                                setFieldOfStudy("");
+                                setEducationStartDate("");
+                                setEducationEndDate("");
+                                setEducationDescription("");
+                                setShowEducationForm(true);
+                              }}
+                              aria-label="Add education"
+                            >
+                              <svg
+                                viewBox="0 0 24 24"
+                                width="24"
+                                height="24"
+                                aria-hidden="true"
+                              >
+                                <path d="M11 5h2v14h-2zM5 11h14v2H5z" />
+                              </svg>
+                            </button>
+                            )}
+
+                        {canAccess && (
+                            <button
+                                type="button"
+                                className="section-edit-button"
+                                onClick={() => setShowEducationManager(true)}
+                                aria-label="Edit Education"
+                            >
+                                <svg
+                                    width="28"
+                                    height="28"
+                                    viewBox="0 0 24 24"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    strokeWidth="2.5"
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                >
+                                    <path d="M12 20h9" />
+                                    <path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z" />
+                                </svg>
+                           </button>
+)}
+</div>
+</div>
+{!isViewingOther && showEducationManager && (
+  <div className="intro-modal-overlay">
+    <div className="intro-modal">
+      <div className="intro-modal-header">
+        <h2>Education</h2>
+
+        <button
+          type="button"
+          className="intro-modal-close"
+          onClick={() => setShowEducationManager(false)}
+          aria-label="Close"
+        >
+          ×
+        </button>
+      </div>
+
+      <div className="intro-modal-body">
+    {education.length === 0 ? (
+  <p>No education added.</p>
+) : (
+  education.map((item) => (
+    <div key={item.id} className="experience-manager-item">
+
+      <div className="experience-manager-info">
+        <strong>{item.institution || "-"}</strong>
+
+        <div>{item.qualification || "-"}</div>
+
+        {(item.field_of_study || item.fieldOfStudy) && (
+          <div>
+            {item.field_of_study || item.fieldOfStudy}
+          </div>
+        )}
+
+        <div>
+          {item.start_date
+            ? new Date(item.start_date).toLocaleDateString("en-GB")
+            : ""}
+
+          {" - "}
 
                 {canAccess && (
                     <button
@@ -2214,7 +2339,6 @@ setShowEducationForm(false);
                 </div>
             )}
         </div>
-
     );
 }
 
