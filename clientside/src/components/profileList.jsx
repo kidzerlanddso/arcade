@@ -58,12 +58,6 @@ function ProfileList() {
   const [connectingUserId, setConnectingUserId] = useState(null);
   // Shape: { [user_id]: { status, connectionId, direction } }
   const [connectionStatus, setConnectionStatus] = useState({});
-  const [formData, setFormData] = useState({
-    firstname: "",
-    lastname: "",
-    email: "",
-    year: ""
-  });
   const [connectToast, setConnectToast] = useState("");
   const [showRegister, setShowRegister] = useState(false);
 
@@ -75,6 +69,31 @@ function ProfileList() {
       navigate("/login", { replace: true });
       return;
     }
+
+    const loadConnectionStatuses = async (profileList) => {
+      if (isAdmin) return;
+      const me = getCurrentUserId();
+      if (!me) return;
+
+      const others = profileList.filter(
+        (profile) => Number(profile.user_id) !== me
+      );
+      const entries = await Promise.all(
+        others.map(async (profile) => {
+          try {
+            const response = await api.get(`/connection/status/${profile.user_id}`);
+            return [profile.user_id, response.data];
+          } catch (error) {
+            console.error("Error loading connection status:", error);
+            return [
+              profile.user_id,
+              { status: "none", connectionId: null, direction: null },
+            ];
+          }
+        })
+      );
+      setConnectionStatus(Object.fromEntries(entries));
+    };
 
     api
       .get("/profile", { signal: controller.signal })
@@ -98,34 +117,8 @@ function ProfileList() {
       });
 
     return () => controller.abort();
-  }, [navigate]);
+  }, [isAdmin, navigate]);
 
-  const handleChange = (event) => {
-    const { name, value } = event.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
-  };
-
-  // Load Connect status for each alumni card (skip self and skip for admins)
-  const loadConnectionStatuses = async (profileList) => {
-    if (isAdmin) return;
-    const me = getCurrentUserId();
-    if (!me) return;
-
-  const others = profileList.filter((profile) => Number( profile.user_id) !== me);
-  const entries = await Promise.all(others.map(async (profile) => {
-    try {
-      const response = await api.get(`/connection/status/${profile.user_id}`);
-      return [ profile.user_id, response.data];
-    } catch (error) {
-      console.error("Error loading connection status:", error);
-      return [
-        profile.user_id,
-        {status: "none",connectionId: null,direction: null}];
-    }
-  }));
-  setConnectionStatus(Object.fromEntries(entries));
-  
-  };
   const showConnectSuccessToast = (message) => {
     setConnectToast(message);
     setTimeout(() => {
@@ -210,8 +203,8 @@ const handleAccept = async (connectionId, userId) => {
   const isProfileConnected = (profile) =>
     getConnectionForProfile(profile).status === "accepted";
 
-  // Same as Connections modal: open read-only alumni profile
-  const handleOpenConnectedProfile = (profile) => {
+  // Open read-only alumni profile (connected alumni, or any profile for admins)
+  const handleOpenProfileView = (profile) => {
     if (!profile?.id) {
       alert("Profile not available.");
       return;
@@ -241,7 +234,7 @@ const handleAccept = async (connectionId, userId) => {
         className="connect-button connect-button--connected"
         onClick={(event) => {
           event.stopPropagation();
-          handleOpenConnectedProfile(profile);
+          handleOpenProfileView(profile);
         }}
       >
         Connected
@@ -571,7 +564,7 @@ const handleAccept = async (connectionId, userId) => {
             key={profile.id}
             onClick={
               connected
-                ? () => handleOpenConnectedProfile(profile)
+                ? () => handleOpenProfileView(profile)
                 : undefined
             }
             onKeyDown={
@@ -579,7 +572,7 @@ const handleAccept = async (connectionId, userId) => {
                 ? (event) => {
                     if (event.key === "Enter" || event.key === " ") {
                       event.preventDefault();
-                      handleOpenConnectedProfile(profile);
+                      handleOpenProfileView(profile);
                     }
                   }
                 : undefined

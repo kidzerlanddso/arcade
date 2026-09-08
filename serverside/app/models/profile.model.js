@@ -152,7 +152,7 @@ Project.findByName = (name, result) => {
 
       result(null, []);
     }
-  );
+);
 };
 Project.getExpertise = (result) => {
   db.query(

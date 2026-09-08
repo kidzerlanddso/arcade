@@ -3028,6 +3028,7 @@ button {
 }
 
 .connect-open-button {
+  position: relative;
   padding: 0.5rem 1rem;
   border-radius: 20px;
   border: 1px solid #1a5f2a;
@@ -3039,6 +3040,23 @@ button {
 
 .connect-open-button:hover {
   background: #f3faf5;
+}
+
+.connect-open-badge {
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  border-radius: 999px;
+  background: #e53935;
+  color: #fff;
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 18px;
+  text-align: center;
+  box-shadow: 0 0 0 2px #fff;
 }
 
 .profile-header-button,
