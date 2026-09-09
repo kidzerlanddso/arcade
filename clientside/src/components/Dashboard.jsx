@@ -29,13 +29,12 @@ const getAdminFromToken = () => {
 function Dashboard() {
   const [selectedEvent, setSelectedEvent] = useState(null);
   const [events, setEvents] = useState([]);
-  const token = localStorage.getItem("token");
   const isAdmin = getAdminFromToken();
 
   useEffect(() => {
-    const token = localStorage.getItem("token");
-
     const fetchPendingUsers = async () => {
+      if (!isAdmin) return;
+
       try {
         const response = await api.get("/auth/membership-requests/pending-requests");
 
@@ -89,7 +88,7 @@ function Dashboard() {
         console.error("Unable to load dashboard events:", error);
         setEvents(getUpcomingEvents(defaultEvents));
       });
-  }, []);
+  }, [isAdmin]);
 
   return (
     <div className="dashboard-shell">
