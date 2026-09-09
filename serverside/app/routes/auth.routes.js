@@ -14,6 +14,8 @@ module.exports = app => {
  // app.delete("/data/dynamicdata/:name", verifyToken, verifyAdmin, auth.deleteDynamicData);
   app.patch("/auth/user/enable-email", verifyToken, auth.updateEnableEmail);
   app.put("/auth/membership-requests/:id/approve", verifyToken, verifyAdmin, auth.approveMembershipRequest);
+  app.put("/auth/membership-requests/:id/decline", verifyToken, verifyAdmin, auth.declineMembershipRequest);
   app.put("/auth/membership-requests/bulk-approve", verifyToken, verifyAdmin, auth.approveMembershipRequests);
   app.get("/auth/membership-requests/pending-requests", verifyToken, verifyAdmin, auth.getPendingMembershipRequests);
 };
+

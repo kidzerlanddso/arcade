@@ -10,6 +10,41 @@ exports.register = function(req, res) {
     return res.status(400).send({ message: "Username and password are required." });
   }
 
+  const pathway = req.body.pathway;
+  const isStudying = pathway?.type === "studying";
+  const isWorking = pathway?.type === "working";
+
+  if (!isStudying && !isWorking) {
+    return res.status(400).send({
+      message: "Please select whether you are currently studying or working."
+    });
+  }
+
+  const pathwayData = isStudying
+    ? {
+        type: "studying",
+        institution: String(pathway.institution || "").trim(),
+        qualification: String(pathway.qualification || "").trim(),
+        field_of_study: String(pathway.field_of_study || "").trim(),
+        start_date: pathway.start_date || null
+      }
+    : {
+        type: "working",
+        company: String(pathway.company || "").trim(),
+        job_title: String(pathway.job_title || "").trim(),
+        start_date: pathway.start_date || null
+      };
+
+  const requiredPathwayFields = isStudying
+    ? [pathwayData.institution, pathwayData.qualification, pathwayData.field_of_study, pathwayData.start_date]
+    : [pathwayData.company, pathwayData.job_title, pathwayData.start_date];
+
+  if (requiredPathwayFields.some((value) => !value)) {
+    return res.status(400).send({
+      message: "Please complete all current situation fields before signing up."
+    });
+  }
+
   // Hash the password before saving
   const hashedPassword = bcrypt.hashSync(req.body.password, 10);
 
@@ -40,7 +75,7 @@ exports.register = function(req, res) {
     profileData.student_id = null;
   }
 
-  User.create(user, profileData, function(err, data) {
+  User.create(user, profileData, pathwayData, function(err, data) {
     if (err) {
       const isDuplicateUsername =
         err.code === "ER_DUP_ENTRY" ||
@@ -303,6 +338,30 @@ exports.approveMembershipRequest = function(req, res) {
 
     return res.status(200).send({
       message: "Membership request approved.",
+      user: data
+    });
+  });
+};
+exports.declineMembershipRequest = function(req, res) {
+  const userId = Number(req.params.id);
+
+  if (!Number.isInteger(userId) || userId <= 0) {
+    return res.status(400).send({ message: "A valid user ID is required." });
+  }
+
+  User.declineById(userId, function(err, data) {
+    if (err) {
+      if (err.kind === "not_found") {
+        return res.status(404).send({ message: "Pending membership request not found." });
+      }
+
+      return res.status(500).send({
+        message: err.message || "Unable to decline membership request."
+      });
+    }
+
+    return res.status(200).send({
+      message: "Membership request declined.",
       user: data
     });
   });

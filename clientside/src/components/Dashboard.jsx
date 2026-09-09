@@ -126,6 +126,7 @@ function Dashboard() {
               className="event-image"
               style={{ backgroundImage: `linear-gradient(180deg, rgba(12,18,28,0.04), rgba(12,18,28,0.12)), url(${event.image})` }}
             >
+              
             </div>
             <div className="event-copy">
               <h3>{event.title}</h3>
