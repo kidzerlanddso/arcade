@@ -22,10 +22,18 @@ function Register({ isOpen, onClose }) {
     username: "",
     password: "",
     confirmPassword: "",
-    email: ""
+    email: "",
+    pathwayType: "",
+    institution: "",
+    qualification: "",
+    fieldOfStudy: "",
+    company: "",
+    jobTitle: "",
+    startDate: ""
   });
   const [status, setStatus] = useState({ type: "", message: "" });
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [step, setStep] = useState(1);
 
   if (!isOpen) return null;
 
@@ -64,6 +72,38 @@ function Register({ isOpen, onClose }) {
       return;
     }
 
+    if (!formData.pathwayType) {
+      setStatus({ type: "error", message: "Please select your current situation." });
+      return;
+    }
+
+    const pathway = formData.pathwayType === "studying"
+      ? {
+          type: "studying",
+          institution: formData.institution.trim(),
+          qualification: formData.qualification.trim(),
+          field_of_study: formData.fieldOfStudy.trim(),
+          start_date: formData.startDate
+        }
+      : {
+          type: "working",
+          company: formData.company.trim(),
+          job_title: formData.jobTitle.trim(),
+          start_date: formData.startDate
+        };
+
+    const pathwayFields = formData.pathwayType === "studying"
+      ? [pathway.institution, pathway.qualification, pathway.field_of_study, pathway.start_date]
+      : [pathway.company, pathway.job_title, pathway.start_date];
+
+    if (pathwayFields.some((value) => !value)) {
+      setStatus({
+        type: "error",
+        message: "Please complete all current situation fields."
+      });
+      return;
+    }
+
     const payload = {
       firstname: formData.firstName.trim() || "",
       lastname: formData.lastName.trim() || "",
@@ -73,13 +113,14 @@ function Register({ isOpen, onClose }) {
       student_id: formData.studentId.trim() || null,
       username: formData.username.trim(),
       password: formData.password,
-      email: formData.email.trim()
+      email: formData.email.trim(),
+      pathway
     };
 
-    if (!payload.username || !payload.password || !payload.email) {
+    if (!payload.firstname || !payload.lastname || !payload.username || !payload.password || !payload.email) {
       setStatus({
         type: "error",
-        message: "Username, email, and password are required."
+        message: "Please fill in all required fields."
       });
       return;
     }
@@ -109,6 +150,41 @@ function Register({ isOpen, onClose }) {
     }
   };
 
+  const handleNext = (event) => {
+    event.preventDefault();
+    setStatus({ type: "", message: "" });
+
+    const requiredFields = [
+      "firstName",
+      "lastName",
+      "yearOfGraduation",
+      "username",
+      "email",
+      "password",
+      "confirmPassword"
+    ];
+
+    if (requiredFields.some((field) => !String(formData[field]).trim())) {
+      setStatus({ type: "error", message: "Please fill in all required fields before continuing." });
+      return;
+    }
+
+    if (!isPasswordStrong(formData.password)) {
+      setStatus({
+        type: "error",
+        message: "Password must include at least 8 characters, uppercase, lowercase, a number, and a special character."
+      });
+      return;
+    }
+
+    if (formData.password !== formData.confirmPassword) {
+      setStatus({ type: "error", message: "Passwords do not match." });
+      return;
+    }
+
+    setStep(2);
+  };
+
   return (
     <div className="modal-overlay" onClick={onClose}>
       <div
@@ -128,9 +204,11 @@ function Register({ isOpen, onClose }) {
           </div>
         )}
 
-        <form onSubmit={handleSubmit}>
+        <form onSubmit={step === 1 ? handleNext : handleSubmit}>
+          {step === 1 ? (
+            <>
           <div className="form-field">
-            <label htmlFor="firstName">First name</label>
+            <label htmlFor="firstName">First name<span className="required-mark">*</span></label>
             <input
               id="firstName"
               type="text"
@@ -142,7 +220,7 @@ function Register({ isOpen, onClose }) {
           </div>
 
           <div className="form-field">
-            <label htmlFor="lastName">Last name</label>
+            <label htmlFor="lastName">Last name<span className="required-mark">*</span></label>
             <input
               id="lastName"
               type="text"
@@ -154,7 +232,7 @@ function Register({ isOpen, onClose }) {
           </div>
 
           <div className="form-field">
-            <label htmlFor="yearOfGraduation">Year of graduation</label>
+            <label htmlFor="yearOfGraduation">Year of graduation<span className="required-mark">*</span></label>
             <input
               id="yearOfGraduation"
               type="number"
@@ -254,13 +332,87 @@ function Register({ isOpen, onClose }) {
             </p>
           )}
 
-          <p className="form-note">
-            <span className="required-mark">*</span> Required field
-          </p>
+              <p className="form-note">
+                <span className="required-mark">*</span> Required field
+              </p>
 
-          <button className="register-button" type="submit" disabled={isSubmitting}>
-            {isSubmitting ? "Signing Up..." : "Sign Up"}
-          </button>
+              <button className="register-button" type="submit">
+                Next
+              </button>
+            </>
+          ) : (
+            <>
+              <div className=" form-field">
+                <label htmlFor="pathwayType">
+                  Post-school pathway <span className="required-mark">*</span>
+                </label>
+                <select
+                  id="pathwayType"
+                  name="pathwayType"
+                  value={formData.pathwayType}
+                  onChange={handleChange}
+                  required
+                >
+                  <option value="">Choose your current situation</option>
+                  <option value="studying">Currently studying</option>
+                  <option value="working">Currently working</option>
+                </select>
+              </div><br/>
+
+              {formData.pathwayType === "studying" && (
+                <>                  
+                  <div className="form-field">
+                    <label htmlFor="institution">Institution<span className="required-mark">*</span></label>
+                    <input id="institution" name="institution" value={formData.institution} onChange={handleChange} required />
+                  </div>
+                  <div className="form-field">
+                    <label htmlFor="qualification">Qualification<span className="required-mark">*</span></label>
+                    <input id="qualification" name="qualification" value={formData.qualification} onChange={handleChange} required />
+                  </div>
+                  <div className="form-field">
+                    <label htmlFor="fieldOfStudy">Field of study<span className="required-mark">*</span></label>
+                    <input id="fieldOfStudy" name="fieldOfStudy" value={formData.fieldOfStudy} onChange={handleChange} required />
+                  </div>
+                  <div className="form-field">
+                    <label htmlFor="startDate">Start date<span className="required-mark">*</span></label>
+                    <input id="startDate" type="date" name="startDate" value={formData.startDate} onChange={handleChange} required />
+                  </div>
+                </>
+              )}
+
+              {formData.pathwayType === "working" && (
+                <>
+                  <div className="form-field">
+                    <label htmlFor="company">Company<span className="required-mark">*</span></label>
+                    <input id="company" name="company" value={formData.company} onChange={handleChange} required />
+                  </div>
+                  <div className="form-field">
+                    <label htmlFor="jobTitle">Job title<span className="required-mark">*</span></label>
+                    <input id="jobTitle" name="jobTitle" value={formData.jobTitle} onChange={handleChange} required />
+                  </div>
+                  <div className="form-field">
+                    <label htmlFor="startDate">Start date<span className="required-mark">*</span></label>
+                    <input id="startDate" type="date" name="startDate" value={formData.startDate} onChange={handleChange} required />
+                  </div>
+                </>
+              )}
+
+              
+
+              <p className="form-note">
+                Your current situation is required to complete signup.
+              </p>
+
+              <div className="register-actions">
+                <button className="register-button" type="button" onClick={() => setStep(1)} disabled={isSubmitting}>
+                  Back
+                </button>
+                <button className="register-button" type="submit" disabled={isSubmitting}>
+                  {isSubmitting ? "Signing Up..." : "Sign Up"}
+                </button>
+              </div>
+            </>
+          )}
         </form>
       </div>
     </div>

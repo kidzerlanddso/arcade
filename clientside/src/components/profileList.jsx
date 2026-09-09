@@ -93,6 +93,7 @@ function ProfileList() {
         })
       );
       setConnectionStatus(Object.fromEntries(entries));
+      
     };
 
     api
@@ -290,15 +291,13 @@ const handleAccept = async (connectionId, userId) => {
     )
   ).sort((a, b) => b - a);
 
+
+
   const expertiseOptions = Array.from(
-    new Set(
-      profiles.flatMap((profile) => {
-        const value = profile.expertise || profile.expertise_area || profile.expertise_field || "";
-        return String(value)
-          .split(",")
-          .map((item) => item.trim())
-          .filter(Boolean);
-      })
+  new Set(
+      profiles.flatMap((profile) =>
+        (profile.expertise || []).map((e) => e.name).filter(Boolean)
+      )
     )
   ).sort((a, b) => a.localeCompare(b));
 
@@ -306,7 +305,7 @@ const handleAccept = async (connectionId, userId) => {
     const fullName = `${profile.firstname || ""} ${profile.lastname || ""}`.toLowerCase();
     const city = `${profile.current_city || ""}`.toLowerCase();
     const student_id = `${profile.student_id || ""}`.toLowerCase();
-    const expertise = `${profile.expertise || ""}`.toLowerCase();
+    const expertise = (profile.expertise || []).map((e) => e.name).join(" ").toLowerCase();
     const searchValue = searchTerm.toLowerCase().trim();
     const matchesSearch =
       searchValue === "" ||
@@ -316,14 +315,22 @@ const handleAccept = async (connectionId, userId) => {
       expertise.includes(searchValue);
     const profileYear = profile.year || profile.graduation_year;
     const matchesYear = selectedYear === "all" || String(profileYear) === String(selectedYear);
-    const profileExpertise = String(profile.expertise || profile.expertise_area || profile.expertise_field || "")
-      .split(",")
-      .map((item) => item.trim().toLowerCase())
+    const profileExpertise = (profile.expertise || [])
+      .map((e) => e.name?.trim().toLowerCase())
       .filter(Boolean);
     const matchesExpertise =
-      selectedExpertise === "all" ||
-      profileExpertise.includes(String(selectedExpertise).trim().toLowerCase());
+      selectedExpertise === "all"
+        ? true
+        : selectedExpertise === "has-expertise"
+        ? (profile.expertise?.length || 0) > 0
+        : (profile.expertise || []).some(
+            (e) =>
+              e.name?.trim().toLowerCase() ===
+              selectedExpertise.trim().toLowerCase()
+          );
+    console.log("PROFILE:", profile);
     return matchesSearch && matchesYear && matchesExpertise;
+
   });
 
   const sortedProfiles = [...filteredProfiles].sort((firstProfile, secondProfile) => {
@@ -381,7 +388,8 @@ const handleAccept = async (connectionId, userId) => {
       Country: profile.current_country || "",
       "Batch year": profile.year || profile.graduation_year || "",
       "Student ID": profile.student_id || "",
-      Expertise: profile.expertise || profile.expertise_area || profile.expertise_field || ""
+      Expertise: (profile.expertise || []).map((e) => e.name).join(", "),
+      "Subcategories": (profile.expertise || []).flatMap((e) => e.subcategories || []).map((sub) => sub.name).join(", ")
       }));
 
     if (!reportRows.length) return;
@@ -415,6 +423,7 @@ const handleAccept = async (connectionId, userId) => {
     const mailtoRecipients = emailAddresses.map((email) => encodeURIComponent(email)).join(",");
     window.location.assign(`mailto:${mailtoRecipients}`);
   };
+  
 
   if (!token) return null;
 
@@ -465,17 +474,23 @@ const handleAccept = async (connectionId, userId) => {
             </option>
           ))}
         </select>
+        
         <select
-          className="year-filter"
-          value={selectedExpertise}
-          onChange={(event) => setSelectedExpertise(event.target.value)}
-        >
-          <option value="all">All Expertise</option>
-          {expertiseOptions.map((expertise) => (
-            <option key={expertise} value={expertise}>
-              {expertise}
-            </option>
-          ))}
+            className="year-filter"
+            value={selectedExpertise}
+            onChange={(e) => {
+              setSelectedExpertise(e.target.value);
+              setCurrentPage(1);
+            }}
+          >
+            <option value="all">All profiles</option>
+            <option value="has-expertise">All expertise</option>
+
+            {expertiseOptions.map((expertise) => (
+              <option key={expertise} value={expertise}>
+                {expertise}
+              </option>
+            ))}
         </select>
 
         </div>
@@ -608,42 +623,39 @@ const handleAccept = async (connectionId, userId) => {
               <p><strong>{profile.current_city}</strong> {profile.current_country}</p>
               {/* <p><strong>Email:</strong> {profile.email || "-"}</p> */}
               <p><strong>Batch of </strong> {profile.year || profile.graduation_year || "-"}</p>
-              <p><strong>Expertise:</strong> {profile.expertise || "-"}</p>
+              <p><strong>Expertise:</strong>{" "} {profile.expertise?.length? profile.expertise.map((e) => e.name).join(", ") : "-"}              </p>
+              <p><strong>Subcategories:</strong>{" "} {profile.expertise?.length? profile.expertise.flatMap((e) => e.subcategories || []).map((sub) => sub.name).join(", ") || "-": "-"}</p>
+              {/*<div>
+                    <strong>Expertise:</strong>
+                    {profile.expertise?.length ? (
+                      profile.expertise.map((e) => (
+                        <div key={e.id}>
+                          <strong>{e.name}</strong>
 
-             {/* Connect actions — alumni users only */}
-             {!isAdmin && (
-             <div
-               className="profile-connect-actions"
-               onClick={(event) => event.stopPropagation()}
-             >
-              {renderConnectionActions(profile)}
-             </div>
-             )}
+                          {e.subcategories?.length > 0 && (
+                            <ul>
+                              {e.subcategories.map((sub) => (
+                                <li key={sub.id}>{sub.name}</li>
+                              ))}
+                            </ul>
+                          )}
+                        </div>
+                      ))
+                    ) : (
+                      <span> - </span>
+                    )}
+              </div>*/}
 
-
-              {isAdmin && (
+                {/* Connect actions — alumni users only */}
+                {!isAdmin && (
                 <div
-                  className="profile-card-actions"
+                  className="profile-connect-actions"
                   onClick={(event) => event.stopPropagation()}
                 >
-                  <Link
-                    className="icon-action edit-action"
-                    to={`/profile/edit/${profile.id}`}
-                    aria-label={`Edit ${profile.firstname || "profile"}`}
-                    title="Edit"
-                  >
-                    ✏️
-                  </Link>
-                  <Link
-                    className="icon-action delete-action"
-                    to={`/profile/delete/${profile.id}`}
-                    aria-label={`Delete ${profile.firstname || "profile"}`}
-                    title="Delete"
-                  >
-                    🗑️
-                  </Link>
+                  {renderConnectionActions(profile)}
                 </div>
-              )}
+                )}
+            
             </div>
           </article>
             );

@@ -96,9 +96,23 @@ function MembershipRequest() {
       alert(error.response?.data?.message || "Unable to approve membership request.");
     } finally {
       setApprovingId(null);
+    }  
+  }; 
+  const handleDecline = async (userId) => {
+    setApprovingId(userId);
+
+    try {
+      await api.put(`/auth/membership-requests/${userId}/decline`);
+      setUsers((currentUsers) => currentUsers.filter((user) => user.id !== userId));
+    } catch (error) {
+      console.error("Error declining membership request:", error);
+      alert(error.response?.data?.message || "Unable to decline membership request.");
+    } finally {
+      setApprovingId(null);
     }
-  };
-   const handleSelectAll = (event) => {
+  }; 
+  
+  const handleSelectAll = (event) => {
     if (event.target.checked) {
       setSelectedProfileIds(filteredProfiles.map((user) => String(user.id)));
     } else {
@@ -173,7 +187,7 @@ function MembershipRequest() {
                   disabled={approvingId === user.id}
                 >
                   {approvingId === user.id ? "Approving..." : "Approve"}
-                </button> <button type="button" className="btn btn-danger">
+                </button> <button type="button" className="btn btn-danger" onClick={() => handleDecline(user.id)} disabled={approvingId === user.id}>
                   Decline
                 </button></p>
                    

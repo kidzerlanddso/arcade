@@ -8,53 +8,112 @@ const User = function(user) {
   this.enableEmail = user.enableEmail !== undefined ? Number(user.enableEmail) : 0;
 };
 
-User.create = function(newUser, profileData, result) {
+User.create = function(newUser, profileData, pathwayData, result) {
+  if (typeof pathwayData === "function") {
+    result = pathwayData;
+    pathwayData = null;
+  }
+
   if (typeof profileData === "function") {
     result = profileData;
     profileData = null;
   }
 
-  db.query(
-    "INSERT INTO users (username, password, active, admin, \"enableEmail\") VALUES ($1, $2, $3, $4, $5) RETURNING *",
-    [newUser.username, newUser.password, newUser.active, newUser.admin, newUser.enableEmail ?? 0],
-    function(err, res) {
-      if (err) {
-        result(err, null);
-        return;
-      }
-
-      const createdUser = res.rows[0];
-
-      if (!profileData) {
-        result(null, createdUser);
-        return;
-      }
-
-      const Profile = require("./profile.model");
-      const profileRecord = {
-        firstname: profileData.firstname || "",
-        lastname: profileData.lastname || "",
-        email: profileData.email || "",
-        current_city: profileData.current_city || "Hamilton",
-        current_country: profileData.current_country || "New Zealand",
-        year: profileData.year || null,
-        student_id: profileData.student_id || null,
-        user_id: createdUser.id
-      };
-
-      Profile.create(profileRecord, function(profileErr, profileResult) {
-        if (profileErr) {
-          result(profileErr, null);
-          return;
-        }
-
-        result(null, {
-          user: createdUser,
-          profile: profileResult
-        });
-      });
+  db.connect(function(connectionError, client, release) {
+    if (connectionError) {
+      result(connectionError, null);
+      return;
     }
-  );
+
+    const rollback = (error) => {
+      client.query("ROLLBACK", () => {
+        release();
+        result(error, null);
+      });
+    };
+
+    client.query("BEGIN", (beginError) => {
+      if (beginError) return rollback(beginError);
+
+      client.query(
+        "INSERT INTO users (username, password, active, admin, \"enableEmail\") VALUES ($1, $2, $3, $4, $5) RETURNING *",
+        [newUser.username, newUser.password, newUser.active, newUser.admin, newUser.enableEmail ?? 0],
+        (userError, userResult) => {
+          if (userError) return rollback(userError);
+
+          const createdUser = userResult.rows[0];
+          const profile = profileData || {};
+
+          client.query(
+            `INSERT INTO profile (
+              firstname, lastname, email, current_city, current_country,
+              year, student_id, user_id
+            ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING *`,
+            [
+              profile.firstname || "",
+              profile.lastname || "",
+              profile.email || "",
+              profile.current_city || "Hamilton",
+              profile.current_country || "New Zealand",
+              profile.year || null,
+              profile.student_id || null,
+              createdUser.id
+            ],
+            (profileError, profileResult) => {
+              if (profileError) return rollback(profileError);
+
+              if (!pathwayData) {
+                return client.query("COMMIT", (commitError) => {
+                  release();
+                  result(commitError, commitError ? null : {
+                    user: createdUser,
+                    profile: profileResult.rows[0]
+                  });
+                });
+              }
+
+              const pathwayQuery = pathwayData.type === "studying"
+                ? {
+                    text: `INSERT INTO education
+                      (user_id, institution, qualification, field_of_study, start_date)
+                     VALUES ($1, $2, $3, $4, $5)`,
+                    values: [
+                      createdUser.id,
+                      pathwayData.institution,
+                      pathwayData.qualification,
+                      pathwayData.field_of_study,
+                      pathwayData.start_date
+                    ]
+                  }
+                : {
+                    text: `INSERT INTO employment
+                      (user_id, company, job_title, start_date)
+                     VALUES ($1, $2, $3, $4)`,
+                    values: [
+                      createdUser.id,
+                      pathwayData.company,
+                      pathwayData.job_title,
+                      pathwayData.start_date
+                    ]
+                  };
+
+              client.query(pathwayQuery, (pathwayError) => {
+                if (pathwayError) return rollback(pathwayError);
+
+                client.query("COMMIT", (commitError) => {
+                  release();
+                  result(commitError, commitError ? null : {
+                    user: createdUser,
+                    profile: profileResult.rows[0]
+                  });
+                });
+              });
+            }
+          );
+        }
+      );
+    });
+  });
 };
 
 User.findByUsername = function(username, result) {
@@ -111,6 +170,26 @@ User.getAdmins = function(result) {
 User.approveById = function(userId, result) {
   db.query(
     "UPDATE users SET active = 1 WHERE id = $1 AND active = 2 RETURNING id, username, active",
+    [userId],
+    function(err, res) {
+      if (err) {
+        result(err, null);
+        return;
+      }
+
+      if (!res.rows.length) {
+        result({ kind: "not_found" }, null);
+        return;
+      }
+
+      result(null, res.rows[0]);
+    }
+  );
+};
+
+User.declineById = function(userId, result) {
+  db.query(
+    "UPDATE users SET active = 3 WHERE id = $1 AND active = 2 RETURNING id, username, active",
     [userId],
     function(err, res) {
       if (err) {
