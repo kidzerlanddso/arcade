@@ -3459,6 +3459,8 @@ input:checked + .slider::before {
 .about-save-button:hover {
   background: #004182 !important;
 }
+
+
 .linkedin-experience-item {
   padding: 22px 0;
   border-bottom: 1px solid #e5e5e5;
@@ -3782,6 +3784,7 @@ input:checked + .slider::before {
   background-repeat: repeat-x;
   background-position: center top;
   background-size: contain;
+  margin-top: 10em;
   flex-shrink: 0;
 }
 
