@@ -56,16 +56,24 @@ require("./app/routes/data.routes.js")(app);
 
 const PORT = process.env.PORT || 3001;
 
- db.syncSequences((error) => {
-  if (error) {
-    console.warn(
-      `Could not synchronize ${error.table || "database"} ID sequence: ${error.message}`,
-    );
+db.ensureEventAttendeesTable((migrationError) => {
+  if (migrationError) {
+    console.error(`Could not prepare event attendees table: ${migrationError.message}`);
+    process.exitCode = 1;
+    return;
   }
 
-  app.listen(PORT, () => {
-    console.log(`CORS enabled Express web server is running on port ${PORT}.`);
-  });
+  db.syncSequences((sequenceError) => {
+    if (sequenceError) {
+      console.warn(
+        `Could not synchronize ${sequenceError.table || "database"} ID sequence: ${sequenceError.message}`,
+      );
+    }
+
+    app.listen(PORT, () => {
+      console.log(`CORS enabled Express web server is running on port ${PORT}.`);
     });
+  });
+});
 
 

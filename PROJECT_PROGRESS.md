@@ -29,6 +29,12 @@ The project has a working frontend and backend foundation with login, admin appr
 * **2026-09-07**: fixed protected route configuration for admin and dynamic data pages, cleared stale backend port 3001 lock, verified the React build succeeds, and confirmed the API server is running correctly after route/backend fixes (bcsazar)
 
 * **2026-09-07**: added toastify notification on dashboard (bcsazar)
+## Work Timeline (Updated: 2026-09-08)
+
+* **2026-09-08**: added event RSVP "Join this event" on the event details page — new event_attendees table in the Supabase Postgres DB, GET/POST /events/:id/join (verifyToken), transactional join/leave toggle with live attendee counts, wired to replace the local-only stub button (mohesh)
+
+* **2026-09-08**: added admin event photo editing on the event details page — file upload via new POST /events/:id/image endpoint (multer + sharp + Supabase storage) and photo URL update via PATCH, styled editor UI in the Photos section (mohesh)
+
 
 * **2026-09-06**: Merge branch 'Aza' of https://github.com/jiangshan123/rototuna-alumni-platform into Aza (bcsazar)
 

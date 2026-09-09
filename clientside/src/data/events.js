@@ -96,25 +96,38 @@ export const toDateInputValue = (value) => String(value || "").slice(0, 10);
 export const toTimeInputValue = (value) => String(value || "").slice(0, 5);
 
 export const formatEventDate = (value) => {
-  const dateValue = toDateInputValue(value);
-  if (!dateValue) return "Date to be confirmed";
+  if (!value) return "Date to be confirmed";
+
+  const dateValue = /^\d{4}-\d{2}-\d{2}$/.test(String(value))
+    ? new Date(`${value}T00:00:00`)
+    : new Date(value);
+
+  if (Number.isNaN(dateValue.getTime())) return "Date to be confirmed";
 
   return new Intl.DateTimeFormat("en-NZ", {
     weekday: "long",
     day: "numeric",
     month: "long",
     year: "numeric"
-  }).format(new Date(`${dateValue}T00:00:00`));
+  }).format(dateValue);
 };
 
 export const formatEventTime = (value) => {
-  const timeValue = toTimeInputValue(value);
-  if (!timeValue) return "Time to be confirmed";
+  if (!value) return "Time to be confirmed";
 
-  const [hours, minutes] = timeValue.split(":").map(Number);
+  const timeValue = String(value).trim();
+  const match = timeValue.match(/^(\d{1,2}):(\d{2})(?:\s*([AP]M))?$/i);
+  if (!match) return "Time to be confirmed";
+
+  let hours = Number(match[1]);
+  const minutes = Number(match[2]);
+  const inputPeriod = match[3]?.toUpperCase();
+  if (inputPeriod === "PM" && hours < 12) hours += 12;
+  if (inputPeriod === "AM" && hours === 12) hours = 0;
+  if (hours > 23 || minutes > 59) return "Time to be confirmed";
+
   const period = hours >= 12 ? "PM" : "AM";
-  const displayHours = hours % 12 || 12;
-  return `${displayHours}:${String(minutes).padStart(2, "0")} ${period}`;
+  return `${hours % 12 || 12}:${String(minutes).padStart(2, "0")} ${period}`;
 };
 
 export const getEvents = () => {
