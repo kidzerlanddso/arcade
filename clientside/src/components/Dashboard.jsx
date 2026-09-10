@@ -41,24 +41,66 @@ function Dashboard() {
         const pendingCount = Number(response.data?.count || 0);
 
         if (pendingCount > 0) {
-          toast.info(`Attention: You have ${pendingCount} pending membership requests to review.`, {
-            toastId: 'pending-requests-toast', // Prevents duplicates during React StrictMode
-            position: "top-right",
-            autoClose: 5000,
-            theme: "colored",
-            
-          });
+          toast.info(
+            <div>
+              <div>Attention: You have {pendingCount} pending membership requests to review.</div>
+              <div style={{ marginTop: "0.5rem" }}>
+                <Link to="/membership-request" style={{ color: "#fff", textDecoration: "underline", fontWeight: 700 }}>
+                  Review requests
+                </Link>
+              </div>
+            </div>,
+            {
+              toastId: 'pending-requests-toast',
+              position: "top-right",
+              autoClose: 5000,
+              theme: "colored",
+            }
+          );
         }
       } catch (error) {
         console.error("Failed to fetch pending requests:", error);
-        // Only show an error toast if it's not a 401/403 authorization denial (e.g., if a non-admin logs in)
         if (error.response?.status !== 401 && error.response?.status !== 403) {
           toast.error("Could not load pending membership requests.");
         }
       }
     };
 
+    const fetchIncomingConnectionRequests = async () => {
+      if (isAdmin) return;
+
+      try {
+        const response = await api.get("/connection/pending");
+        const receivedCount = Number(response.data?.received?.length || 0);
+
+        if (receivedCount > 0) {
+          toast.info(
+            <div>
+              <div>You have {receivedCount} connection request{receivedCount === 1 ? "" : "s"} waiting for your attention.</div>
+              <div style={{ marginTop: "0.5rem" }}>
+                <Link to="/profile/me" style={{ color: "#fff", textDecoration: "underline", fontWeight: 700 }}>
+                  View requests
+                </Link>
+              </div>
+            </div>,
+            {
+              toastId: 'incoming-connection-requests-toast',
+              position: "top-right",
+              autoClose: 5000,
+              theme: "colored",
+            }
+          );
+        }
+      } catch (error) {
+        console.error("Failed to fetch incoming connection requests:", error);
+        if (error.response?.status !== 401 && error.response?.status !== 403) {
+          toast.error("Could not load connection requests.");
+        }
+      }
+    };
+
     fetchPendingUsers();
+    fetchIncomingConnectionRequests();
 
     const toEventDate = (event) => {
       const rawDate = event?.date || "";
@@ -92,9 +134,7 @@ function Dashboard() {
 
   return (
     <div className="dashboard-shell">
-      {isAdmin && (<div className="grid place-items-center h-dvh bg-zinc-900/15">
-        <ToastContainer />
-      </div>)}
+      <ToastContainer />
     
     <div className="events-topbar">
         <h1 className="events-title">
