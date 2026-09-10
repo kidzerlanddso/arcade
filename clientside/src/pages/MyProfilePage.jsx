@@ -4,18 +4,18 @@ import api from "../api/axios";
 import { Link, useNavigate, useParams } from "react-router-dom";
 
 const getTokenPayload = () => {
-  const token = localStorage.getItem("token");
+    const token = localStorage.getItem("token");
 
-  if (!token) {
-    return null;
-  }
+    if (!token) {
+        return null;
+    }
 
-  try {
-    return JSON.parse(atob(token.split(".")[1] || ""));
-  } catch (error) {
-    console.error("Error decoding token:", error);
-    return null;
-  }
+    try {
+        return JSON.parse(atob(token.split(".")[1] || ""));
+    } catch (error) {
+        console.error("Error decoding token:", error);
+        return null;
+    }
 };
 
 const getAdminFromToken = () => {
@@ -46,13 +46,13 @@ function MyProfilePage({ readOnly = false }) {
     const { id: viewProfileId } = useParams();
     const isViewingOther = readOnly && Boolean(viewProfileId);
     const navigate = useNavigate();
-  const [profile, setProfile] = useState(null);
+    const [profile, setProfile] = useState(null);
     const isAdmin = getAdminFromToken();
-  const [loading, setLoading] = useState(true);
-  const [editing, setEditing] = useState(false);
+    const [loading, setLoading] = useState(true);
+    const [editing, setEditing] = useState(false);
     const [showIntroModal, setShowIntroModal] = useState(false);
-const [bio, setBio] = useState("");
-const [linkedinUrl, setLinkedinUrl] = useState("");
+    const [bio, setBio] = useState("");
+    const [linkedinUrl, setLinkedinUrl] = useState("");
     const [enableEmail, setEnableEmail] = useState("");
     const [mentorshipAvailable, setMentorshipAvailable] = useState(false);
     const [expertise, setExpertise] = useState("");
@@ -85,36 +85,36 @@ const [linkedinUrl, setLinkedinUrl] = useState("");
             setMentorshipAvailability([...selectedDays, day].join(", "));
         }
     };
-const [profileImageUrl, setProfileImageUrl] = useState("");
-const [profileImageFile, setProfileImageFile] = useState(null);
-const [employment, setEmployment] = useState([]);
-const [jobTitle, setJobTitle] = useState("");
+    const [profileImageUrl, setProfileImageUrl] = useState("");
+    const [profileImageFile, setProfileImageFile] = useState(null);
+    const [employment, setEmployment] = useState([]);
+    const [jobTitle, setJobTitle] = useState("");
     const [editingEmploymentId, setEditingEmploymentId] = useState(null);
-const [company, setCompany] = useState("");
-const [startDate, setStartDate] = useState("");
-const [endDate, setEndDate] = useState("");
-const [description, setDescription] = useState("");
-const [showEmploymentForm, setShowEmploymentForm] = useState(false);
-const [currentCity, setCurrentCity] = useState("");
-const [currentCountry, setCurrentCountry] = useState("");
-const [email, setEmail] = useState("");
-const [studentId, setStudentId] = useState("");
-const [firstName, setFirstName] = useState("");
-const [lastName, setLastName] = useState("");
-const [countries, setCountries] = useState([]);
-const [showPhotoModal, setShowPhotoModal] = useState(false);
+    const [company, setCompany] = useState("");
+    const [startDate, setStartDate] = useState("");
+    const [endDate, setEndDate] = useState("");
+    const [description, setDescription] = useState("");
+    const [showEmploymentForm, setShowEmploymentForm] = useState(false);
+    const [currentCity, setCurrentCity] = useState("");
+    const [currentCountry, setCurrentCountry] = useState("");
+    const [email, setEmail] = useState("");
+    const [studentId, setStudentId] = useState("");
+    const [firstName, setFirstName] = useState("");
+    const [lastName, setLastName] = useState("");
+    const [countries, setCountries] = useState([]);
+    const [showPhotoModal, setShowPhotoModal] = useState(false);
     const [showAboutModal, setShowAboutModal] = useState(false);
     const [showMentorshipModal, setShowMentorshipModal] = useState(false);
     const [showMentorshipDaysDropdown, setShowMentorshipDaysDropdown] =
         useState(false);
-const [education, setEducation] = useState([]);
-const [institution, setInstitution] = useState("");
-const [qualification, setQualification] = useState("");
-const [fieldOfStudy, setFieldOfStudy] = useState("");
-const [educationStartDate, setEducationStartDate] = useState("");
-const [educationEndDate, setEducationEndDate] = useState("");
-const [educationDescription, setEducationDescription] = useState("");
-const [showEducationForm, setShowEducationForm] = useState(false);
+    const [education, setEducation] = useState([]);
+    const [institution, setInstitution] = useState("");
+    const [qualification, setQualification] = useState("");
+    const [fieldOfStudy, setFieldOfStudy] = useState("");
+    const [educationStartDate, setEducationStartDate] = useState("");
+    const [educationEndDate, setEducationEndDate] = useState("");
+    const [educationDescription, setEducationDescription] = useState("");
+    const [showEducationForm, setShowEducationForm] = useState(false);
 const [showConnectModal, setShowConnectModal] = useState(false);
 const [connections, setConnections] = useState([]);
 const [pendingSent, setPendingSent] = useState([]);
@@ -131,7 +131,7 @@ const loadConnectionStatuses = async (profileList = []) => {
     const me = payload?.userId ? Number(payload.userId) : null;
 
     if (!me || !Array.isArray(profileList) || profileList.length === 0) {
-      return;
+        return;
     }
 
     const others = profileList.filter(
@@ -204,8 +204,8 @@ const shouldShowProfile =
 
 const applyProfileToState = (currentProfile) => {
     setProfile(currentProfile || null);
-        setBio(currentProfile?.bio || "");
-setLinkedinUrl(currentProfile?.linkedin_url || "");
+    setBio(currentProfile?.bio || "");
+    setLinkedinUrl(currentProfile?.linkedin_url || "");
     setMentorshipAvailable(
         currentProfile?.mentorship_available ?? false,
     );
@@ -221,11 +221,11 @@ setLinkedinUrl(currentProfile?.linkedin_url || "");
     setMentorshipAvailability(
         currentProfile?.mentorship_availability || "",
     );
-setProfileImageUrl(currentProfile?.profile_image_url || "");
-setCurrentCity(currentProfile?.current_city || "");
-setCurrentCountry(currentProfile?.current_country || "");
-setEmail(currentProfile?.email || "");
-setStudentId(currentProfile?.student_id || "");
+    setProfileImageUrl(currentProfile?.profile_image_url || "");
+    setCurrentCity(currentProfile?.current_city || "");
+    setCurrentCountry(currentProfile?.current_country || "");
+    setEmail(currentProfile?.email || "");
+    setStudentId(currentProfile?.student_id || "");
     setFirstName(
         currentProfile?.firstname || currentProfile?.first_name || "",
     );
@@ -288,41 +288,41 @@ setStudentId(currentProfile?.student_id || "");
             .then((response) => {
                 applyProfileToState(response.data);
             })
-      .catch((error) => {
-        console.error("Error loading current profile:", error);
-        setProfile(null);
-      })
-      .finally(() => {
-        setLoading(false);
-      });
-      
+            .catch((error) => {
+                console.error("Error loading current profile:", error);
+                setProfile(null);
+            })
+            .finally(() => {
+                setLoading(false);
+            });
+
         api.get(`/employment/user/${payload.userId}`)
-  .then((response) => {
-    setEmployment(response.data || []);
-  })
-  .catch((error) => {
-    console.error("Error loading employment history:", error);
-    setEmployment([]);
-  });
+            .then((response) => {
+                setEmployment(response.data || []);
+            })
+            .catch((error) => {
+                console.error("Error loading employment history:", error);
+                setEmployment([]);
+            });
         api.get(`/education/user/${payload.userId}`)
-  .then((response) => {
-    setEducation(response.data || []);
-  })
-  .catch((error) => {
-    console.error("Error loading education history:", error);
-    setEducation([]);
-  });
+            .then((response) => {
+                setEducation(response.data || []);
+            })
+            .catch((error) => {
+                console.error("Error loading education history:", error);
+                setEducation([]);
+            });
     }, [isViewingOther, viewProfileId]);
-useEffect(() => {
+    useEffect(() => {
         if (isViewingOther) return;
 
         api.get("/country")
-    .then((response) => {
-      setCountries(response.data || []);
-    })
-    .catch((error) => {
-      console.error("Error loading countries:", error);
-      setCountries([]);
+            .then((response) => {
+                setCountries(response.data || []);
+            })
+            .catch((error) => {
+                console.error("Error loading countries:", error);
+                setCountries([]);
             });
 }, [isViewingOther]);
 
@@ -390,10 +390,10 @@ if (savedSubcategoryId) {
 }
   }
 }, [profile, expertiseOptions]);
-const handleProfileImageChange = async (e) => {
-  const file = e.target.files[0];
+    const handleProfileImageChange = async (e) => {
+        const file = e.target.files[0];
 
-  if (!file) return;
+        if (!file) return;
         if (!profile?.id) {
             alert(
                 "Your profile has not loaded yet. Please wait a moment and try again.",
@@ -401,33 +401,33 @@ const handleProfileImageChange = async (e) => {
             return;
         }
 
-  try {
-    const formData = new FormData();
-    formData.append("profileImage", file);
+        try {
+            const formData = new FormData();
+            formData.append("profileImage", file);
 
-    const uploadResponse = await api.post(
-      `/profile/${profile.id}/image`,
+            const uploadResponse = await api.post(
+                `/profile/${profile.id}/image`,
                 formData,
-    );
+            );
 
-    const imageUrl = uploadResponse.data.profile_image_url;
+            const imageUrl = uploadResponse.data.profile_image_url;
 
-    await api.patch(`/profile/${profile.id}`, {
-      profile_image_url: imageUrl,
-    });
+            await api.patch(`/profile/${profile.id}`, {
+                profile_image_url: imageUrl,
+            });
 
-    setProfile((prev) => ({
-      ...prev,
-      profile_image_url: imageUrl,
-    }));
+            setProfile((prev) => ({
+                ...prev,
+                profile_image_url: imageUrl,
+            }));
 
-    setProfileImageUrl(imageUrl);
+            setProfileImageUrl(imageUrl);
 
-    e.target.value = "";
-  } catch (error) {
-    console.error("Error updating profile image:", error);
-  }
-};
+            e.target.value = "";
+        } catch (error) {
+            console.error("Error updating profile image:", error);
+        }
+    };
     const handleOpenConnectionProfile = async (item) => {
         // Use profile_id only — never connection.id or other_user_id as the URL id
         let profileId = item.profile_id ? Number(item.profile_id) : null;
@@ -455,48 +455,48 @@ const handleProfileImageChange = async (e) => {
         setShowConnectModal(false);
         navigate(`/profile/view/${profileId}`);
     };
-  const handleSave = async () => {
-  try {
-    let imageUrl = profileImageUrl;
+    const handleSave = async () => {
+        try {
+            let imageUrl = profileImageUrl;
 
-    // If the user selected a new profile image.
-    if (profileImageFile) {
-      const formData = new FormData();
-      formData.append("profileImage", profileImageFile);
+            // If the user selected a new profile image.
+            if (profileImageFile) {
+                const formData = new FormData();
+                formData.append("profileImage", profileImageFile);
 
-      const uploadResponse = await api.post(
-  `/profile/${profile.id}/image`,
+                const uploadResponse = await api.post(
+                    `/profile/${profile.id}/image`,
                     formData,
-);
+                );
 
-      imageUrl = uploadResponse.data.profile_image_url;
-      setProfileImageUrl(imageUrl);
-    }
+                imageUrl = uploadResponse.data.profile_image_url;
+                setProfileImageUrl(imageUrl);
+            }
 
-    // Save Profile information to the database.
-    const response = await api.patch(`/profile/${profile.id}`, {
-      firstname: firstName,
-      lastname: lastName,
-  bio: bio,
-  linkedin_url: linkedinUrl,
+            // Save Profile information to the database.
+            const response = await api.patch(`/profile/${profile.id}`, {
+                firstname: firstName,
+                lastname: lastName,
+                bio: bio,
+                linkedin_url: linkedinUrl,
                 mentorship_available: mentorshipAvailable,
             expertise_id: expertiseId ? [Number(expertiseId)] : [],
             subcategory_id: subcategoryId ? [Number(subcategoryId)] : [],
                 mentorship_availability: mentorshipAvailability,
-  profile_image_url: imageUrl,
-  current_city: currentCity,
+                profile_image_url: imageUrl,
+                current_city: currentCity,
                 current_country: currentCountry,
-  email: email,
-  student_id: studentId,
-});
+                email: email,
+                student_id: studentId,
+            });
 
-    setProfile(response.data);
-    setProfileImageFile(null);
-    setEditing(false);
-  } catch (error) {
-    console.error("Error updating profile:", error);
-  }
-};
+            setProfile(response.data);
+            setProfileImageFile(null);
+            setEditing(false);
+        } catch (error) {
+            console.error("Error updating profile:", error);
+        }
+    };
     const handleSaveAbout = async () => {
         try {
             await api.patch(`/profile/${profile.id}`, {
@@ -535,32 +535,32 @@ const handleProfileImageChange = async (e) => {
             console.error("Error saving Mentorship:", error);
         }
     };
-const handleAddEmployment = async () => {
-  const payload = getTokenPayload();
+    const handleAddEmployment = async () => {
+        const payload = getTokenPayload();
 
-  try {
-    const response = await api.post("/employment", {
-      user_id: payload.userId,
-      company: company,
-      job_title: jobTitle,
-      start_date: startDate,
-      end_date: endDate || null,
+        try {
+            const response = await api.post("/employment", {
+                user_id: payload.userId,
+                company: company,
+                job_title: jobTitle,
+                start_date: startDate,
+                end_date: endDate || null,
                 description: description,
-    });
+            });
 
-    setEmployment([...employment, response.data]);
+            setEmployment([...employment, response.data]);
 
-    setJobTitle("");
-    setCompany("");
-    setStartDate("");
-    setEndDate("");
-    setDescription("");
+            setJobTitle("");
+            setCompany("");
+            setStartDate("");
+            setEndDate("");
+            setDescription("");
             setShowEmploymentForm(false);
         
-  } catch (error) {
-    console.error("Error adding employment:", error);
-  }
-};
+        } catch (error) {
+            console.error("Error adding employment:", error);
+        }
+    };
     const handleEditEmployment = (job) => {
         setEditingEmploymentId(job.id);
 
@@ -607,8 +607,8 @@ const handleAddEmployment = async () => {
             console.error("Error updating employment:", error);
         }
     };
-const handleAddEducation = async () => {
-  const payload = getTokenPayload();
+    const handleAddEducation = async () => {
+        const payload = getTokenPayload();
         if (!educationStartDate) {
             alert("Please select a start date.");
             return;
@@ -634,39 +634,39 @@ if (editingEducationId) {
   );
 } else {
   response = await api.post("/education", {
-      user_id: payload.userId,
-      institution: institution,
-      qualification: qualification,
-      field_of_study: fieldOfStudy,
-      start_date: educationStartDate,
-      end_date: educationEndDate || null,
+    user_id: payload.userId,
+    institution: institution,
+    qualification: qualification,
+    field_of_study: fieldOfStudy,
+    start_date: educationStartDate,
+    end_date: educationEndDate || null,
     description: educationDescription,
-    });
+  });
 
-    setEducation([...education, response.data]);
+  setEducation([...education, response.data]);
 }
-    setInstitution("");
-    setQualification("");
-    setFieldOfStudy("");
-    setEducationStartDate("");
-    setEducationEndDate("");
-    setEducationDescription("");
+            setInstitution("");
+            setQualification("");
+            setFieldOfStudy("");
+            setEducationStartDate("");
+            setEducationEndDate("");
+            setEducationDescription("");
             setEditingEducationId(null);
-    setShowEducationForm(false);
-  } catch (error) {
-    console.error("Error adding education:", error);
-  }
-};
-const handleDeleteEmployment = async (id) => {
-  try {
-    await api.delete(`/employment/${id}`);
+            setShowEducationForm(false);
+        } catch (error) {
+            console.error("Error adding education:", error);
+        }
+    };
+    const handleDeleteEmployment = async (id) => {
+        try {
+            await api.delete(`/employment/${id}`);
 
             setEmployment(employment.filter((job) => job.id !== id));
-  } catch (error) {
-    console.error("Error deleting employment:", error);
-  }
-};
-const handleDeleteEducation = async (id) => {
+        } catch (error) {
+            console.error("Error deleting employment:", error);
+        }
+    };
+    const handleDeleteEducation = async (id) => {
         const confirmDelete = window.confirm(
             "Are you sure you want to delete this education record?",
         );
@@ -674,16 +674,16 @@ const handleDeleteEducation = async (id) => {
         if (!confirmDelete) {
             return;
         }
-  try {
-    await api.delete(`/education/${id}`);
+        try {
+            await api.delete(`/education/${id}`);
 
             setEducation(education.filter((item) => item.id !== id));
             setEditingEducationId(null);
 setShowEducationForm(false);
-  } catch (error) {
-    console.error("Error deleting education:", error);
-  }
-};
+        } catch (error) {
+            console.error("Error deleting education:", error);
+        }
+    };
     
   
     const formatDateForInput = (dateValue) => {
@@ -797,35 +797,35 @@ setShowEducationForm(false);
         }
     };
 
-  if (loading) {
+    if (loading) {
         return (
             <div className="book-list">
                 <p>Loading profile...</p>
             </div>
         );
-  }
+    }
 
-  if (!profile) {
-    return (
-      <div className="book-list">
-        <div className="page-header">
+    if (!profile) {
+        return (
+            <div className="book-list">
+                <div className="page-header">
                     <h2>{isViewingOther ? "Alumni Profile" : "My Profile"}</h2>
-        </div>
-        <p>No profile found for this user.</p>
+                </div>
+                <p>No profile found for this user.</p>
                 {isViewingOther && (
                     <Link to="/profile/me" className="profile-header-button">
                         Back to My Profile
                     </Link>
                 )}
-      </div>
-    );
-  }
+            </div>
+        );
+    }
 
     const fullName =
         `${profile.firstname || profile.first_name || "Unknown"} ${profile.lastname || profile.last_name || ""}`.trim();
 
-  return (
-    <div className="book-list">
+    return (
+        <div className="book-list">
             {connectToast && !isAdmin && (
                 <div
                     className="connect-toast connect-toast--long"
@@ -835,13 +835,13 @@ setShowEducationForm(false);
                 </div>
             )}
             
-      <div className="linkedin-profile-shell">
-        <div className="linkedin-cover" />
+              <div className="linkedin-profile-shell">
+                <div className="linkedin-cover" />
 
-        <div className="linkedin-profile-card">
-          <div className="linkedin-profile-header">
-  <div
-    className="linkedin-avatar"
+                <div className="linkedin-profile-card">
+                    <div className="linkedin-profile-header">
+                        <div
+                            className="linkedin-avatar"
                             onClick={
                                 isViewingOther
                                     ? undefined
@@ -850,62 +850,62 @@ setShowEducationForm(false);
                             style={
                                 isViewingOther ? { cursor: "default" } : undefined
                             }
-  >
-    {profile.profile_image_url ? (
-      <img
-        src={profile.profile_image_url}
-        alt="Profile"
-        className="profile-image"
-      />
-    ) : (
+                        >
+                            {profile.profile_image_url ? (
+                                <img
+                                    src={profile.profile_image_url}
+                                    alt="Profile"
+                                    className="profile-image"
+                                />
+                            ) : (
                                 (profile.firstname || "U")
                                     .charAt(0)
                                     .toUpperCase()
-    )}
-  </div>
+                            )}
+                        </div>
 
                         {!isViewingOther && (
-  <input
-    id="profileImageInput"
-    type="file"
-    accept="image/*"
-    onChange={handleProfileImageChange}
-    style={{ display: "none" }}
-  />
+                            <input
+                                id="profileImageInput"
+                                type="file"
+                                accept="image/*"
+                                onChange={handleProfileImageChange}
+                                style={{ display: "none" }}
+                            />
                         )}
 
                         {!isViewingOther && showPhotoModal && (
-    <div className="photo-modal-overlay">
-      <div className="photo-modal">
-        <button
-          className="photo-modal-close"
-          onClick={() => setShowPhotoModal(false)}
-        >
+                            <div className="photo-modal-overlay">
+                                <div className="photo-modal">
+                                    <button
+                                        className="photo-modal-close"
+                                        onClick={() => setShowPhotoModal(false)}
+                                    >
                                         x
-        </button>
+                                    </button>
 
-        <h2>Profile photo</h2>
+                                    <h2>Profile photo</h2>
 
-        <img
-          src={profile.profile_image_url}
-          alt="Profile"
-          className="photo-modal-image"
-        />
+                                    <img
+                                        src={profile.profile_image_url}
+                                        alt="Profile"
+                                        className="photo-modal-image"
+                                    />
 
-        <button
-          className="change-photo-button"
-          onClick={() => {
-            document
+                                    <button
+                                        className="change-photo-button"
+                                        onClick={() => {
+                                            document
                                                 .getElementById(
                                                     "profileImageInput",
                                                 )
-              ?.click();
+                                                ?.click();
 
-            setShowPhotoModal(false);
-          }}
-        >
-          Change photo
-        </button>
+                                            setShowPhotoModal(false);
+                                        }}
+                                    >
+                                        Change photo
+                                    </button>
                                 </div>
                             </div>
                         )}
@@ -929,9 +929,9 @@ setShowEducationForm(false);
                                             }
                                             aria-label="Close connections"
                                         >
-                                            {"\u00D7"}
+                                            ×
                                         </button>
-      </div>
+                                    </div>
 
                                     <div className="connect-modal-body">
                                         <section className="connect-section">
@@ -971,7 +971,7 @@ setShowEducationForm(false);
                                                                             ", ",
                                                                         ) || "—"}
                                                                 </span>
-    </div>
+                                                            </div>
                                                         </div>
                                                         <div className="connect-row-actions">
                                                             <button
@@ -1134,40 +1134,40 @@ setShowEducationForm(false);
                             </div>
                         )}
 
-
-  <div className="linkedin-profile-meta">
+                        
+                          <div className="linkedin-profile-meta">
                             {editing && !isViewingOther ? (
-      <>
-        <input
-          type="text"
-          value={firstName}
+                                <>
+                                    <input
+                                        type="text"
+                                        value={firstName}
                                         onChange={(e) =>
                                             setFirstName(e.target.value)
                                         }
-          placeholder="Enter first name"
-        />
+                                        placeholder="Enter first name"
+                                    />
 
-        <input
-          type="text"
-          value={lastName}
+                                    <input
+                                        type="text"
+                                        value={lastName}
                                         onChange={(e) =>
                                             setLastName(e.target.value)
                                         }
-          placeholder="Enter last name"
-        />
-      </>
-    ) : (
-      <h2>{fullName}</h2>
-    )}
+                                        placeholder="Enter last name"
+                                    />
+                                </>
+                            ) : (
+                                <h2>{fullName}</h2>
+                            )}
 
-    <p className="linkedin-title">
+                            <p className="linkedin-title">
                                 Batch of {" "}
                                 {profile.year || profile.graduation_year || "-"}
                             </p>
                             <p className="linkedin-location">
                                 {currentCity}, {currentCountry}
-    </p>
-  </div>
+                            </p>
+                        </div>                        
 
                         <div className="profile-header-actions">
                             {isViewingOther ? (
@@ -1187,7 +1187,7 @@ setShowEducationForm(false);
                                             className="connect-open-button"
                                             onClick={handleOpenConnections}
                                         >
-  Connections
+                                            Connections
                                             {pendingReceived.length > 0 && (
                                                 <span
                                                     className="connect-open-badge"
@@ -1198,25 +1198,25 @@ setShowEducationForm(false);
                                                         : pendingReceived.length}
                                                 </span>
                                             )}
-</button>
+                                        </button>
                                     )}
 
                                     {editing && !isViewingOther ? (
-    <>
-      <button onClick={handleSave}>
-        Save
-      </button>
+                                        <>
+                                            <button onClick={handleSave}>
+                                                Save
+                                            </button>
 
-      <button
-        onClick={() => {
-          setEditing(false);
-          setProfileImageFile(null);
-          setShowEmploymentForm(false);
-        }}
-      >
-        Cancel
-      </button>
-    </>
+                                            <button
+                                                onClick={() => {
+                                                    setEditing(false);
+                                                    setProfileImageFile(null);
+                                                    setShowEmploymentForm(false);
+                                                }}
+                                            >
+                                                Cancel
+                                            </button>
+                                        </>
                                     ) : (
                                         <button
                                             type="button"
@@ -1239,129 +1239,129 @@ setShowEducationForm(false);
                                                 <path d="M12 20h9" />
                                                 <path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z" />
                                             </svg>
-    </button>
-  )}
+                                        </button>
+                                    )}
                                 </>
                             )}
                         </div>
-</div>
+                    </div>
 
                     {shouldShowProfile && (
-          <div className="linkedin-profile-body">
+                      <div className="linkedin-profile-body">
                         <div
                             className="linkedin-detail-row"
                             style={{ display: editing && !isViewingOther ? "flex" : "none" }}
                         >
-  <span className="linkedin-label">Location</span>
+                            <span className="linkedin-label">Location</span>
 
                             {editing && !isViewingOther ? (
-  <div className="location-edit-fields">
-  <input
-    type="text"
-    value={currentCity}
+                                <div className="location-edit-fields">
+                                    <input
+                                        type="text"
+                                        value={currentCity}
                                         onChange={(e) =>
                                             setCurrentCity(e.target.value)
                                         }
-    placeholder="Enter city"
-  />
+                                        placeholder="Enter city"
+                                    />
 
-  <select
-    value={currentCountry}
+                                    <select
+                                        value={currentCountry}
                                         onChange={(e) =>
                                             setCurrentCountry(e.target.value)
                                         }
-  >
-    <option value="">Select country</option>
+                                    >
+                                        <option value="">Select country</option>
 
-    {countries.map((country) => (
+                                        {countries.map((country) => (
                                             <option
                                                 key={country.Code}
                                                 value={country.Name}
                                             >
-        {country.Name}
-      </option>
-    ))}
-  </select>
-</div>
-  ) : (
-    <span>
-  {profile.current_city || "-"}
+                                                {country.Name}
+                                            </option>
+                                        ))}
+                                    </select>
+                                </div>
+                            ) : (
+                                <span>
+                                    {profile.current_city || "-"}
                                     {profile.current_country
                                         ? `, ${profile.current_country}`
                                         : ""}
-</span>
-)}
-</div>
+                                </span>
+                            )}
+                        </div>
 
-            <div className="linkedin-detail-row">
-  <span className="linkedin-label">Email</span>
-
-                            {editing && !isViewingOther ? (
-    <input
-      type="email"
-      value={email}
-      onChange={(e) => setEmail(e.target.value)}
-      placeholder="Enter email address"
-    />
-  ) : (
-    <span>{profile.email || "-"}</span>
-  )}
-</div>
-
-            <div className="linkedin-detail-row">
-  <span className="linkedin-label">Student ID</span>
+                        <div className="linkedin-detail-row">
+                            <span className="linkedin-label">Email</span>
 
                             {editing && !isViewingOther ? (
-    <input
-      type="text"
-      value={studentId}
+                                <input
+                                    type="email"
+                                    value={email}
+                                    onChange={(e) => setEmail(e.target.value)}
+                                    placeholder="Enter email address"
+                                />
+                            ) : (
+                                <span>{profile.email || "-"}</span>
+                            )}
+                        </div>
+
+                        <div className="linkedin-detail-row">
+                            <span className="linkedin-label">Student ID</span>
+
+                            {editing && !isViewingOther ? (
+                                <input
+                                    type="text"
+                                    value={studentId}
                                     onChange={(e) =>
                                         setStudentId(e.target.value)
                                     }
-      placeholder="Enter student ID"
-    />
-  ) : (
-    <span>{profile.student_id || "-"}</span>
-  )}
-</div>
+                                    placeholder="Enter student ID"
+                                />
+                            ) : (
+                                <span>{profile.student_id || "-"}</span>
+                            )}
+                        </div>
 
-            <div className="linkedin-detail-row">
-  <span className="linkedin-label">LinkedIn</span>
+                        <div className="linkedin-detail-row">
+                            <span className="linkedin-label">LinkedIn</span>
 
                             {editing && !isViewingOther ? (
-    <input
-      type="url"
-      value={linkedinUrl}
+                                <input
+                                    type="url"
+                                    value={linkedinUrl}
                                     onChange={(e) =>
                                         setLinkedinUrl(e.target.value)
                                     }
-      placeholder="Enter LinkedIn profile URL"
-    />
-  ) : (
-    <span>
-      {profile.linkedin_url ? (
-        <a
-          href={profile.linkedin_url}
-          target="_blank"
-          rel="noreferrer"
-        >
+                                    placeholder="Enter LinkedIn profile URL"
+                                />
+                            ) : (
+                                <span>
+                                    {profile.linkedin_url ? (
+                                        <a
+                                            href={profile.linkedin_url}
+                                            target="_blank"
+                                            rel="noreferrer"
+                                        >
                                             {profile.linkedin_url}
-        </a>
-      ) : (
-        "-"
-      )}
-    </span>
-  )}
-</div>
+                                        </a>
+                                    ) : (
+                                        "-"
+                                    )}
+                                </span>
+                            )}
+                        </div>
                     </div>)}
-          </div>
+                </div>
                 {/* About Section */}
                 {shouldShowProfile && (
-<div className="profile-section">
-  <div className="profile-section-header">
+                  <div className="profile-section">
+                    <div className="profile-section-header">
                         <h3>About</h3>
                         {!isViewingOther && (
-      <button
+                        <button
                             type="button"
                             className="section-edit-button"
                             onClick={() => setShowAboutModal(true)}
@@ -1380,9 +1380,9 @@ setShowEducationForm(false);
                                 <path d="M12 20h9" />
                                 <path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z" />
                             </svg>
-      </button>
-    )}
-  </div>
+                        </button>
+                        )}
+                    </div>
 
                     {editing && !isViewingOther ? (
                         <textarea
@@ -1479,7 +1479,7 @@ setShowEducationForm(false);
 
     <div className="intro-modal-body mentorship-edit-fields">
       <label className="mentorship-checkbox">
-      <input
+        <input
           type="checkbox"
           checked={mentorshipAvailable}
           onChange={(e) => setMentorshipAvailable(e.target.checked)}
@@ -1553,7 +1553,7 @@ setShowEducationForm(false);
         <div className="mentorship-days-options">
           {mentorshipDays.map((day) => (
             <label key={day}>
-      <input
+              <input
                 type="checkbox"
                 checked={mentorshipAvailability
                   .split(",")
@@ -1577,13 +1577,13 @@ setShowEducationForm(false);
 </div>
 
 <div className="intro-modal-footer">
-      <button 
+  <button
     type="button"
     className="intro-save-button"
     onClick={handleSaveMentorship}
   >
     Save
-      </button>
+  </button>
     </div>
   </div>
   </div>
@@ -1692,26 +1692,26 @@ setShowEducationForm(false);
             </div>
 
             <div className="intro-modal-body">
-  {education.length === 0 ? (
+                {education.length === 0 ? (
                     <p>No education added.</p>
-  ) : (
-    education.map((item) => (
+                ) : (
+                    education.map((item) => (
                         <div key={item.id} className="experience-manager-item">
                             <div className="experience-manager-info">
-        <strong>{item.institution || "-"}</strong>
-        <div>{item.qualification || "-"}</div>
+                                <strong>{item.institution || "-"}</strong>
+                                <div>{item.qualification || "-"}</div>
                                 {(item.field_of_study || item.fieldOfStudy) && (
                                     <div>{item.field_of_study || item.fieldOfStudy}</div>
                                 )}
-        <div>
-          {item.start_date
+                                <div>
+                                    {item.start_date
                                         ? new Date(item.start_date).toLocaleDateString("en-GB")
                                         : ""}
-          {" - "}
-          {item.end_date
+                                    {" - "}
+                                    {item.end_date
                                         ? new Date(item.end_date).toLocaleDateString("en-GB")
-            : "Present"}
-        </div>
+                                        : "Present"}
+                                </div>
                             </div>
                             <button
                                 type="button"
@@ -1781,8 +1781,8 @@ setShowEducationForm(false);
                 {editingEducationId && (
                     <button type="button" className="education-delete-button" onClick={() => handleDeleteEducation(editingEducationId)}>
                         Delete education
-          </button>
-        )}
+                    </button>
+                )}
                 <button type="button" className="intro-save-button" onClick={handleAddEducation}>
                     {editingEducationId ? "Save" : "Add"}
                 </button>
@@ -1805,22 +1805,22 @@ setShowEducationForm(false);
                 {item.end_date ? new Date(item.end_date).toLocaleDateString("en-NZ") : "Present"}
             </div>
             {item.description && <p>{item.description}</p>}
-      </div>
+        </div>
     ))
-  )}
+)}
 </div>
     
   
 
 {shouldShowProfile && (
-        <div className="profile-section">
+  <div className="profile-section">
   <div className="profile-section-header">
     <h3>Experience</h3>
 
                         
                         <div className="profile-section-actions experience-section-actions">
                             {!isViewingOther && (
-      <button
+                              <button
                                 type="button"
                                 className="linkedin-add-button"
                                 onClick={() => {
@@ -1866,9 +1866,9 @@ setShowEducationForm(false);
                                     <path d="M12 20h9" />
                                     <path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z" />
                                 </svg>
-</button>
-    )}
-  </div>
+                            </button>
+                            )}
+                        </div>
                         
                     </div>
 {showExperienceManager && (
@@ -1897,7 +1897,7 @@ setShowEducationForm(false);
         <strong>{job.job_title}</strong>
         <div>{job.company}</div>
 
-  <div>
+        <div>
           {job.start_date
             ? new Date(job.start_date).toLocaleDateString("en-GB")
             : ""}
@@ -1963,62 +1963,62 @@ setShowEducationForm(false);
                                 <div className="intro-modal-body">
                                     <div className="intro-form-group">
                                         <label>Job title</label>
-    <input
-      type="text"
-      value={jobTitle}
+                                        <input
+                                            type="text"
+                                            value={jobTitle}
                                             onChange={(e) =>
                                                 setJobTitle(e.target.value)
                                             }
-    />
+                                        />
                                     </div>
 
                                     <div className="intro-form-group">
                                         <label>Company</label>
-    <input
-      type="text"
-      value={company}
+                                        <input
+                                            type="text"
+                                            value={company}
                                             onChange={(e) =>
                                                 setCompany(e.target.value)
                                             }
-    />
+                                        />
                                     </div>
 
                                     <div className="intro-form-group">
                                         <label>Start date</label>
-    <input
-      type="date"
-      value={startDate}
+                                        <input
+                                            type="date"
+                                            value={startDate}
                                             onChange={(e) =>
                                                 setStartDate(e.target.value)
                                             }
-    />
+                                        />
                                     </div>
 
                                     <div className="intro-form-group">
                                         <label>End date</label>
-    <input
-      type="date"
-      value={endDate}
+                                        <input
+                                            type="date"
+                                            value={endDate}
                                             onChange={(e) =>
                                                 setEndDate(e.target.value)
                                             }
-    />
+                                        />
                                     </div>
 
                                     <div className="intro-form-group">
                                         <label>Job description</label>
-    <textarea
-      value={description}
+                                        <textarea
+                                            value={description}
                                             onChange={(e) =>
                                                 setDescription(e.target.value)
                                             }
-    />
+                                        />
                                     </div>
                                 </div>
 
                                 <div className="intro-modal-footer">
                                     {editingEmploymentId && (
-    <button
+                                      <button
                                         type="button"
                                         className="employment-delete-modal-button"
                                         onClick={() => handleDeleteEmployment(editingEmploymentId)}
@@ -2036,40 +2036,40 @@ setShowEducationForm(false);
                                         }
                                     >
                                         {editingEmploymentId ? "Save" : "Add"}
-    </button>
+                                    </button>
                                 </div>
                             </div>
-  </div>
-)}
+                        </div>
+                    )}
 
-{employment.length === 0 ? (
-  <span>No employment history added.</span>
-) : (
-  employment.map((job) => (
-    <div key={job.id} className="experience-item">
-      <strong>{job.job_title || "-"}</strong>
+                    {employment.length === 0 ? (
+                        <span>No employment history added.</span>
+                    ) : (
+                        employment.map((job) => (
+                            <div key={job.id} className="experience-item">
+                                <strong>{job.job_title || "-"}</strong>
 
-      <div>{job.company || "-"}</div>
+                                <div>{job.company || "-"}</div>
 
-      <div>
-        {job.start_date
+                                <div>
+                                    {job.start_date
                                         ? new Date(
                                               job.start_date,
                                           ).toLocaleDateString("en-NZ")
-          : "-"}{" "}
-        -{" "}
-        {job.end_date
+                                        : "-"}{" "}
+                                    -{" "}
+                                    {job.end_date
                                         ? new Date(
                                               job.end_date,
                                           ).toLocaleDateString("en-NZ")
-          : "Present"}
-      </div>
+                                        : "Present"}
+                                </div>
 
                                
-    </div>
-  ))
-)}
-</div>
+                            </div>
+                        ))
+                    )}
+                </div>
 
                   )}
             
@@ -2089,7 +2089,7 @@ setShowEducationForm(false);
                             >
                                 ×
                             </button>
-      </div>
+                        </div>
 
                         <div className="intro-modal-body">
                             <div className="intro-form-group">
@@ -2101,7 +2101,7 @@ setShowEducationForm(false);
                                         setFirstName(e.target.value)
                                     }
                                 />
-    </div>
+                            </div>
 
                             <div className="intro-form-group">
                                 <label>Last name</label>
@@ -2220,7 +2220,7 @@ setShowEducationForm(false);
             )}
         </div>
         </div>
-  );
+    );
 }
 
 export default MyProfilePage;
