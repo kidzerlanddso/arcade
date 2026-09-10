@@ -617,45 +617,45 @@ const handleAccept = async (connectionId, userId) => {
             </div>
 
             <div className="profile-card-body">
-              <div className="profile-card-info">
-                <h3>
-                  {profile.firstname || profile.first_name || "Unknown"}{" "}
-                  {profile.lastname || profile.last_name || ""}
-                </h3>
-                <p>
-                  <strong>{profile.current_city}</strong>{" "}
-                  {profile.current_country}
-                </p>
-                <p>
-                  <strong>Batch of </strong>{" "}
-                  {profile.year || profile.graduation_year || "-"}
-                </p>
-                <p>
-                  <strong>Expertise:</strong>{" "}
-                  {profile.expertise?.length
-                    ? profile.expertise.map((e) => e.name).join(", ")
-                    : "-"}
-                </p>
-                <p>
-                  <strong>Subcategories:</strong>{" "}
-                  {profile.expertise?.length
-                    ? profile.expertise
-                        .flatMap((e) => e.subcategories || [])
-                        .map((sub) => sub.name)
-                        .join(", ") || "-"
-                    : "-"}
-                </p>
-              </div>
+              <h3>
+                {profile.firstname || profile.first_name || "Unknown"} {profile.lastname || profile.last_name || ""}
+              </h3>
+              <p><strong>{profile.current_city}</strong> {profile.current_country}</p>
+              {/* <p><strong>Email:</strong> {profile.email || "-"}</p> */}
+              <p><strong>Batch of </strong> {profile.year || profile.graduation_year || "-"}</p>
+              <p><strong>Expertise:</strong>{" "} {profile.expertise?.length? profile.expertise.map((e) => e.name).join(", ") : "-"}              </p>
+              <p><strong>Subcategories:</strong>{" "} {profile.expertise?.length? profile.expertise.flatMap((e) => e.subcategories || []).map((sub) => sub.name).join(", ") || "-": "-"}</p>
+              {/*<div>
+                    <strong>Expertise:</strong>
+                    {profile.expertise?.length ? (
+                      profile.expertise.map((e) => (
+                        <div key={e.id}>
+                          <strong>{e.name}</strong>
 
-              {/* Connect actions — alumni users only; reserved slot keeps layout aligned */}
-              {!isAdmin && (
+                          {e.subcategories?.length > 0 && (
+                            <ul>
+                              {e.subcategories.map((sub) => (
+                                <li key={sub.id}>{sub.name}</li>
+                              ))}
+                            </ul>
+                          )}
+                        </div>
+                      ))
+                    ) : (
+                      <span> - </span>
+                    )}
+              </div>*/}
+
+                {/* Connect actions — alumni users only */}
+                {!isAdmin && (
                 <div
                   className="profile-connect-actions"
                   onClick={(event) => event.stopPropagation()}
                 >
                   {renderConnectionActions(profile)}
                 </div>
-              )}
+                )}
+            
             </div>
           </article>
             );
