@@ -451,6 +451,17 @@ a {
   color: $dark-text;
 }
 
+.half-screen {
+  width: min(1100px, calc(100% - 32px));
+  margin: 32px auto 0;
+  padding: 24px 22px 28px;
+  background: #fff;
+  border: 1px solid $soft-border;
+  border-radius: 18px;
+  box-shadow: 0 12px 28px rgba(15, 23, 42, 0.06);
+  box-sizing: border-box;
+}
+
 .page-header {
   display: flex;
   justify-content: space-between;

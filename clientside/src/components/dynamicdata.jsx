@@ -28,12 +28,8 @@ function DynamicDataList() {
   const navigate = useNavigate();
   const [admins, setAdmins] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [searchTerm, setSearchTerm] = useState("");
-  const [viewMode, setViewMode] = useState("list");
   const [showAddExpertise, setShowAddExpertise] = useState(false);
   const [expertiseToEdit, setExpertiseToEdit] = useState(null);
-  
-  const [selectedProfileIds, setSelectedProfileIds] = useState([]);
 
   const token = localStorage.getItem("token");
   const isAdmin = getAdminFromToken();
@@ -126,7 +122,7 @@ function DynamicDataList() {
       {loading ? (
         <p>Loading dynamic data...</p>
       ) : (
-        <div className={viewMode === "list" ? "profile-list-view" : "profile-card-grid"}>
+        <div className="profile-list-view">
           {admins.length === 0 ? (
             <p>No expertise entries found.</p>
           ) : (
