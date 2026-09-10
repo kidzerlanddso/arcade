@@ -929,7 +929,7 @@ setShowEducationForm(false);
                                             }
                                             aria-label="Close connections"
                                         >
-                                            ×
+                                            {"\u00D7"}
                                         </button>
       </div>
 
