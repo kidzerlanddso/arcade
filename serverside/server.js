@@ -13,7 +13,7 @@ const app = express();
 
 // Allow local Vite and the deployed frontend (FRONTEND_URL).
 const allowedOrigins = [
-  "http://localhost:5174",
+  "http://localhost:5173",
   process.env.FRONTEND_URL,
 ].filter(Boolean);
 

@@ -1602,7 +1602,7 @@ setShowEducationForm(false);
   {expertise || "-"}
   {subcategoryId && (
     <>
-      {" < "}
+      {" > "}
       {subcategoryOptions.find(
         (item) => String(item.subcategory_id) === String(subcategoryId)
       )?.subcategory || ""}

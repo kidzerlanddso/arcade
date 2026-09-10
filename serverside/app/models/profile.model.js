@@ -19,12 +19,45 @@ const Project = function (profile) {
 Project.getAll = (result) => {
   // Use p.* so profile.id is not overwritten by users.id from JOIN
   db.query(
-    `SELECT DISTINCT ON (p.id) p.*, u."enableEmail" AS "enableEmail"
-     FROM profile p
-     LEFT JOIN users u ON p.user_id = u.id
-     LEFT JOIN expertise e ON e.expertise_id = ANY(p.expertise_id)
-     WHERE u.active = 1 AND u.admin = 0
-     ORDER BY p.id, p.firstname ASC`,
+    `SELECT 
+    p.*,
+    u."enableEmail",
+
+    COALESCE(
+        (
+            SELECT json_agg(
+                json_build_object(
+                    'id', e.expertise_id,
+                    'name', e.expertise,
+                    'subcategories',
+                    COALESCE(
+                        (
+                            SELECT json_agg(
+                                json_build_object(
+                                    'id', es.subcategory_id,
+                                    'name', es.subcategory
+                                )
+                                ORDER BY es.subcategory_id
+                            )
+                            FROM expertise_subcategory es
+                            WHERE es.subcategory_id = ANY(p.subcategory_id) AND es.expertise_id = e.expertise_id
+                        ),
+                        '[]'::json
+                    )
+                )
+                ORDER BY e.expertise_id
+            )
+            FROM expertise e
+            WHERE e.expertise_id = ANY(p.expertise_id)
+        ),
+        '[]'::json
+          ) AS expertise
+
+      FROM profile p
+      LEFT JOIN users u 
+          ON p.user_id = u.id
+      WHERE u.active = 1 
+    AND u.admin = 0;`,
     (err, res) => {
       if (err) {
         console.log("GetAll error: ", err);
