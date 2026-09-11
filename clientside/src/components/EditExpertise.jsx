@@ -3,7 +3,9 @@ import api from "../api/axios";
 
 function EditExpertise({ expertise, isOpen, onClose, onSaved }) {
   const expertiseId = Number(expertise?.expertise_id ?? expertise?.id ?? 0);
-  const [value, setValue] = useState(expertise?.expertise || expertise?.name || "");
+  const [value, setValue] = useState(
+    expertise?.expertise || expertise?.name || "",
+  );
   const [subcategories, setSubcategories] = useState([]);
   const [newSubcategory, setNewSubcategory] = useState("");
   const [editingSubcategoryId, setEditingSubcategoryId] = useState(null);
@@ -18,8 +20,12 @@ function EditExpertise({ expertise, isOpen, onClose, onSaved }) {
     const fetchSubcategories = async () => {
       setIsLoadingSubcategories(true);
       try {
-        const response = await api.get(`/data/dynamicdata/${expertiseId}/subcategories`);
-        setSubcategories(Array.isArray(response.data?.data) ? response.data.data : []);
+        const response = await api.get(
+          `/data/dynamicdata/${expertiseId}/subcategories`,
+        );
+        setSubcategories(
+          Array.isArray(response.data?.data) ? response.data.data : [],
+        );
       } catch (requestError) {
         console.error("Error fetching expertise subcategories:", requestError);
         setSubcategories([]);
@@ -52,7 +58,9 @@ function EditExpertise({ expertise, isOpen, onClose, onSaved }) {
       onSaved(response.data.data);
       onClose();
     } catch (requestError) {
-      setError(requestError.response?.data?.message || "Unable to update expertise.");
+      setError(
+        requestError.response?.data?.message || "Unable to update expertise.",
+      );
     } finally {
       setIsSubmitting(false);
     }
@@ -69,19 +77,28 @@ function EditExpertise({ expertise, isOpen, onClose, onSaved }) {
 
     try {
       setError("");
-      const response = await api.post(`/data/dynamicdata/${expertiseId}/subcategories`, {
-        subcategory: trimmed,
-      });
+      const response = await api.post(
+        `/data/dynamicdata/${expertiseId}/subcategories`,
+        {
+          subcategory: trimmed,
+        },
+      );
 
       const createdSubcategory = response.data?.data || {};
       setSubcategories((current) => {
         const id = createdSubcategory.subcategory_id ?? createdSubcategory.id;
         if (!id) return [...current, createdSubcategory];
-        return [...current.filter((item) => (item.subcategory_id ?? item.id) !== id), createdSubcategory];
+        return [
+          ...current.filter((item) => (item.subcategory_id ?? item.id) !== id),
+          createdSubcategory,
+        ];
       });
       setNewSubcategory("");
     } catch (requestError) {
-      setError(requestError.response?.data?.message || "Unable to add expertise subcategory.");
+      setError(
+        requestError.response?.data?.message ||
+          "Unable to add expertise subcategory.",
+      );
     }
   };
 
@@ -91,21 +108,28 @@ function EditExpertise({ expertise, isOpen, onClose, onSaved }) {
 
     try {
       setError("");
-      const response = await api.put(`/data/dynamicdata/subcategories/${editingSubcategoryId}`, {
-        subcategory: trimmed,
-      });
+      const response = await api.put(
+        `/data/dynamicdata/subcategories/${editingSubcategoryId}`,
+        {
+          subcategory: trimmed,
+        },
+      );
 
       const updated = response.data?.data || {};
       setSubcategories((current) =>
         current.map((item) => {
           const currentId = item.subcategory_id ?? item.id;
-          return String(currentId) === String(editingSubcategoryId) ? { ...item, ...updated } : item;
-        })
+          return String(currentId) === String(editingSubcategoryId)
+            ? { ...item, ...updated }
+            : item;
+        }),
       );
       setEditingSubcategoryId(null);
       setEditingSubcategoryValue("");
     } catch (requestError) {
-      setError(requestError.response?.data?.message || "Unable to update subcategory.");
+      setError(
+        requestError.response?.data?.message || "Unable to update subcategory.",
+      );
     }
   };
 
@@ -118,18 +142,29 @@ function EditExpertise({ expertise, isOpen, onClose, onSaved }) {
     try {
       setError("");
       await api.delete(`/data/dynamicdata/subcategories/${subcategoryId}`);
-      setSubcategories((current) => current.filter((item) => (item.subcategory_id ?? item.id) !== subcategoryId));
+      setSubcategories((current) =>
+        current.filter(
+          (item) => (item.subcategory_id ?? item.id) !== subcategoryId,
+        ),
+      );
     } catch (requestError) {
-      setError(requestError.response?.data?.message || "Unable to delete subcategory.");
+      setError(
+        requestError.response?.data?.message || "Unable to delete subcategory.",
+      );
     }
   };
 
   return (
     <div className="modal-overlay" onClick={onClose}>
-      <div className="auth-form register-form modal-card" onClick={(event) => event.stopPropagation()}>
+      <div
+        className="auth-form register-form modal-card"
+        onClick={(event) => event.stopPropagation()}
+      >
         <div className="modal-header">
           <h2>Edit expertise</h2>
-          <button type="button" className="close-button" onClick={onClose}>×</button>
+          <button type="button" className="close-button" onClick={onClose}>
+            ×
+          </button>
         </div>
 
         {error && <div className="form-status form-status--error">{error}</div>}
@@ -147,10 +182,16 @@ function EditExpertise({ expertise, isOpen, onClose, onSaved }) {
             />
           </div>
 
-          <button className="register-button" type="submit" disabled={isSubmitting}>
+          <button
+            className="expertise-button"
+            type="submit"
+            disabled={isSubmitting}
+          >
             {isSubmitting ? "Saving..." : "Save changes"}
           </button>
         </form>
+
+        <br />
 
         <div className="form-field" style={{ marginTop: "1.5rem" }}>
           <label>Subcategories</label>
@@ -162,38 +203,79 @@ function EditExpertise({ expertise, isOpen, onClose, onSaved }) {
           ) : (
             <div style={{ display: "grid", gap: "0.5rem" }}>
               {subcategories.map((subcategory) => {
-                const subcategoryId = subcategory.subcategory_id ?? subcategory.id;
-                const isEditing = String(editingSubcategoryId) === String(subcategoryId);
+                const subcategoryId =
+                  subcategory.subcategory_id ?? subcategory.id;
+                const isEditing =
+                  String(editingSubcategoryId) === String(subcategoryId);
 
                 return (
-                  <div key={subcategoryId} style={{ display: "flex", gap: "0.5rem", alignItems: "center" }}>
+                  <div
+                    key={subcategoryId}
+                    style={{
+                      display: "flex",
+                      gap: "0.5rem",
+                      alignItems: "center",
+                    }}
+                  >
                     {isEditing ? (
                       <>
                         <input
                           type="text"
                           value={editingSubcategoryValue}
-                          onChange={(event) => setEditingSubcategoryValue(event.target.value)}
+                          onChange={(event) =>
+                            setEditingSubcategoryValue(event.target.value)
+                          }
                           style={{ flex: 1 }}
                         />
-                        <button type="button" className="btn btn-success" onClick={handleSaveSubcategory}>Save</button>
-                        <button type="button" className="btn btn-secondary" onClick={() => {
-                          setEditingSubcategoryId(null);
-                          setEditingSubcategoryValue("");
-                        }}>
+                        <button
+                          type="button"
+                          className="btn btn-success"
+                          onClick={handleSaveSubcategory}
+                        >
+                          Save
+                        </button>
+                        <button
+                          type="button"
+                          className="btn btn-secondary"
+                          onClick={() => {
+                            setEditingSubcategoryId(null);
+                            setEditingSubcategoryValue("");
+                          }}
+                        >
                           Cancel
                         </button>
                       </>
                     ) : (
                       <>
-                        <span style={{ flex: 1 }}>{subcategory.subcategory}</span>
-                        <button type="button" className="btn btn-primary" onClick={() => {
-                          setEditingSubcategoryId(subcategoryId);
-                          setEditingSubcategoryValue(subcategory.subcategory || "");
-                        }}>
-                          Edit
+                        <span style={{ flex: 1 }}>
+                          {subcategory.subcategory}
+                        </span>
+                        <button
+                          type="button"
+                          className="btn btn-light"
+                          onClick={() => {
+                            setEditingSubcategoryId(subcategoryId);
+                            setEditingSubcategoryValue(
+                              subcategory.subcategory || "",
+                            );
+                          }}
+                        >
+                          <img
+                            src="src/assets/edit.png"
+                            alt="Edit"
+                            style={{ width: "16px", height: "16px" }}
+                          />
                         </button>
-                        <button type="button" className="btn btn-danger" onClick={() => handleDeleteSubcategory(subcategoryId)}>
-                          Delete
+                        <button
+                          type="button"
+                          className="btn btn-danger"
+                          onClick={() => handleDeleteSubcategory(subcategoryId)}
+                        >
+                          <img
+                            src="src/assets/bin.png"
+                            alt="Delete"
+                            style={{ width: "16px", height: "16px" }}
+                          />
                         </button>
                       </>
                     )}
@@ -204,6 +286,7 @@ function EditExpertise({ expertise, isOpen, onClose, onSaved }) {
           )}
         </div>
 
+        <br />
         <form onSubmit={handleAddSubcategory} style={{ marginTop: "1rem" }}>
           <div className="form-field">
             <label htmlFor="new-subcategory">Add subcategory</label>
@@ -216,7 +299,7 @@ function EditExpertise({ expertise, isOpen, onClose, onSaved }) {
             />
           </div>
 
-          <button className="register-button" type="submit">
+          <button className="expertise-button" type="submit">
             Add subcategory
           </button>
         </form>

@@ -1,7 +1,7 @@
 import { Link, Navigate, useNavigate } from "react-router-dom";
 import { useEffect, useRef, useState } from "react";
 
-import api, { setAccessToken }  from "../api/axios";
+import api, { setAccessToken } from "../api/axios";
 import logo from "../assets/logo.png";
 
 const isAuthenticated = () => Boolean(localStorage.getItem("token"));
@@ -15,7 +15,12 @@ const getAdminFromToken = () => {
     const payload = JSON.parse(atob(currentToken.split(".")[1] || ""));
     const adminValue = payload.admin;
     if (adminValue !== undefined && adminValue !== null) {
-      return adminValue === true || adminValue === 1 || adminValue === "1" || adminValue === "true";
+      return (
+        adminValue === true ||
+        adminValue === 1 ||
+        adminValue === "1" ||
+        adminValue === "true"
+      );
     }
   } catch (error) {
     console.error("Error decoding token for admin status:", error);
@@ -53,13 +58,16 @@ function ProtectedRoute({ children }) {
   const [formData, setFormData] = useState({
     currentPassword: "",
     newPassword: "",
-    confirmPassword: ""
+    confirmPassword: "",
   });
 
   useEffect(() => {
     const closeMenu = (event) => {
-      const clickedOutsideAdmin = adminMenuRef.current && !adminMenuRef.current.contains(event.target);
-      const clickedOutsideProfile = profileMenuRef.current && !profileMenuRef.current.contains(event.target);
+      const clickedOutsideAdmin =
+        adminMenuRef.current && !adminMenuRef.current.contains(event.target);
+      const clickedOutsideProfile =
+        profileMenuRef.current &&
+        !profileMenuRef.current.contains(event.target);
 
       if (clickedOutsideAdmin) {
         setAdminMenuOpen(false);
@@ -96,13 +104,19 @@ function ProtectedRoute({ children }) {
   const handleResetPassword = async (event) => {
     event.preventDefault();
 
-    if (!formData.currentPassword || !formData.newPassword || !formData.confirmPassword) {
+    if (
+      !formData.currentPassword ||
+      !formData.newPassword ||
+      !formData.confirmPassword
+    ) {
       alert("Please complete all password fields.");
       return;
     }
 
     if (!isStrongPassword(formData.newPassword)) {
-      alert("New password must be at least 8 characters long and include uppercase, lowercase, a number, and a special character.");
+      alert(
+        "New password must be at least 8 characters long and include uppercase, lowercase, a number, and a special character.",
+      );
       return;
     }
 
@@ -114,12 +128,16 @@ function ProtectedRoute({ children }) {
     try {
       await api.post("/auth/reset-password", {
         currentPassword: formData.currentPassword,
-        newPassword: formData.newPassword
+        newPassword: formData.newPassword,
       });
 
       alert("Password reset successfully.");
       setResetOpen(false);
-      setFormData({ currentPassword: "", newPassword: "", confirmPassword: "" });
+      setFormData({
+        currentPassword: "",
+        newPassword: "",
+        confirmPassword: "",
+      });
     } catch (error) {
       console.error(error);
       alert(error?.response?.data?.message || "Password reset failed.");
@@ -134,7 +152,11 @@ function ProtectedRoute({ children }) {
     <>
       <header className="app-header">
         <div className="app-header-inner">
-          <Link to="/dashboard" className="app-brand" aria-label="Go to dashboard">
+          <Link
+            to="/dashboard"
+            className="app-brand"
+            aria-label="Go to dashboard"
+          >
             <img src={logo} alt="Logo" className="app-logo" />
           </Link>
 
@@ -143,7 +165,9 @@ function ProtectedRoute({ children }) {
             className="app-header-menu-toggle"
             aria-expanded={mobileMenuOpen}
             aria-controls="main-navigation"
-            aria-label={mobileMenuOpen ? "Close navigation menu" : "Open navigation menu"}
+            aria-label={
+              mobileMenuOpen ? "Close navigation menu" : "Open navigation menu"
+            }
             onClick={() => setMobileMenuOpen((open) => !open)}
           >
             <span />
@@ -156,9 +180,13 @@ function ProtectedRoute({ children }) {
             className={`app-header-nav${mobileMenuOpen ? " is-open" : ""}`}
             aria-label="Main navigation"
           >
-            <Link to="/dashboard" onClick={() => setMobileMenuOpen(false)}>Dashboard</Link>
+            <Link to="/about" onClick={() => setMobileMenuOpen(false)}>
+              About AlumniConnect
+            </Link>
 
-            <Link to="/profile" onClick={() => setMobileMenuOpen(false)}>Find an Alumni</Link>
+            <Link to="/profile" onClick={() => setMobileMenuOpen(false)}>
+              Find an Alumni
+            </Link>
             {isAdmin && (
               <div className="profile-menu" ref={adminMenuRef}>
                 <button
@@ -176,28 +204,36 @@ function ProtectedRoute({ children }) {
 
                 {adminMenuOpen && (
                   <div className="profile-menu-panel" role="menu">
-                    <Link to="/membership-request" onClick={() => {
-                      setAdminMenuOpen(false);
-                      setMobileMenuOpen(false);
-                    }}>
+                    <Link
+                      to="/membership-request"
+                      onClick={() => {
+                        setAdminMenuOpen(false);
+                        setMobileMenuOpen(false);
+                      }}
+                    >
                       Membership Request
                     </Link>
-                    
-                    <Link to="/admin" onClick={() => {
-                      setAdminMenuOpen(false);
-                      setMobileMenuOpen(false);
-                    }}>
+
+                    <Link
+                      to="/admin"
+                      onClick={() => {
+                        setAdminMenuOpen(false);
+                        setMobileMenuOpen(false);
+                      }}
+                    >
                       Admin
                     </Link>
-                    
-                    <Link to="/dynamicdata" onClick={() => {
-                      setAdminMenuOpen(false);
-                      setMobileMenuOpen(false);
-                    }}>
+
+                    <Link
+                      to="/dynamicdata"
+                      onClick={() => {
+                        setAdminMenuOpen(false);
+                        setMobileMenuOpen(false);
+                      }}
+                    >
                       Dynamic Data
                     </Link>
                   </div>
-                  
                 )}
               </div>
             )}
@@ -218,10 +254,13 @@ function ProtectedRoute({ children }) {
 
               {profileMenuOpen && (
                 <div className="profile-menu-panel" role="menu">
-                  <Link to="/profile/me" onClick={() => {
-                    setProfileMenuOpen(false);
-                    setMobileMenuOpen(false);
-                  }}>
+                  <Link
+                    to="/profile/me"
+                    onClick={() => {
+                      setProfileMenuOpen(false);
+                      setMobileMenuOpen(false);
+                    }}
+                  >
                     Profile
                   </Link>
                   <button
@@ -235,17 +274,19 @@ function ProtectedRoute({ children }) {
                   >
                     Reset Password
                   </button>
-                  <button type="button" className="btn btn-danger app-header-logout" onClick={() => {
-                    setMobileMenuOpen(false);
-                    handleLogout();
-                  }}>
+                  <button
+                    type="button"
+                    className="btn btn-danger app-header-logout"
+                    onClick={() => {
+                      setMobileMenuOpen(false);
+                      handleLogout();
+                    }}
+                  >
                     Logout
                   </button>
                 </div>
               )}
             </div>
-
-            
           </nav>
         </div>
       </header>
@@ -254,10 +295,17 @@ function ProtectedRoute({ children }) {
 
       {resetOpen && (
         <div className="modal-overlay" onClick={() => setResetOpen(false)}>
-          <div className="modal-card" onClick={(event) => event.stopPropagation()}>
+          <div
+            className="modal-card"
+            onClick={(event) => event.stopPropagation()}
+          >
             <div className="modal-header">
               <h2>Reset Password</h2>
-              <button type="button" className="close-button" onClick={() => setResetOpen(false)}>
+              <button
+                type="button"
+                className="close-button"
+                onClick={() => setResetOpen(false)}
+              >
                 ×
               </button>
             </div>
@@ -269,7 +317,10 @@ function ProtectedRoute({ children }) {
                 value={formData.currentPassword}
                 placeholder="Current password"
                 onChange={(event) =>
-                  setFormData((prev) => ({ ...prev, currentPassword: event.target.value }))
+                  setFormData((prev) => ({
+                    ...prev,
+                    currentPassword: event.target.value,
+                  }))
                 }
               />
 
@@ -279,7 +330,10 @@ function ProtectedRoute({ children }) {
                 value={formData.newPassword}
                 placeholder="New password"
                 onChange={(event) =>
-                  setFormData((prev) => ({ ...prev, newPassword: event.target.value }))
+                  setFormData((prev) => ({
+                    ...prev,
+                    newPassword: event.target.value,
+                  }))
                 }
               />
 
@@ -289,7 +343,10 @@ function ProtectedRoute({ children }) {
                 value={formData.confirmPassword}
                 placeholder="Confirm new password"
                 onChange={(event) =>
-                  setFormData((prev) => ({ ...prev, confirmPassword: event.target.value }))
+                  setFormData((prev) => ({
+                    ...prev,
+                    confirmPassword: event.target.value,
+                  }))
                 }
               />
 

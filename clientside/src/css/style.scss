@@ -7,7 +7,6 @@ $soft-border: #d9d9d9;
 $shadow: rgba(0, 0, 0, 0.12);
 $primary-font-family: "DM Sans", sans-serif;
 
-
 * {
   box-sizing: border-box;
 }
@@ -16,7 +15,10 @@ body {
   margin: 0;
   background: #f3f2ef;
   font-family: "Segoe UI", sans-serif;
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+  font-family:
+    -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue",
+    Arial, "Noto Sans", sans-serif, "Apple Color Emoji", "Segoe UI Emoji",
+    "Segoe UI Symbol", "Noto Color Emoji";
   color: $dark-text;
 }
 
@@ -435,6 +437,12 @@ a {
   color: #fff;
 }
 
+.expertise-button {
+  background: #051655f0;
+  color: #ffffff;
+  margin: 25px 10px 5px 10px;
+}
+
 .RegisterAdmin-button {
   width: 100%;
 }
@@ -728,7 +736,7 @@ a {
   font-weight: 700;
   font-size: 1.5rem;
 }
-.dp-image{
+.dp-image {
   border-radius: 50%;
 }
 .profile-card-body {
@@ -757,13 +765,13 @@ a {
 }
 
 .profile-card-actions {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    text-align: center;
-    gap: 10px;
-    margin-top: auto;
-    padding-top: 8px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  gap: 10px;
+  margin-top: auto;
+  padding-top: 8px;
 }
 
 .icon-action {
@@ -819,7 +827,7 @@ a {
   margin-bottom: 8px;
   padding-top: 10px;
   padding-left: 150px;
-    min-height: 70px;
+  min-height: 70px;
 }
 
 .linkedin-avatar {
@@ -829,8 +837,8 @@ a {
   overflow: hidden;
   flex-shrink: 0;
   position: absolute;
-    top: -65px;
-    left: 35px;
+  top: -65px;
+  left: 35px;
   background: linear-gradient(135deg, $primary-blue 0%, #5ca7ff 100%);
   color: #fff;
   display: flex;
@@ -867,11 +875,11 @@ a {
   border-bottom: 1px solid #edf2f7;
 }
 
-.linkedin-detail-row a{
+.linkedin-detail-row a {
   color: #000000;
   text-decoration: none;
   font-style: italic;
-  font-size: smaller;  
+  font-size: smaller;
 }
 /* LinkedIn style profile editing */
 
@@ -892,7 +900,7 @@ a {
   min-height: 100px;
   resize: vertical;
 }
- 
+
 .linkedin-profile-body input:focus,
 .linkedin-profile-body textarea:focus,
 .linkedin-profile-body select:focus {
@@ -1049,13 +1057,13 @@ a {
   flex-direction: column;
   gap: 4px;
   font-size: 0.65rem;
-  text-align: left;      
+  text-align: left;
   align-items: flex-start;
 }
 .password-rules li {
   color: #6c757d;
   display: list-item;
-  text-align: left;  
+  text-align: left;
 }
 .password-rules li.valid {
   color: #198754;
@@ -1113,7 +1121,9 @@ a {
   font-size: 1rem;
   text-decoration: none;
   box-shadow: 0 8px 18px rgba(28, 142, 245, 0.22);
-  transition: transform 0.2s ease, background 0.2s ease;
+  transition:
+    transform 0.2s ease,
+    background 0.2s ease;
 }
 
 .events-icon-link:hover,
@@ -1151,7 +1161,9 @@ a {
   min-width: 0;
   cursor: pointer;
   border-radius: 28px;
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
 }
 
 .event-card:hover,
@@ -1723,7 +1735,9 @@ a {
 .events-list-header,
 .event-list-row {
   display: grid;
-  grid-template-columns: minmax(220px, 1.5fr) minmax(100px, 0.7fr) minmax(190px, 1.25fr) minmax(110px, 0.8fr) minmax(90px, 0.65fr) 80px;
+  grid-template-columns:
+    minmax(220px, 1.5fr) minmax(100px, 0.7fr) minmax(190px, 1.25fr)
+    minmax(110px, 0.8fr) minmax(90px, 0.65fr) 80px;
   gap: 18px;
   min-width: 980px;
   align-items: center;
@@ -1813,7 +1827,9 @@ a {
   background: #fff;
   box-shadow: 0 10px 24px rgba(27, 30, 43, 0.07);
   cursor: pointer;
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
 }
 
 .events-page-card:hover,
@@ -1908,7 +1924,9 @@ a {
   border-radius: 28px;
   background-position: center;
   background-size: cover;
-  box-shadow: 0 18px 35px rgba(39, 44, 58, 0.16), 12px -10px 0 #eef0f3;
+  box-shadow:
+    0 18px 35px rgba(39, 44, 58, 0.16),
+    12px -10px 0 #eef0f3;
 }
 
 .event-hero-edit-button {
@@ -2111,7 +2129,13 @@ a {
   place-items: center;
   border: 1px solid #d9dee6;
   border-radius: 18px;
-  background: linear-gradient(135deg, #dceee6 0 25%, #edf3ec 25% 52%, #d9e5ef 52% 75%, #eef0e8 75%);
+  background: linear-gradient(
+    135deg,
+    #dceee6 0 25%,
+    #edf3ec 25% 52%,
+    #d9e5ef 52% 75%,
+    #eef0e8 75%
+  );
   color: #536574;
   font-weight: 800;
 }
@@ -2904,7 +2928,7 @@ button {
   border: 1px solid #e0e0e0;
   border-radius: 16px;
   box-sizing: border-box;
-}/* Education and Experience form fields */
+} /* Education and Experience form fields */
 .profile-section input,
 .profile-section textarea {
   background: #ffffff;
@@ -3015,7 +3039,7 @@ button {
 .experience-item button:hover {
   background: #fdecec;
 }
-.linkedin-profile-header>button {
+.linkedin-profile-header > button {
   padding: 8px 16px;
   border: 1px solid #0a66c2;
   border-radius: 20px;
@@ -3025,7 +3049,7 @@ button {
   cursor: pointer;
 }
 
-.linkedin-profile-header>button:hover {
+.linkedin-profile-header > button:hover {
   background: #eef6ff;
 }
 .location-edit-fields {
@@ -3144,7 +3168,7 @@ button {
   width: 260px;
   margin-top: 12px;
 
-  >button {
+  > button {
     width: 100%;
     height: 42px;
     padding: 0 12px;
@@ -3205,13 +3229,14 @@ button {
   justify-content: center;
   padding: 0;
   position: absolute;
-    right: 18px;
-    top: 18px;
+  right: 18px;
+  top: 18px;
 }
 
 .profile-edit-button:hover {
   background: #f3f2ef !important;
-}.profile-edit-button {
+}
+.profile-edit-button {
   width: 48px !important;
   height: 48px !important;
   padding: 12px !important;
@@ -3427,7 +3452,7 @@ button {
 
 /* Track color when checkbox is checked */
 input:checked + .slider {
-  background-color: #2196F3;
+  background-color: #2196f3;
 }
 
 /* Move the knob to the right when checked */
@@ -3512,7 +3537,6 @@ input:checked + .slider::before {
 .about-save-button:hover {
   background: #004182 !important;
 }
-
 
 .linkedin-experience-item {
   padding: 22px 0;
@@ -3674,7 +3698,7 @@ input:checked + .slider::before {
   width: 100%;
 }
 
-.mentorship-days-dropdown>button {
+.mentorship-days-dropdown > button {
   width: 100%;
   min-height: 58px;
   text-align: left;
@@ -4073,10 +4097,20 @@ input:checked + .slider::before {
 }
 
 @keyframes connect-toast-fade {
-  0% { opacity: 0; transform: translateX(-50%) translateY(-8px); }
-  15% { opacity: 1; transform: translateX(-50%) translateY(0); }
-  85% { opacity: 1; }
-  100% { opacity: 0; }
+  0% {
+    opacity: 0;
+    transform: translateX(-50%) translateY(-8px);
+  }
+  15% {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+  85% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
 }
 
 .connect-toast--long {
@@ -4084,10 +4118,20 @@ input:checked + .slider::before {
 }
 
 @keyframes connect-toast-fade-long {
-  0% { opacity: 0; transform: translateX(-50%) translateY(-8px); }
-  10% { opacity: 1; transform: translateX(-50%) translateY(0); }
-  90% { opacity: 1; }
-  100% { opacity: 0; }
+  0% {
+    opacity: 0;
+    transform: translateX(-50%) translateY(-8px);
+  }
+  10% {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+  90% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
 }
 
 /* Site footer — RHS style: Contact Us + Find Us + Privacy */

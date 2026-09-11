@@ -9,12 +9,16 @@ const getAdminFromToken = () => {
 
   if (!currentToken) return false;
 
-  
   try {
     const payload = JSON.parse(atob(currentToken.split(".")[1] || ""));
     const adminValue = payload.admin;
     if (adminValue !== undefined && adminValue !== null) {
-      return adminValue === true || adminValue === 1 || adminValue === "1" || adminValue === "true";
+      return (
+        adminValue === true ||
+        adminValue === 1 ||
+        adminValue === "1" ||
+        adminValue === "true"
+      );
     }
   } catch (error) {
     console.error("Error decoding token for admin status:", error);
@@ -37,15 +41,25 @@ function DynamicDataList() {
   const handleDeleteExpertise = async (expertiseName) => {
     if (!expertiseName) return;
 
-    const confirmed = window.confirm(`Delete the expertise "${expertiseName}" from all profiles?`);
+    const confirmed = window.confirm(
+      `Delete the expertise "${expertiseName}" from all profiles?`,
+    );
     if (!confirmed) return;
 
     try {
-      await api.delete(`/data/dynamicdata/${encodeURIComponent(expertiseName)}`);
-      setAdmins((current) => current.filter((item) => (item.expertise || item.name) !== expertiseName));
+      await api.delete(
+        `/data/dynamicdata/${encodeURIComponent(expertiseName)}`,
+      );
+      setAdmins((current) =>
+        current.filter(
+          (item) => (item.expertise || item.name) !== expertiseName,
+        ),
+      );
     } catch (error) {
       console.error("Error deleting expertise:", error);
-      alert(error.response?.data?.message || "Unable to delete selected expertise.");
+      alert(
+        error.response?.data?.message || "Unable to delete selected expertise.",
+      );
     }
   };
 
@@ -78,8 +92,6 @@ function DynamicDataList() {
     return () => controller.abort();
   }, [navigate]);
 
-
-
   if (!token) return null;
 
   return (
@@ -100,7 +112,10 @@ function DynamicDataList() {
       </div>
 
       {showAddExpertise && (
-        <AddExpertise isOpen={showAddExpertise} onClose={() => setShowAddExpertise(false)} />
+        <AddExpertise
+          isOpen={showAddExpertise}
+          onClose={() => setShowAddExpertise(false)}
+        />
       )}
 
       {expertiseToEdit && (
@@ -109,16 +124,17 @@ function DynamicDataList() {
           isOpen={Boolean(expertiseToEdit)}
           onClose={() => setExpertiseToEdit(null)}
           onSaved={(updatedExpertise) => {
-            setAdmins((current) => current.map((item) => (
-              item.expertise_id === expertiseToEdit.expertise_id
-                ? { ...item, ...updatedExpertise }
-                : item
-            )));
+            setAdmins((current) =>
+              current.map((item) =>
+                item.expertise_id === expertiseToEdit.expertise_id
+                  ? { ...item, ...updatedExpertise }
+                  : item,
+              ),
+            );
           }}
         />
       )}
 
-      
       {loading ? (
         <p>Loading dynamic data...</p>
       ) : (
@@ -127,24 +143,43 @@ function DynamicDataList() {
             <p>No expertise entries found.</p>
           ) : (
             admins.map((skill) => (
-              <article className="profile-card" key={skill.expertise_id ?? skill.id ?? skill.expertise ?? skill.name}>
+              <article
+                className="profile-card"
+                key={
+                  skill.expertise_id ??
+                  skill.id ??
+                  skill.expertise ??
+                  skill.name
+                }
+              >
                 <div className="profile-card-body">
-                  
-                  <p><strong></strong> {skill.expertise || skill.name || "-"}</p>
                   <p>
+                    <strong></strong> {skill.expertise || skill.name || "-"}
+                  </p>
+                  <p style={{ marginLeft: "auto" }}>
                     <button
-                      className="btn btn-primary"
+                      className="btn btn-light"
                       type="button"
                       onClick={() => setExpertiseToEdit(skill)}
                     >
-                      Edit
+                      <img
+                        src="src/assets/edit.png"
+                        alt="Edit"
+                        style={{ width: "16px", height: "16px" }}
+                      />
                     </button>{" "}
                     <button
                       className="btn btn-danger"
                       type="button"
-                      onClick={() => handleDeleteExpertise(skill.expertise_id || skill.id)}
+                      onClick={() =>
+                        handleDeleteExpertise(skill.expertise_id || skill.id)
+                      }
                     >
-                      Delete
+                      <img
+                        src="src/assets/bin.png"
+                        alt="Delete"
+                        style={{ width: "16px", height: "16px" }}
+                      />
                     </button>
                   </p>
                 </div>
