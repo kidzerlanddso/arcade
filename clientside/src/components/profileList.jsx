@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import * as XLSX from "xlsx";
 import Register from "../components/Register";
 
@@ -50,6 +50,7 @@ function ProfileList() {
   // const [showModal, setShowModal] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedYear, setSelectedYear] = useState("all");
+  const [selectedInstitution, setSelectedInstitution] = useState("all");
   const [selectedExpertise, setSelectedExpertise] = useState("all");
   const [sortBy, setSortBy] = useState("firstname");
   const [sortDirection, setSortDirection] = useState("asc");
@@ -62,6 +63,7 @@ function ProfileList() {
   const [connectingUserId, setConnectingUserId] = useState(null);
   // Shape: { [user_id]: { status, connectionId, direction } }
   const [connectionStatus, setConnectionStatus] = useState({});
+  const [profileInstitutions, setProfileInstitutions] = useState({});
   const [connectToast, setConnectToast] = useState("");
   const [showRegister, setShowRegister] = useState(false);
 
@@ -101,11 +103,37 @@ function ProfileList() {
       setConnectionStatus(Object.fromEntries(entries));
     };
 
+    const loadEducationInstitutions = async (profileList) => {
+      const userIds = [
+        ...new Set(
+          profileList.map((profile) => Number(profile.user_id)).filter(Boolean),
+        ),
+      ];
+
+      const entries = await Promise.all(
+        userIds.map(async (userId) => {
+          try {
+            const response = await api.get(`/education/user/${userId}`);
+            const institutions = (response.data || [])
+              .map((item) => String(item.institution || "").trim())
+              .filter(Boolean);
+            return [userId, institutions];
+          } catch (error) {
+            console.error("Error loading education institutions:", error);
+            return [userId, []];
+          }
+        }),
+      );
+
+      setProfileInstitutions(Object.fromEntries(entries));
+    };
+
     api
       .get("/profile", { signal: controller.signal })
       .then(async (response) => {
         const profileData = response.data.data || response.data;
         setProfiles(profileData);
+        await loadEducationInstitutions(profileData);
         // Admins do not use Connect — skip relationship status loading
         if (!isAdmin) {
           await loadConnectionStatuses(profileData);
@@ -316,6 +344,14 @@ function ProfileList() {
     ),
   ).sort((a, b) => a.localeCompare(b));
 
+  const institutionOptions = Array.from(
+    new Set(
+      Object.values(profileInstitutions).flatMap(
+        (institutions) => institutions,
+      ),
+    ),
+  ).sort((a, b) => a.localeCompare(b));
+
   const filteredProfiles = profiles.filter((profile) => {
     const fullName =
       `${profile.firstname || ""} ${profile.lastname || ""}`.toLowerCase();
@@ -335,9 +371,6 @@ function ProfileList() {
     const profileYear = profile.year || profile.graduation_year;
     const matchesYear =
       selectedYear === "all" || String(profileYear) === String(selectedYear);
-    const profileExpertise = (profile.expertise || [])
-      .map((e) => e.name?.trim().toLowerCase())
-      .filter(Boolean);
     const matchesExpertise =
       selectedExpertise === "all"
         ? true
@@ -348,8 +381,18 @@ function ProfileList() {
                 e.name?.trim().toLowerCase() ===
                 selectedExpertise.trim().toLowerCase(),
             );
+    const matchingInstitutions = (
+      profileInstitutions[Number(profile.user_id)] || []
+    )
+      .map((entry) => entry.trim().toLowerCase())
+      .filter(Boolean);
+    const matchesInstitution =
+      selectedInstitution === "all" ||
+      matchingInstitutions.includes(selectedInstitution.trim().toLowerCase());
     //console.log("PROFILE:", profile);
-    return matchesSearch && matchesYear && matchesExpertise;
+    return (
+      matchesSearch && matchesYear && matchesExpertise && matchesInstitution
+    );
   });
 
   const sortedProfiles = [...filteredProfiles].sort(
@@ -509,6 +552,23 @@ function ProfileList() {
 
         <select
           className="year-filter"
+          value={selectedInstitution}
+          onChange={(e) => {
+            setSelectedInstitution(e.target.value);
+            setCurrentPage(1);
+          }}
+        >
+          <option value="all">All Education Institution</option>
+
+          {institutionOptions.map((educationInstitution) => (
+            <option key={educationInstitution} value={educationInstitution}>
+              {educationInstitution}
+            </option>
+          ))}
+        </select>
+
+        <select
+          className="year-filter"
           value={selectedExpertise}
           onChange={(e) => {
             setSelectedExpertise(e.target.value);
@@ -516,11 +576,11 @@ function ProfileList() {
           }}
         >
           <option value="all">All profiles</option>
-          <option value="has-expertise">All expertise</option>
+          <option value="has-expertise">- Profiles with expertise</option>
 
           {expertiseOptions.map((expertise) => (
             <option key={expertise} value={expertise}>
-              {expertise}
+              -- {expertise}
             </option>
           ))}
         </select>
