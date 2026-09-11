@@ -7,6 +7,7 @@ import MyProfilePage from "../pages/MyProfilePage";
 import Dashboard from "../components/Dashboard";
 import MessageAlumniPage from "../pages/MessageAlumniPage";
 import EventsPage from "../pages/EventsPage";
+import About from "../pages/about";
 import EventDetailsPage from "../pages/EventDetailsPage";
 import DynamicData from "../components/DynamicData";
 import AdminList from "../components/adminlist";
@@ -40,6 +41,14 @@ function AppRoutes() {
         element={
           <ProtectedRoute>
             <EventsPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/about"
+        element={
+          <ProtectedRoute>
+            <About />
           </ProtectedRoute>
         }
       />
