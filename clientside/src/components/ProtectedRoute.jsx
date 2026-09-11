@@ -180,9 +180,6 @@ function ProtectedRoute({ children }) {
             className={`app-header-nav${mobileMenuOpen ? " is-open" : ""}`}
             aria-label="Main navigation"
           >
-            <Link to="/about" onClick={() => setMobileMenuOpen(false)}>
-              About AlumniConnect
-            </Link>
 
             <Link to="/profile" onClick={() => setMobileMenuOpen(false)}>
               Find an Alumni
