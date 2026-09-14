@@ -60,7 +60,15 @@ app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 app.get("/", (req, res) => {
   res.json({ message: "Welcome to Alumni Portal" });
 });
-
+app.get("/keepalive", async (req, res) => {
+  try {
+    await db.query("SELECT 1");
+    res.status(200).json({ ok: true, ts: new Date().toISOString() });
+  } catch (error) {
+    console.error("keepalive failed:", error.message);
+    res.status(500).json({ ok: false, error: error.message });
+  }
+});
 require("./app/routes/auth.routes.js")(app);
 require("./app/routes/profile.routes.js")(app);
 require("./app/routes/employment.routes.js")(app);
