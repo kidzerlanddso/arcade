@@ -1,8 +1,8 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import EventDetailsModal from "../components/EventDetailsModal";
 import api from "../api/axios";
-import { formatEventDate, formatEventTime, toDateInputValue, toTimeInputValue } from "../data/events";
+import { formatEventDate, formatEventTimeRange, toDateInputValue, toTimeInputValue } from "../data/events";
 
 const getAdminStatus = () => localStorage.getItem("isAdmin") === "true";
 
@@ -22,7 +22,7 @@ function EventsPage() {
   const [isMonthPickerOpen, setIsMonthPickerOpen] = useState(false);
   const [isCalendarViewMenuOpen, setIsCalendarViewMenuOpen] = useState(false);
   const [registeringEventId, setRegisteringEventId] = useState(null);
-  const imageInputRef = useRef(null);
+  const [imageFile, setImageFile] = useState(null);
   const [newEvent, setNewEvent] = useState({
     title: "",
     date: "",
@@ -46,23 +46,32 @@ function EventsPage() {
     setNewEvent((current) => ({ ...current, [name]: value }));
   };
 
-  const handleAddEvent = (event) => {
+  const handleAddEvent = async (event) => {
     event.preventDefault();
-    const request = editingEventId === null
-      ? api.post("/events", newEvent)
-      : api.patch(`/events/${editingEventId}`, newEvent);
+    try {
+      const response = editingEventId === null
+        ? await api.post("/events", newEvent)
+        : await api.patch(`/events/${editingEventId}`, newEvent);
+      let savedEvent = response.data;
 
-    request
-      .then((response) => {
-        setEvents((currentEvents) => editingEventId === null
-          ? [...currentEvents, response.data]
-          : currentEvents.map((currentEvent) => currentEvent.id === editingEventId ? response.data : currentEvent));
-        setErrorMessage("");
-      })
-      .catch((error) => setErrorMessage(error.response?.data?.message || "Unable to save event."));
-    setNewEvent({ ...newEvent, title: "", date: "", startTime: "", endTime: "", location: "", description: "" });
-    setShowAddEvent(false);
-    setEditingEventId(null);
+      if (imageFile) {
+        const imageData = new FormData();
+        imageData.append("eventImage", imageFile);
+        const imageResponse = await api.post(`/events/${savedEvent.id}/image`, imageData);
+        savedEvent = imageResponse.data;
+      }
+
+      setEvents((currentEvents) => editingEventId === null
+        ? [...currentEvents, savedEvent]
+        : currentEvents.map((currentEvent) => currentEvent.id === editingEventId ? savedEvent : currentEvent));
+      setNewEvent({ ...newEvent, title: "", date: "", startTime: "", endTime: "", location: "", description: "" });
+      setImageFile(null);
+      setShowAddEvent(false);
+      setEditingEventId(null);
+      setErrorMessage("");
+    } catch (error) {
+      setErrorMessage(error.response?.data?.message || "Unable to save event.");
+    }
   };
 
   const handleEditEvent = (event, clickEvent) => {
@@ -73,6 +82,7 @@ function EventsPage() {
       startTime: toTimeInputValue(event.startTime),
       endTime: toTimeInputValue(event.endTime)
     });
+    setImageFile(null);
     setEditingEventId(event.id);
     setShowAddEvent(true);
   };
@@ -163,27 +173,16 @@ function EventsPage() {
 
       {isAdmin && showAddEvent && (
         <form className="add-event-form" onSubmit={handleAddEvent}>
-            <h2>{editingEventId === null ? "Add a Rototuna event" : "Edit event"}</h2>
+          <h2>{editingEventId === null ? "Add a Rototuna event" : "Edit event"}</h2>
           <div className="add-event-fields">
-            <input name="title" value={newEvent.title} onChange={handleNewEventChange} placeholder="Event title" required />
-            <input type="date" name="date" value={toDateInputValue(newEvent.date)} onChange={handleNewEventChange} required />
-            <input type="time" name="startTime" value={toTimeInputValue(newEvent.startTime)} onChange={handleNewEventChange} required />
-            <input type="time" name="endTime" value={toTimeInputValue(newEvent.endTime)} onChange={handleNewEventChange} required />
-            <input name="location" value={newEvent.location} onChange={handleNewEventChange} placeholder="Rototuna location" required />
-            <div className="event-image-field">
-              <input ref={imageInputRef} name="image" type="url" value={newEvent.image} onChange={handleNewEventChange} placeholder="Photo URL" />
-              <button
-                className="event-image-edit-button"
-                type="button"
-                aria-label="Edit event image URL"
-                title="Edit event image URL"
-                onClick={() => imageInputRef.current?.focus()}
-              >
-                ✎
-              </button>
-            </div>
+            <label className="event-form-field">Event title<input name="title" value={newEvent.title} onChange={handleNewEventChange} required /></label>
+            <label className="event-form-field">Date<input type="date" name="date" value={toDateInputValue(newEvent.date)} onChange={handleNewEventChange} required /></label>
+            <label className="event-form-field">Start time<input type="time" name="startTime" value={toTimeInputValue(newEvent.startTime)} onChange={handleNewEventChange} required /></label>
+            <label className="event-form-field">End time<input type="time" name="endTime" value={toTimeInputValue(newEvent.endTime)} onChange={handleNewEventChange} required /></label>
+            <label className="event-form-field">Location<input name="location" value={newEvent.location} onChange={handleNewEventChange} required /></label>
+            <label className="event-form-field">Event image (JPG)<input name="eventImage" type="file" accept="image/jpeg,.jpg,.jpeg" onChange={(event) => setImageFile(event.target.files?.[0] || null)} /></label>
           </div>
-          <textarea name="description" value={newEvent.description} onChange={handleNewEventChange} placeholder="Event description" rows="4" required />
+          <label className="event-form-field">Description<textarea name="description" value={newEvent.description} onChange={handleNewEventChange} rows="4" required /></label>
           <div className="add-event-form-actions">
             <button className="primary-action" type="submit">Save event</button>
             <button
@@ -284,7 +283,6 @@ function EventsPage() {
         <div className="events-list-header" role="row">
           <span>Event name<br />Date, time, location</span>
           <span>Registration</span>
-          <span>Registration types<br />(Pending + Confirmed = Total)</span>
           <span>Attendance</span>
           <span>Tags</span>
           <span></span>
@@ -293,30 +291,16 @@ function EventsPage() {
           <article className={`event-list-row ${index % 2 === 0 ? "event-list-row-tinted" : ""}`} key={event.id} role="row" onClick={() => setSelectedEvent(event)}>
             <div className="event-list-name">
               <Link to={`/events/${event.id}`} onClick={(clickEvent) => clickEvent.stopPropagation()}>{event.title}</Link>
-              <strong>{formatEventDate(event.date)} · {formatEventTime(event.startTime)} - {formatEventTime(event.endTime)}</strong>
+              <strong>{formatEventDate(event.date)} · {formatEventTimeRange(event.startTime, event.endTime)}</strong>
               <span>{event.location}</span>
             </div>
             <div><strong>Enabled</strong></div>
-            <div>
-              <strong>Total: {(event.pendingRegistrations || 0) + (event.confirmedRegistrations || 0)}</strong>
-              <span>Pending: {event.pendingRegistrations || 0} · Confirmed: {event.confirmedRegistrations || 0}</span>
-            </div>
             <div className="event-attendance">
               <strong>{event.attendedCount || 0}</strong>
               <span>Attended</span>
             </div>
             <div className="event-tags"><span>event</span><span>alumni</span></div>
             <div className="event-row-actions">
-              {!isAdmin && (
-                <button
-                  className="event-register-button"
-                  type="button"
-                  disabled={event.userJoined || registeringEventId === event.id}
-                  onClick={(clickEvent) => handleRegister(event, clickEvent)}
-                >
-                  {registeringEventId === event.id ? "Registering..." : event.userJoined ? "Registered" : "Register"}
-                </button>
-              )}
               {isAdmin && <button className="edit-event-button" type="button" onClick={(clickEvent) => handleEditEvent(event, clickEvent)}>Edit</button>}
             </div>
           </article>

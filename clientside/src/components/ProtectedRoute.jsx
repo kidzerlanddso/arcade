@@ -159,6 +159,11 @@ function ProtectedRoute({ children }) {
             <Link to="/dashboard" onClick={() => setMobileMenuOpen(false)}>Dashboard</Link>
 
             <Link to="/profile" onClick={() => setMobileMenuOpen(false)}>Find an Alumni</Link>
+
+            <Link to="/announcements" onClick={() => setMobileMenuOpen(false)}>News</Link>
+
+            <Link to="/teachers" onClick={() => setMobileMenuOpen(false)}>Teacher Profiles</Link>
+
             {isAdmin && (
               <div className="profile-menu" ref={adminMenuRef}>
                 <button

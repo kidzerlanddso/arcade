@@ -247,31 +247,6 @@ function AdminList() {
         </div>
       )}
 
-      <section className="admin-event-registrations">
-        <h2>Event registrations</h2>
-        {eventRegistrations.length === 0 ? (
-          <p>No users have joined any events.</p>
-        ) : (
-          [...new Map(eventRegistrations.map((row) => [row.eventId, row])).values()].map((event) => {
-            const rows = eventRegistrations.filter((row) => row.eventId === event.eventId);
-
-            return (
-              <article className="admin-event-registration-card" key={event.eventId}>
-                <h3>{event.title}</h3>
-                <p>{rows.length} joined</p>
-                <ul>
-                  {rows.map((row) => (
-                    <li key={`${row.eventId}-${row.userId}`}>
-                      <strong>{[row.firstname, row.lastname].filter(Boolean).join(" ") || row.username}</strong>
-                      <span>{row.email || row.username} · {row.status}</span>
-                    </li>
-                  ))}
-                </ul>
-              </article>
-            );
-          })
-        )}
-      </section>
     </div>
   );
 }

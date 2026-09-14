@@ -130,6 +130,12 @@ export const formatEventTime = (value) => {
   return `${hours % 12 || 12}:${String(minutes).padStart(2, "0")} ${period}`;
 };
 
+export const formatEventTimeRange = (startTime, endTime) => {
+  if (!startTime || !endTime) return "Time to be confirmed";
+
+  return `${formatEventTime(startTime)} - ${formatEventTime(endTime)}`;
+};
+
 export const getEvents = () => {
   try {
     const storedEvents = JSON.parse(localStorage.getItem(storedEventsKey) || "[]");

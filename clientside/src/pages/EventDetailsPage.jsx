@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import api from "../api/axios";
-import { formatEventDate, formatEventTime } from "../data/events";
+import { formatEventDate, formatEventTimeRange } from "../data/events";
 
 function getAdminStatus() {
   const token = localStorage.getItem("token");
@@ -139,7 +139,7 @@ function EventDetailsPage() {
           <h1>{event.title}</h1>
           <p className="event-details-rating">★★★★★ <span>Community event</span></p>
           <p className="event-details-meta">⌖ {event.location}</p>
-          <p className="event-details-meta">◷ {formatEventDate(event.date)} · {formatEventTime(event.startTime)} - {formatEventTime(event.endTime)}</p>
+          <p className="event-details-meta">◷ {formatEventDate(event.date)} · {formatEventTimeRange(event.startTime, event.endTime)}</p>
           <div className="event-details-share"><span>Share</span><button type="button" onClick={handleCopyLink}>{copyStatus}</button></div>
         </div>
       </section>
@@ -169,7 +169,7 @@ function EventDetailsPage() {
           <h2>Details</h2>
           <dl className="event-details-facts">
             <div><dt>Date</dt><dd>{formatEventDate(event.date)}</dd></div>
-            <div><dt>Time</dt><dd>{formatEventTime(event.startTime)} - {formatEventTime(event.endTime)}</dd></div>
+            <div><dt>Time</dt><dd>{formatEventTimeRange(event.startTime, event.endTime)}</dd></div>
             <div><dt>Location</dt><dd>{event.location}</dd></div>
           </dl>
           <section id="discussion" className="event-details-section">

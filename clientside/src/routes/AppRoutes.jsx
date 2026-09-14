@@ -14,6 +14,8 @@ import AdminList from "../components/adminlist";
 import NewProfile from "../components/NewProfile";
 import MembershipRequest from "../components/membershiprequest";
 import AlumniProfilePage from "../pages/AlumniProfilePage";
+import AnnouncementsPage from "../pages/AnnouncementsPage";
+import TeacherProfilesPage from "../pages/TeacherProfilesPage";
 
 function AppRoutes() {
   return (
@@ -25,6 +27,10 @@ function AppRoutes() {
       <Route        path="/profile"        element={<ProtectedRoute><ProfilePage /></ProtectedRoute>}      />
 
       <Route        path="/events"        element={<ProtectedRoute><EventsPage /></ProtectedRoute>}      />
+
+      <Route        path="/announcements"        element={<ProtectedRoute><AnnouncementsPage /></ProtectedRoute>}      />
+
+      <Route        path="/teachers"        element={<ProtectedRoute><TeacherProfilesPage /></ProtectedRoute>}      />
 
       <Route        path="/events/:eventId"        element={<ProtectedRoute><EventDetailsPage /></ProtectedRoute>}      />
 
