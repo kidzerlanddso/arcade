@@ -4,10 +4,19 @@ import api from "../api/axios";
 
 const passwordRequirements = [
   { label: "At least 8 characters ", test: (password) => password.length >= 8 },
-  { label: "One uppercase letter ", test: (password) => /[A-Z]/.test(password) },
-  { label: "One lowercase letter ", test: (password) => /[a-z]/.test(password) },
+  {
+    label: "One uppercase letter ",
+    test: (password) => /[A-Z]/.test(password),
+  },
+  {
+    label: "One lowercase letter ",
+    test: (password) => /[a-z]/.test(password),
+  },
   { label: "One number ", test: (password) => /\d/.test(password) },
-  { label: "One special character ", test: (password) => /[^A-Za-z0-9]/.test(password) }
+  {
+    label: "One special character ",
+    test: (password) => /[^A-Za-z0-9]/.test(password),
+  },
 ];
 
 const isPasswordStrong = (password) =>
@@ -29,7 +38,7 @@ function Register({ isOpen, onClose }) {
     fieldOfStudy: "",
     company: "",
     jobTitle: "",
-    startDate: ""
+    startDate: "",
   });
   const [status, setStatus] = useState({ type: "", message: "" });
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -39,7 +48,7 @@ function Register({ isOpen, onClose }) {
 
   const passwordChecks = passwordRequirements.map((rule) => ({
     ...rule,
-    passed: rule.test(formData.password)
+    passed: rule.test(formData.password),
   }));
 
   const passwordsMatch =
@@ -62,7 +71,7 @@ function Register({ isOpen, onClose }) {
       setStatus({
         type: "error",
         message:
-          "Password must include at least 8 characters, uppercase, lowercase, a number, and a special character."
+          "Password must include at least 8 characters, uppercase, lowercase, a number, and a special character.",
       });
       return;
     }
@@ -73,33 +82,43 @@ function Register({ isOpen, onClose }) {
     }
 
     if (!formData.pathwayType) {
-      setStatus({ type: "error", message: "Please select your current situation." });
+      setStatus({
+        type: "error",
+        message: "Please select your current situation.",
+      });
       return;
     }
 
-    const pathway = formData.pathwayType === "studying"
-      ? {
-          type: "studying",
-          institution: formData.institution.trim(),
-          qualification: formData.qualification.trim(),
-          field_of_study: formData.fieldOfStudy.trim(),
-          start_date: formData.startDate
-        }
-      : {
-          type: "working",
-          company: formData.company.trim(),
-          job_title: formData.jobTitle.trim(),
-          start_date: formData.startDate
-        };
+    const pathway =
+      formData.pathwayType === "studying"
+        ? {
+            type: "studying",
+            institution: formData.institution.trim(),
+            qualification: formData.qualification.trim(),
+            field_of_study: formData.fieldOfStudy.trim(),
+            start_date: formData.startDate,
+          }
+        : {
+            type: "working",
+            company: formData.company.trim(),
+            job_title: formData.jobTitle.trim(),
+            start_date: formData.startDate,
+          };
 
-    const pathwayFields = formData.pathwayType === "studying"
-      ? [pathway.institution, pathway.qualification, pathway.field_of_study, pathway.start_date]
-      : [pathway.company, pathway.job_title, pathway.start_date];
+    const pathwayFields =
+      formData.pathwayType === "studying"
+        ? [
+            pathway.institution,
+            pathway.qualification,
+            pathway.field_of_study,
+            pathway.start_date,
+          ]
+        : [pathway.company, pathway.job_title, pathway.start_date];
 
     if (pathwayFields.some((value) => !value)) {
       setStatus({
         type: "error",
-        message: "Please complete all current situation fields."
+        message: "Please complete all current situation fields.",
       });
       return;
     }
@@ -114,13 +133,19 @@ function Register({ isOpen, onClose }) {
       username: formData.username.trim(),
       password: formData.password,
       email: formData.email.trim(),
-      pathway
+      pathway,
     };
 
-    if (!payload.firstname || !payload.lastname || !payload.username || !payload.password || !payload.email) {
+    if (
+      !payload.firstname ||
+      !payload.lastname ||
+      !payload.username ||
+      !payload.password ||
+      !payload.email
+    ) {
       setStatus({
         type: "error",
-        message: "Please fill in all required fields."
+        message: "Please fill in all required fields.",
       });
       return;
     }
@@ -131,7 +156,7 @@ function Register({ isOpen, onClose }) {
       const response = await api.post("/auth/register", payload);
       setStatus({
         type: "success",
-        message: response.data.message || "Registration successful!"
+        message: response.data.message || "Registration successful!",
       });
 
       window.setTimeout(() => {
@@ -143,7 +168,7 @@ function Register({ isOpen, onClose }) {
         type: "error",
         message:
           error.response?.data?.message ||
-          "Registration failed. Please try again."
+          "Registration failed. Please try again.",
       });
     } finally {
       setIsSubmitting(false);
@@ -161,18 +186,22 @@ function Register({ isOpen, onClose }) {
       "username",
       "email",
       "password",
-      "confirmPassword"
+      "confirmPassword",
     ];
 
     if (requiredFields.some((field) => !String(formData[field]).trim())) {
-      setStatus({ type: "error", message: "Please fill in all required fields before continuing." });
+      setStatus({
+        type: "error",
+        message: "Please fill in all required fields before continuing.",
+      });
       return;
     }
 
     if (!isPasswordStrong(formData.password)) {
       setStatus({
         type: "error",
-        message: "Password must include at least 8 characters, uppercase, lowercase, a number, and a special character."
+        message:
+          "Password must include at least 8 characters, uppercase, lowercase, a number, and a special character.",
       });
       return;
     }
@@ -207,130 +236,142 @@ function Register({ isOpen, onClose }) {
         <form onSubmit={step === 1 ? handleNext : handleSubmit}>
           {step === 1 ? (
             <>
-          <div className="form-field">
-            <label htmlFor="firstName">First name<span className="required-mark">*</span></label>
-            <input
-              id="firstName"
-              type="text"
-              name="firstName"
-              value={formData.firstName}
-              placeholder="First name"
-              onChange={handleChange}
-            />
-          </div>
+              <div className="form-field">
+                <label htmlFor="firstName">
+                  First name<span className="required-mark">*</span>
+                </label>
+                <input
+                  id="firstName"
+                  type="text"
+                  name="firstName"
+                  value={formData.firstName}
+                  placeholder="First name"
+                  onChange={handleChange}
+                />
+              </div>
 
-          <div className="form-field">
-            <label htmlFor="lastName">Last name<span className="required-mark">*</span></label>
-            <input
-              id="lastName"
-              type="text"
-              name="lastName"
-              value={formData.lastName}
-              placeholder="Last name"
-              onChange={handleChange}
-            />
-          </div>
+              <div className="form-field">
+                <label htmlFor="lastName">
+                  Last name<span className="required-mark">*</span>
+                </label>
+                <input
+                  id="lastName"
+                  type="text"
+                  name="lastName"
+                  value={formData.lastName}
+                  placeholder="Last name"
+                  onChange={handleChange}
+                />
+              </div>
 
-          <div className="form-field">
-            <label htmlFor="yearOfGraduation">Year of graduation<span className="required-mark">*</span></label>
-            <input
-              id="yearOfGraduation"
-              type="number"
-              name="yearOfGraduation"
-              value={formData.yearOfGraduation}
-              placeholder="Year of graduation"
-              onChange={handleChange}
-            />
-          </div>
+              <div className="form-field">
+                <label htmlFor="yearOfGraduation">
+                  Year of graduation<span className="required-mark">*</span>
+                </label>
+                <input
+                  id="yearOfGraduation"
+                  type="number"
+                  name="yearOfGraduation"
+                  value={formData.yearOfGraduation}
+                  placeholder="Year of graduation"
+                  onChange={handleChange}
+                />
+              </div>
 
-          <div className="form-field">
-            <label htmlFor="studentId">Student ID</label>
-            <input
-              id="studentId"
-              type="text"
-              name="studentId"
-              value={formData.studentId}
-              placeholder="Student ID"
-              onChange={handleChange}
-            />
-          </div>
+              <div className="form-field">
+                <label htmlFor="studentId">Student ID</label>
+                <input
+                  id="studentId"
+                  type="text"
+                  name="studentId"
+                  value={formData.studentId}
+                  placeholder="Student ID"
+                  onChange={handleChange}
+                />
+              </div>
 
-          <div className="form-field">
-            <label htmlFor="username">
-              Username <span className="required-mark">*</span>
-            </label>
-            <input
-              id="username"
-              type="text"
-              name="username"
-              value={formData.username}
-              placeholder="Choose a username"
-              onChange={handleChange}
-              required
-            />
-          </div>
+              <div className="form-field">
+                <label htmlFor="username">
+                  Username <span className="required-mark">*</span>
+                </label>
+                <input
+                  id="username"
+                  type="text"
+                  name="username"
+                  value={formData.username}
+                  placeholder="Choose a username"
+                  onChange={handleChange}
+                  required
+                />
+              </div>
 
-          <div className="form-field">
-            <label htmlFor="email">
-              Email <span className="required-mark">*</span>
-            </label>
-            <input
-              id="email"
-              type="email"
-              name="email"
-              value={formData.email}
-              placeholder="Enter your email"
-              onChange={handleChange}
-              required
-            />
-          </div>
+              <div className="form-field">
+                <label htmlFor="email">
+                  Email <span className="required-mark">*</span>
+                </label>
+                <input
+                  id="email"
+                  type="email"
+                  name="email"
+                  value={formData.email}
+                  placeholder="Enter your email"
+                  onChange={handleChange}
+                  required
+                />
+              </div>
 
-          <div className="form-field">
-            <label htmlFor="password">
-              Password <span className="required-mark">*</span>
-            </label>
-            <input
-              id="password"
-              type="password"
-              name="password"
-              value={formData.password}
-              placeholder="Create a password"
-              onChange={handleChange}
-              required
-            />
-          </div>
+              <div className="form-field">
+                <label htmlFor="password">
+                  Password <span className="required-mark">*</span>
+                </label>
+                <input
+                  id="password"
+                  type="password"
+                  name="password"
+                  value={formData.password}
+                  placeholder="Create a password"
+                  onChange={handleChange}
+                  required
+                />
+              </div>
 
-          <div className="form-field">
-            <label htmlFor="confirmPassword">
-              Confirm password <span className="required-mark">*</span>
-            </label>
-            <input
-              id="confirmPassword"
-              type="password"
-              name="confirmPassword"
-              value={formData.confirmPassword}
-              placeholder="Re-enter password"
-              onChange={handleChange}
-              required
-            />
-          </div>
+              <div className="form-field">
+                <label htmlFor="confirmPassword">
+                  Confirm password <span className="required-mark">*</span>
+                </label>
+                <input
+                  id="confirmPassword"
+                  type="password"
+                  name="confirmPassword"
+                  value={formData.confirmPassword}
+                  placeholder="Re-enter password"
+                  onChange={handleChange}
+                  required
+                />
+              </div>
 
-          <ul className="password-rules">
-            {passwordChecks.map((rule) => (
-              <li
-                key={rule.label}
-                className={rule.passed ? "valid" : "invalid"}
-              >
-                {rule.label}
-              </li>
-            ))}
-          </ul>
+              <ul className="password-rules">
+                {passwordChecks.map((rule) => (
+                  <li
+                    key={rule.label}
+                    className={rule.passed ? "valid" : "invalid"}
+                  >
+                    {rule.label}
+                  </li>
+                ))}
+              </ul>
 
-          {formData.confirmPassword && (
-            <p className={passwordsMatch ? "password-match" : "password-mismatch"}>
-              {passwordsMatch ? "Passwords match" : "Passwords do not match"}
-            </p>
-          )}
+              {formData.confirmPassword && (
+                <p
+                  className={
+                    passwordsMatch ? "password-match" : "password-mismatch"
+                  }
+                >
+                  {passwordsMatch
+                    ? "Passwords match"
+                    : "Passwords do not match"}
+                </p>
+              )}
 
               <p className="form-note">
                 <span className="required-mark">*</span> Required field
@@ -347,6 +388,7 @@ function Register({ isOpen, onClose }) {
                   Post-school pathway <span className="required-mark">*</span>
                 </label>
                 <select
+                  className="register-select"
                   id="pathwayType"
                   name="pathwayType"
                   value={formData.pathwayType}
@@ -357,25 +399,59 @@ function Register({ isOpen, onClose }) {
                   <option value="studying">Currently studying</option>
                   <option value="working">Currently working</option>
                 </select>
-              </div><br/>
+              </div>
+              <br />
 
               {formData.pathwayType === "studying" && (
-                <>                  
+                <>
                   <div className="form-field">
-                    <label htmlFor="institution">Institution<span className="required-mark">*</span></label>
-                    <input id="institution" name="institution" value={formData.institution} onChange={handleChange} required />
+                    <label htmlFor="institution">
+                      Institution<span className="required-mark">*</span>
+                    </label>
+                    <input
+                      id="institution"
+                      name="institution"
+                      value={formData.institution}
+                      onChange={handleChange}
+                      required
+                    />
                   </div>
                   <div className="form-field">
-                    <label htmlFor="qualification">Qualification<span className="required-mark">*</span></label>
-                    <input id="qualification" name="qualification" value={formData.qualification} onChange={handleChange} required />
+                    <label htmlFor="qualification">
+                      Qualification<span className="required-mark">*</span>
+                    </label>
+                    <input
+                      id="qualification"
+                      name="qualification"
+                      value={formData.qualification}
+                      onChange={handleChange}
+                      required
+                    />
                   </div>
                   <div className="form-field">
-                    <label htmlFor="fieldOfStudy">Field of study<span className="required-mark">*</span></label>
-                    <input id="fieldOfStudy" name="fieldOfStudy" value={formData.fieldOfStudy} onChange={handleChange} required />
+                    <label htmlFor="fieldOfStudy">
+                      Field of study<span className="required-mark">*</span>
+                    </label>
+                    <input
+                      id="fieldOfStudy"
+                      name="fieldOfStudy"
+                      value={formData.fieldOfStudy}
+                      onChange={handleChange}
+                      required
+                    />
                   </div>
                   <div className="form-field">
-                    <label htmlFor="startDate">Start date<span className="required-mark">*</span></label>
-                    <input id="startDate" type="date" name="startDate" value={formData.startDate} onChange={handleChange} required />
+                    <label htmlFor="startDate">
+                      Start date<span className="required-mark">*</span>
+                    </label>
+                    <input
+                      id="startDate"
+                      type="date"
+                      name="startDate"
+                      value={formData.startDate}
+                      onChange={handleChange}
+                      required
+                    />
                   </div>
                 </>
               )}
@@ -383,31 +459,63 @@ function Register({ isOpen, onClose }) {
               {formData.pathwayType === "working" && (
                 <>
                   <div className="form-field">
-                    <label htmlFor="company">Company<span className="required-mark">*</span></label>
-                    <input id="company" name="company" value={formData.company} onChange={handleChange} required />
+                    <label htmlFor="company">
+                      Company<span className="required-mark">*</span>
+                    </label>
+                    <input
+                      id="company"
+                      name="company"
+                      value={formData.company}
+                      onChange={handleChange}
+                      required
+                    />
                   </div>
                   <div className="form-field">
-                    <label htmlFor="jobTitle">Job title<span className="required-mark">*</span></label>
-                    <input id="jobTitle" name="jobTitle" value={formData.jobTitle} onChange={handleChange} required />
+                    <label htmlFor="jobTitle">
+                      Job title<span className="required-mark">*</span>
+                    </label>
+                    <input
+                      id="jobTitle"
+                      name="jobTitle"
+                      value={formData.jobTitle}
+                      onChange={handleChange}
+                      required
+                    />
                   </div>
                   <div className="form-field">
-                    <label htmlFor="startDate">Start date<span className="required-mark">*</span></label>
-                    <input id="startDate" type="date" name="startDate" value={formData.startDate} onChange={handleChange} required />
+                    <label htmlFor="startDate">
+                      Start date<span className="required-mark">*</span>
+                    </label>
+                    <input
+                      id="startDate"
+                      type="date"
+                      name="startDate"
+                      value={formData.startDate}
+                      onChange={handleChange}
+                      required
+                    />
                   </div>
                 </>
               )}
-
-              
 
               <p className="form-note">
                 Your current situation is required to complete signup.
               </p>
 
               <div className="register-actions">
-                <button className="register-button" type="button" onClick={() => setStep(1)} disabled={isSubmitting}>
+                <button
+                  className="register-button"
+                  type="button"
+                  onClick={() => setStep(1)}
+                  disabled={isSubmitting}
+                >
                   Back
                 </button>
-                <button className="register-button" type="submit" disabled={isSubmitting}>
+                <button
+                  className="register-button"
+                  type="submit"
+                  disabled={isSubmitting}
+                >
                   {isSubmitting ? "Signing Up..." : "Sign Up"}
                 </button>
               </div>
