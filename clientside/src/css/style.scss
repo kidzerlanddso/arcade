@@ -3741,10 +3741,22 @@ input:checked + .slider::before {
 
 .mentorship-days-dropdown > button {
   width: 100%;
-  min-height: 58px;
+  height: 72px;
+    min-height: 72px;
   text-align: left;
-  padding: 0 18px;
+  padding: 0 14px;
   box-sizing: border-box;
+  position: relative;
+}
+.dropdown-arrow {
+  position: absolute;
+  right: 14px;
+  top: 50%;
+  width: 7px;
+  height: 7px;
+  border-right: 1.5px solid #1f2937;
+  border-bottom: 1.5px solid #1f2937;
+  transform: translateY(-65%) rotate(45deg);
 }
 .mentorship-expertise-select {
   width: 100%;

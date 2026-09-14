@@ -43,39 +43,47 @@ const getAdminFromToken = () => {
 };
 
 function MyProfilePage({ readOnly = false }) {
-  const { id: viewProfileId } = useParams();
-  const isViewingOther = readOnly && Boolean(viewProfileId);
-  const navigate = useNavigate();
-  const [profile, setProfile] = useState(null);
-  const isAdmin = getAdminFromToken();
-  const [loading, setLoading] = useState(true);
-  const [editing, setEditing] = useState(false);
-  const [showIntroModal, setShowIntroModal] = useState(false);
-  const [bio, setBio] = useState("");
-  const [linkedinUrl, setLinkedinUrl] = useState("");
-  const [enableEmail, setEnableEmail] = useState("");
-  const [mentorshipAvailable, setMentorshipAvailable] = useState(false);
-  const [expertise, setExpertise] = useState("");
-  const [expertiseId, setExpertiseId] = useState("");
-  const [subcategoryId, setSubcategoryId] = useState("");
-  const [expertiseOptions, setExpertiseOptions] = useState([]);
-  const [subcategoryOptions, setSubcategoryOptions] = useState([]);
-  const [mentorshipAvailability, setMentorshipAvailability] = useState("");
-  const mentorshipDays = [
-    "Monday",
-    "Tuesday",
-    "Wednesday",
-    "Thursday",
-    "Friday",
-    "Saturday",
-    "Sunday",
-  ];
-  const canAccess = isAdmin || !isViewingOther;
-  const handleMentorshipDayChange = (day) => {
-    const selectedDays = mentorshipAvailability
-      .split(",")
-      .map((item) => item.trim())
-      .filter((item) => mentorshipDays.includes(item));
+    const { id: viewProfileId } = useParams();
+    const isViewingOther = readOnly && Boolean(viewProfileId);
+    const navigate = useNavigate();
+    const [profile, setProfile] = useState(null);
+    const isAdmin = getAdminFromToken();
+    const [loading, setLoading] = useState(true);
+    const [editing, setEditing] = useState(false);
+    const [showIntroModal, setShowIntroModal] = useState(false);
+    const [bio, setBio] = useState("");
+    const [linkedinUrl, setLinkedinUrl] = useState("");
+    const [enableEmail, setEnableEmail] = useState("");
+    const [mentorshipAvailable, setMentorshipAvailable] = useState(false);
+    const [expertiseSharingTypes, setExpertiseSharingTypes] = useState([]);
+const [showExpertiseSharingDropdown, setShowExpertiseSharingDropdown] = useState(false);
+const expertiseSharingOptions = [
+  "As a guest speaker",
+  "As a mentor (e.g. in Puna Wananga)",
+  "Offering work experience",
+  "As a tutor",
+];
+    const [expertise, setExpertise] = useState("");
+    const [expertiseId, setExpertiseId] = useState("");
+    const [subcategoryId, setSubcategoryId] = useState("");
+    const [expertiseOptions, setExpertiseOptions] = useState([]);
+    const [subcategoryOptions, setSubcategoryOptions] = useState([]);
+    const [mentorshipAvailability, setMentorshipAvailability] = useState("");
+    const mentorshipDays = [
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+        "Saturday",
+        "Sunday",
+    ];
+    const canAccess = isAdmin || !isViewingOther;
+    const handleMentorshipDayChange = (day) => {
+        const selectedDays = mentorshipAvailability
+            .split(",")
+            .map((item) => item.trim())
+            .filter((item) => mentorshipDays.includes(item));
 
     if (selectedDays.includes(day)) {
       setMentorshipAvailability(
@@ -206,7 +214,15 @@ function MyProfilePage({ readOnly = false }) {
     setProfile(currentProfile || null);
     setBio(currentProfile?.bio || "");
     setLinkedinUrl(currentProfile?.linkedin_url || "");
-    setMentorshipAvailable(currentProfile?.mentorship_available ?? false);
+    setMentorshipAvailable(
+        currentProfile?.mentorship_available ?? false,
+    );
+    setExpertiseSharingTypes(
+  Array.isArray(currentProfile?.expertise_sharing_types)
+    ? currentProfile.expertise_sharing_types
+    : []
+);
+setShowExpertiseSharingDropdown(false);
     setExpertise(currentProfile?.expertise || "");
 
     setExpertiseId(
@@ -235,7 +251,6 @@ function MyProfilePage({ readOnly = false }) {
         .then(async (response) => {
           const currentProfile = response.data;
           applyProfileToState(currentProfile);
-
           const userId = currentProfile?.user_id;
           if (!userId) return;
 
@@ -474,9 +489,13 @@ function MyProfilePage({ readOnly = false }) {
         bio: bio,
         linkedin_url: linkedinUrl,
         mentorship_available: mentorshipAvailable,
-        expertise_id: expertiseId ? [Number(expertiseId)] : [],
-        subcategory_id: subcategoryId ? [Number(subcategoryId)] : [],
-        mentorship_availability: mentorshipAvailability,
+    expertise_id:
+  mentorshipAvailable && expertiseId ? [Number(expertiseId)] : [],
+    subcategory_id:
+  mentorshipAvailable && subcategoryId ? [Number(subcategoryId)] : [],
+mentorship_availability: mentorshipAvailable
+  ? mentorshipAvailability
+  : "",
         profile_image_url: imageUrl,
         current_city: currentCity,
         current_country: currentCountry,
@@ -512,18 +531,39 @@ function MyProfilePage({ readOnly = false }) {
       await api.patch(`/profile/${profile.id}`, {
         mentorship_available: mentorshipAvailable,
         expertise_id: expertiseId ? [Number(expertiseId)] : [],
+        expertise_sharing_types: mentorshipAvailable
+  ? expertiseSharingTypes
+  : [],
         subcategory_id: subcategoryId ? [Number(subcategoryId)] : [],
-        mentorship_availability: mentorshipAvailability,
+    mentorship_availability: mentorshipAvailable
+  ? mentorshipAvailability
+  : "",
       });
       setProfile((prev) => ({
         ...prev,
         mentorship_available: mentorshipAvailable,
-        expertise_id: expertiseId ? Number(expertiseId) : null,
-        subcategory_id: subcategoryId ? Number(subcategoryId) : null,
-        expertise: expertise,
-        mentorship_availability: mentorshipAvailability,
-      }));
+        expertise_sharing_types: mentorshipAvailable
+  ? expertiseSharingTypes
+  : [],
+        expertise_id:
+  mentorshipAvailable && expertiseId ? [Number(expertiseId)] : [],
 
+subcategory_id:
+  mentorshipAvailable && subcategoryId ? [Number(subcategoryId)] : [],
+
+expertise: mentorshipAvailable ? expertise : "",
+
+mentorship_availability: mentorshipAvailable
+  ? mentorshipAvailability
+  : "",
+      }));
+if (!mentorshipAvailable) {
+  setExpertiseSharingTypes([]);
+  setExpertiseId("");
+  setSubcategoryId("");
+  setExpertise("");
+  setMentorshipAvailability("");
+}
       setShowMentorshipModal(false);
     } catch (error) {
       console.error("Error saving Mentorship:", error);
@@ -1350,18 +1390,95 @@ function MyProfilePage({ readOnly = false }) {
                   </div>
 
                   <div className="intro-modal-body mentorship-edit-fields">
-                    <label className="mentorship-checkbox">
-                      <input
-                        type="checkbox"
-                        checked={mentorshipAvailable}
-                        onChange={(e) =>
-                          setMentorshipAvailable(e.target.checked)
-                        }
-                      />
-                      Available for mentorship
-                    </label>
-                    {mentorshipAvailable && (
+            
+                     <label
+  className="mentorship-field-label"
+  htmlFor="expertise-sharing-available"
+>
+  Are you available to share your expertise?
+</label>
+
+<select
+  id="expertise-sharing-available"
+  className="mentorship-availability-select"
+  value={mentorshipAvailable ? "yes" : "no"}
+onChange={(e) => {
+  const isAvailable = e.target.value === "yes";
+  setMentorshipAvailable(isAvailable);
+
+  if (!isAvailable) {
+  setExpertiseSharingTypes([]);
+  setExpertiseId("");
+  setSubcategoryId("");
+  setExpertise("");
+  setMentorshipAvailability("");
+  setShowExpertiseSharingDropdown(false);
+  setShowMentorshipDaysDropdown(false);
+}
+}}
+>
+  <option value="yes">Yes</option>
+  <option value="no">No</option>
+</select>
+{mentorshipAvailable && (
                       <>
+                      <label className="mentorship-field-label">
+  How would you like to share your expertise?
+</label>
+
+<p className="mentorship-field-help">
+  Select one or more options.
+</p>
+
+<div className="mentorship-days-dropdown">
+  <button
+    type="button"
+    aria-controls="expertise-sharing-options"
+style={{
+  display: "flex",
+  alignItems: "center",
+  width: "100%",
+  textAlign: "left",
+}}
+    className="mentorship-availability-select"
+    onClick={() =>
+      setShowExpertiseSharingDropdown((prev) => !prev)
+    }
+  >
+    {expertiseSharingTypes.length > 0
+      ? expertiseSharingTypes.join(", ")
+      : "Select an option"}
+      <span className="dropdown-arrow" aria-hidden="true" />
+  </button>
+
+  {showExpertiseSharingDropdown && (
+    <div
+      id="expertise-sharing-options"
+      className="mentorship-days-options"
+    >
+      {expertiseSharingOptions.map((option) => (
+        <label key={option}>
+          <input
+            type="checkbox"
+            checked={expertiseSharingTypes.includes(option)}
+            onChange={(e) => {
+              const checked = e.target.checked;
+
+              setExpertiseSharingTypes((prev) =>
+                checked
+                  ? [...prev, option]
+                  : prev.filter((item) => item !== option)
+              );
+
+              setShowExpertiseSharingDropdown(false);
+            }}
+          />
+          {option}
+        </label>
+      ))}
+    </div>
+  )}
+</div>
                         <label className="mentorship-field-label">
                           Expertise
                         </label>
@@ -1454,9 +1571,9 @@ function MyProfilePage({ readOnly = false }) {
                           )}
                         </div>
                       </>
-                    )}
+                )}
                   </div>
-
+                
                   <div className="intro-modal-footer">
                     <button
                       type="button"
@@ -1471,9 +1588,16 @@ function MyProfilePage({ readOnly = false }) {
             ) : (
               <>
                 <p>
-                  <strong>Available for mentorship:</strong>{" "}
+                <strong>Willing to share expertise:</strong>{" "}
                   {mentorshipAvailable ? "Yes" : "No"}
                 </p>
+                {mentorshipAvailable &&
+  profile?.expertise_sharing_types?.length > 0 && (
+    <p>
+      <strong>I can share my expertise as:</strong>{" "}
+      {profile.expertise_sharing_types.join(", ")}
+    </p>
+  )}
 
                 {mentorshipAvailable && (
                   <>
