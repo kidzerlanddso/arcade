@@ -407,6 +407,47 @@ a {
   color: #6c757d;
 }
 
+.auth-form .register-select {
+  width: 100%;
+  min-height: 48px;
+  padding: 12px 42px 12px 14px;
+  border: 1px solid $soft-border;
+  border-radius: 10px;
+  background-color: #fff;
+  color: $dark-text;
+  cursor: pointer;
+  font-size: 15px;
+  appearance: none;
+  background-image:
+    linear-gradient(45deg, transparent 50%, $primary-blue 50%),
+    linear-gradient(135deg, $primary-blue 50%, transparent 50%);
+  background-position:
+    calc(100% - 18px) 21px,
+    calc(100% - 12px) 21px;
+  background-size:
+    6px 6px,
+    6px 6px;
+  background-repeat: no-repeat;
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.auth-form .register-select:hover {
+  border-color: $primary-blue;
+}
+
+.auth-form .register-select:focus {
+  border-color: $primary-blue;
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(10, 102, 194, 0.16);
+}
+
+.auth-form .register-select option {
+  background: #fff;
+  color: $dark-text;
+}
+
 .auth-form button,
 .btn {
   border: none;

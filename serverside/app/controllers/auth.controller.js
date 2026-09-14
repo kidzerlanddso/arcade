@@ -3,11 +3,59 @@ const jwt = require("jsonwebtoken");
 const User = require("../models/user.model");
 const Profile = require("../models/profile.model");
 const config = require("../config/db.config.js");
+const {
+  sendMembershipRequestEmail,
+} = require("../services/membershipEmail.service");
+
+const notifyEmailEnabledAdmins = (data, pathwayData) => {
+  console.log("[membership-email] Looking up email-enabled administrators", {
+    registeredUserId: data.user.id,
+    registeredUsername: data.user.username,
+  });
+
+  User.getEmailEnabledAdmins(async (adminError, adminEmails) => {
+    if (adminError) {
+      console.error("Unable to load email-enabled administrators:", adminError);
+      return;
+    }
+
+    console.log("[membership-email] Matching administrators found", {
+      count: adminEmails.length,
+    });
+
+    if (!adminEmails.length) {
+      console.warn(
+        "[membership-email] No admins matched admin=1 and enableEmail=1 with a profile email.",
+      );
+      return;
+    }
+
+    try {
+      await sendMembershipRequestEmail({
+        profile: {
+          ...data.profile,
+          username: data.user.username,
+          adminEmails,
+        },
+        pathway: pathwayData,
+      });
+    } catch (emailError) {
+      console.error("Unable to send membership request email:", emailError);
+    }
+  });
+};
 
 // Register a new user
-exports.register = function(req, res) {
-  if (!req.body || !req.body.username || !req.body.password|| !req.body.email) {
-    return res.status(400).send({ message: "Username and password are required." });
+exports.register = function (req, res) {
+  if (
+    !req.body ||
+    !req.body.username ||
+    !req.body.password ||
+    !req.body.email
+  ) {
+    return res
+      .status(400)
+      .send({ message: "Username and password are required." });
   }
 
   const pathway = req.body.pathway;
@@ -16,7 +64,7 @@ exports.register = function(req, res) {
 
   if (!isStudying && !isWorking) {
     return res.status(400).send({
-      message: "Please select whether you are currently studying or working."
+      message: "Please select whether you are currently studying or working.",
     });
   }
 
@@ -26,22 +74,28 @@ exports.register = function(req, res) {
         institution: String(pathway.institution || "").trim(),
         qualification: String(pathway.qualification || "").trim(),
         field_of_study: String(pathway.field_of_study || "").trim(),
-        start_date: pathway.start_date || null
+        start_date: pathway.start_date || null,
       }
     : {
         type: "working",
         company: String(pathway.company || "").trim(),
         job_title: String(pathway.job_title || "").trim(),
-        start_date: pathway.start_date || null
+        start_date: pathway.start_date || null,
       };
 
   const requiredPathwayFields = isStudying
-    ? [pathwayData.institution, pathwayData.qualification, pathwayData.field_of_study, pathwayData.start_date]
+    ? [
+        pathwayData.institution,
+        pathwayData.qualification,
+        pathwayData.field_of_study,
+        pathwayData.start_date,
+      ]
     : [pathwayData.company, pathwayData.job_title, pathwayData.start_date];
 
   if (requiredPathwayFields.some((value) => !value)) {
     return res.status(400).send({
-      message: "Please complete all current situation fields before signing up."
+      message:
+        "Please complete all current situation fields before signing up.",
     });
   }
 
@@ -51,7 +105,7 @@ exports.register = function(req, res) {
   const user = new User({
     username: req.body.username,
     password: hashedPassword,
-    active: 2
+    active: 2,
   });
 
   const profileData = {
@@ -61,7 +115,7 @@ exports.register = function(req, res) {
     current_city: req.body.current_city || "Hamilton",
     current_country: req.body.current_country || "New Zealand",
     year: req.body.yearOfGraduation || req.body.year || null,
-    student_id: req.body.studentId || req.body.student_id || null
+    student_id: req.body.studentId || req.body.student_id || null,
   };
 
   // Empty strings from the signup form should become null for numeric/optional DB fields
@@ -75,7 +129,7 @@ exports.register = function(req, res) {
     profileData.student_id = null;
   }
 
-  User.create(user, profileData, pathwayData, function(err, data) {
+  User.create(user, profileData, pathwayData, function (err, data) {
     if (err) {
       const isDuplicateUsername =
         err.code === "ER_DUP_ENTRY" ||
@@ -85,22 +139,37 @@ exports.register = function(req, res) {
 
       if (isDuplicateUsername) {
         return res.status(409).send({
-          message: "This username is already taken. Please choose a different one."
+          message:
+            "This username is already taken. Please choose a different one.",
         });
       }
 
-      return res.status(500).send({ message: err.message || "An error occurred during registration." });
+      return res.status(500).send({
+        message: err.message || "An error occurred during registration.",
+      });
     }
 
+    console.log("[membership-email] Registration committed", {
+      userId: data.user.id,
+      profileId: data.profile.id,
+      active: data.user.active,
+    });
+    notifyEmailEnabledAdmins(data, pathwayData);
     res.status(201).send({ message: "User registered successfully." });
   });
 };
- 
 
 // Register a new admin
-exports.RegisterAdmin = function(req, res) {
-  if (!req.body || !req.body.username || !req.body.password|| !req.body.email) {
-    return res.status(400).send({ message: "Username and password are required." });
+exports.RegisterAdmin = function (req, res) {
+  if (
+    !req.body ||
+    !req.body.username ||
+    !req.body.password ||
+    !req.body.email
+  ) {
+    return res
+      .status(400)
+      .send({ message: "Username and password are required." });
   }
 
   // Hash the password before saving
@@ -110,7 +179,7 @@ exports.RegisterAdmin = function(req, res) {
     username: req.body.username,
     password: hashedPassword,
     active: 1,
-    admin: 1
+    admin: 1,
   });
 
   const profileData = {
@@ -118,10 +187,10 @@ exports.RegisterAdmin = function(req, res) {
     lastname: req.body.lastName || req.body.lastname || "",
     email: req.body.email || "",
     current_city: req.body.current_city || "Hamilton",
-    current_country: req.body.current_country || "New Zealand"
+    current_country: req.body.current_country || "New Zealand",
   };
 
-  User.create(user, profileData, function(err, data) {
+  User.create(user, profileData, function (err, data) {
     if (err) {
       const isDuplicateUsername =
         err.code === "ER_DUP_ENTRY" ||
@@ -131,11 +200,14 @@ exports.RegisterAdmin = function(req, res) {
 
       if (isDuplicateUsername) {
         return res.status(409).send({
-          message: "This username is already taken. Please choose a different one."
+          message:
+            "This username is already taken. Please choose a different one.",
         });
       }
 
-      return res.status(500).send({ message: err.message || "An error occurred during registration." });
+      return res.status(500).send({
+        message: err.message || "An error occurred during registration.",
+      });
     }
 
     res.status(201).send({ message: "User registered successfully." });
@@ -143,36 +215,47 @@ exports.RegisterAdmin = function(req, res) {
 };
 
 // Login and return a JWT
-exports.login = function(req, res) {
+exports.login = function (req, res) {
   const login = req.body?.login || req.body?.username || req.body?.email;
 
   if (!login || !req.body?.password) {
-    return res.status(400).send({ message: "Username and password are required." });
+    return res
+      .status(400)
+      .send({ message: "Username and password are required." });
   }
 
-  User.findByLogin(login, function(err, data) {
+  User.findByLogin(login, function (err, data) {
     if (err) {
       if (err.kind === "not_found") {
-        return res.status(401).send({ message: "Username/email and password are required." });
+        return res
+          .status(401)
+          .send({ message: "Username/email and password are required." });
       }
-      return res.status(500).send({ message: err.message || "An error occurred during login." });
+      return res
+        .status(500)
+        .send({ message: err.message || "An error occurred during login." });
     }
 
     // Compare the submitted password with the stored hash
-    const passwordIsValid = bcrypt.compareSync(req.body.password, data.password);
+    const passwordIsValid = bcrypt.compareSync(
+      req.body.password,
+      data.password,
+    );
     if (!passwordIsValid) {
-      return res.status(401).send({ message: "Invalid username/email or password." });
+      return res
+        .status(401)
+        .send({ message: "Invalid username/email or password." });
     }
 
     if (Number(data.active) === 2) {
       return res.status(403).send({
-        message: "Admin needs to approve your account."
+        message: "Admin needs to approve your account.",
       });
     }
 
     if (Number(data.active) === 2) {
       return res.status(403).send({
-        message: "Admin needs to approve your account."
+        message: "Admin needs to approve your account.",
       });
     }
 
@@ -182,21 +265,24 @@ exports.login = function(req, res) {
     const token = jwt.sign(
       { userId: data.id, username: data.username, admin: isAdmin },
       config.JWT_SECRET,
-      { expiresIn: "15m" }
+      { expiresIn: "15m" },
     );
-    const refreshToken = jwt.sign({ userId: data.id, username: data.username, admin: isAdmin },config.REFRESH_SECRET, { expiresIn: '7d' }
+    const refreshToken = jwt.sign(
+      { userId: data.id, username: data.username, admin: isAdmin },
+      config.REFRESH_SECRET,
+      { expiresIn: "7d" },
     );
 
     // Cross-site cookies need secure + SameSite=None in production (Vercel ↔ Render).
     const isProd = process.env.NODE_ENV === "production";
 
     // 3. Send refresh token in a secure, hidden cookie
-    res.cookie('refreshToken', refreshToken, {
-      httpOnly: true,     // Prevents XSS scripts from reading the cookie
-      secure: isProd,     // Required for HTTPS / SameSite=None
-      sameSite: isProd ? 'none' : 'lax',
-      path: '/',          // Must match the path used when clearing the cookie
-      maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days matching token expiration
+    res.cookie("refreshToken", refreshToken, {
+      httpOnly: true, // Prevents XSS scripts from reading the cookie
+      secure: isProd, // Required for HTTPS / SameSite=None
+      sameSite: isProd ? "none" : "lax",
+      path: "/", // Must match the path used when clearing the cookie
+      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days matching token expiration
     });
 
     // 4. Send access token and user profile in the JSON body
@@ -205,13 +291,13 @@ exports.login = function(req, res) {
     res.status(200).send({
       message: "Login successful.",
       token: token,
-      admin: isAdmin
+      admin: isAdmin,
     });
   });
 };
 
 // Refresh and return a new JWT
-exports.refresh = function(req, res) {
+exports.refresh = function (req, res) {
   // 5. Extract the refresh token directly from cookies, not body/headers
   const refreshToken = req.cookies.refreshToken;
 
@@ -219,49 +305,54 @@ exports.refresh = function(req, res) {
     return res.status(401).json({ message: "Refresh token missing" });
   }
 
-
   try {
     const decoded = jwt.verify(refreshToken, config.REFRESH_SECRET);
-    
+
     // Issue a fresh short-lived access token
     const token = jwt.sign(
-          { userId: decoded.userId, username: decoded.username, admin: decoded.admin },
-          config.JWT_SECRET,
-          { expiresIn: "15m" }
-        );
-        
-    return res.json({ 
+      {
+        userId: decoded.userId,
+        username: decoded.username,
+        admin: decoded.admin,
+      },
+      config.JWT_SECRET,
+      { expiresIn: "15m" },
+    );
+
+    return res.json({
       token: token,
-      admin: decoded.admin
+      admin: decoded.admin,
     });
   } catch (err) {
-    return res.status(403).json({ message: "Invalid or expired refresh token" });
+    return res
+      .status(403)
+      .json({ message: "Invalid or expired refresh token" });
   }
 };
 
 // Clear cookie and log out user
-exports.logout = function(req, res) {
+exports.logout = function (req, res) {
   const isProd = process.env.NODE_ENV === "production";
 
-  res.clearCookie('refreshToken', {
+  res.clearCookie("refreshToken", {
     httpOnly: true,
     secure: isProd,
-    sameSite: isProd ? 'none' : 'lax',
-    path: '/'
+    sameSite: isProd ? "none" : "lax",
+    path: "/",
   });
 
   // Remove cookies issued before the cookie path was made explicit.
-  res.clearCookie('refreshToken', {
+  res.clearCookie("refreshToken", {
     httpOnly: true,
     secure: isProd,
-    sameSite: isProd ? 'none' : 'lax',
-    path: '/auth'
+    sameSite: isProd ? "none" : "lax",
+    path: "/auth",
   });
-  
+
   return res.status(200).send({ message: "Logged out successfully." });
 };
 
-exports.updateEnableEmail = function(req, res) {
+exports.updateEnableEmail = function (req, res) {
   const userId = req.userId;
   const enabledValue = req.body?.enableEmail;
 
@@ -269,138 +360,144 @@ exports.updateEnableEmail = function(req, res) {
     return res.status(401).send({ message: "Authentication required." });
   }
 
-  const enabled = enabledValue === true || enabledValue === 1 || enabledValue === "1";
+  const enabled =
+    enabledValue === true || enabledValue === 1 || enabledValue === "1";
 
-  User.updateEnableEmail(userId, enabled, function(err, data) {
+  User.updateEnableEmail(userId, enabled, function (err, data) {
     if (err) {
       if (err.kind === "not_found") {
         return res.status(404).send({ message: "User not found." });
       }
 
       return res.status(500).send({
-        message: err.message || "Unable to update email notification setting."
+        message: err.message || "Unable to update email notification setting.",
       });
     }
 
     return res.status(200).send({
       message: "Email notification preference updated.",
-      user: data
+      user: data,
     });
   });
 };
 
-
-exports.getMembershipRequests = function(req, res) {
-  User.getByActive(2, function(err, users) {
+exports.getMembershipRequests = function (req, res) {
+  User.getByActive(2, function (err, users) {
     if (err) {
       return res.status(500).send({
-        message: err.message || "Unable to load membership requests."
+        message: err.message || "Unable to load membership requests.",
       });
     }
 
     res.status(200).send({
-      data: users || []
+      data: users || [],
     });
   });
 };
 
-exports.getAdmins = function(req, res) {
-  User.getAdmins(function(err, users) {
+exports.getAdmins = function (req, res) {
+  User.getAdmins(function (err, users) {
     if (err) {
       return res.status(500).send({
-        message: err.message || "Unable to load admin users."
+        message: err.message || "Unable to load admin users.",
       });
     }
 
     return res.status(200).send({
-      data: users || []
+      data: users || [],
     });
   });
 };
 
-exports.approveMembershipRequest = function(req, res) {
+exports.approveMembershipRequest = function (req, res) {
   const userId = Number(req.params.id);
 
   if (!Number.isInteger(userId) || userId <= 0) {
     return res.status(400).send({ message: "A valid user ID is required." });
   }
 
-  User.approveById(userId, function(err, data) {
+  User.approveById(userId, function (err, data) {
     if (err) {
       if (err.kind === "not_found") {
-        return res.status(404).send({ message: "Pending membership request not found." });
+        return res
+          .status(404)
+          .send({ message: "Pending membership request not found." });
       }
 
       return res.status(500).send({
-        message: err.message || "Unable to approve membership request."
+        message: err.message || "Unable to approve membership request.",
       });
     }
 
     return res.status(200).send({
       message: "Membership request approved.",
-      user: data
+      user: data,
     });
   });
 };
-exports.declineMembershipRequest = function(req, res) {
+exports.declineMembershipRequest = function (req, res) {
   const userId = Number(req.params.id);
 
   if (!Number.isInteger(userId) || userId <= 0) {
     return res.status(400).send({ message: "A valid user ID is required." });
   }
 
-  User.declineById(userId, function(err, data) {
+  User.declineById(userId, function (err, data) {
     if (err) {
       if (err.kind === "not_found") {
-        return res.status(404).send({ message: "Pending membership request not found." });
+        return res
+          .status(404)
+          .send({ message: "Pending membership request not found." });
       }
 
       return res.status(500).send({
-        message: err.message || "Unable to decline membership request."
+        message: err.message || "Unable to decline membership request.",
       });
     }
 
     return res.status(200).send({
       message: "Membership request declined.",
-      user: data
+      user: data,
     });
   });
 };
 
-exports.approveMembershipRequests = function(req, res) {
+exports.approveMembershipRequests = function (req, res) {
   const userIds = Array.isArray(req.body?.userIds) ? req.body.userIds : [];
   const normalizedIds = userIds
     .map((value) => Number(value))
     .filter((value) => Number.isInteger(value) && value > 0);
 
   if (!normalizedIds.length) {
-    return res.status(400).send({ message: "Select at least one membership request to approve." });
+    return res
+      .status(400)
+      .send({ message: "Select at least one membership request to approve." });
   }
 
-  User.approveByIds(normalizedIds, function(err, approvedUsers) {
+  User.approveByIds(normalizedIds, function (err, approvedUsers) {
     if (err) {
       return res.status(500).send({
-        message: err.message || "Unable to approve selected membership requests."
+        message:
+          err.message || "Unable to approve selected membership requests.",
       });
     }
 
     return res.status(200).send({
       message: "Selected membership requests approved.",
-      users: approvedUsers || []
+      users: approvedUsers || [],
     });
   });
 };
-exports.getPendingMembershipRequests = function(req, res) {
-  User.getPendingMembershipRequests(function(err, users) {
+exports.getPendingMembershipRequests = function (req, res) {
+  User.getPendingMembershipRequests(function (err, users) {
     if (err) {
       return res.status(500).send({
-        message: err.message || "Unable to load pending membership requests."
+        message: err.message || "Unable to load pending membership requests.",
       });
     }
 
     return res.status(200).send({
-      count: Number(users?.count || 0)
+      count: Number(users?.count || 0),
     });
   });
 };
-

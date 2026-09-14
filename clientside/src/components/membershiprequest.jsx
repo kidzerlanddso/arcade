@@ -14,7 +14,6 @@ function MembershipRequest() {
   const [selectedYear, setSelectedYear] = useState("all");
   const [selectedProfileIds, setSelectedProfileIds] = useState([]);
 
-
   useEffect(() => {
     const token = localStorage.getItem("token");
 
@@ -39,7 +38,8 @@ function MembershipRequest() {
   }, [navigate]);
 
   const filteredProfiles = users.filter((user) => {
-    const fullName = `${user.firstname || ""} ${user.lastname || ""}`.toLowerCase();
+    const fullName =
+      `${user.firstname || ""} ${user.lastname || ""}`.toLowerCase();
     const city = `${user.current_city || ""}`.toLowerCase();
     const searchValue = searchTerm.toLowerCase().trim();
     const matchesSearch =
@@ -47,11 +47,11 @@ function MembershipRequest() {
       fullName.includes(searchValue) ||
       city.includes(searchValue);
     const profileYear = user.year || user.graduation_year;
-    const matchesYear = selectedYear === "all" || String(profileYear) === String(selectedYear);
+    const matchesYear =
+      selectedYear === "all" || String(profileYear) === String(selectedYear);
 
     return matchesSearch && matchesYear;
   });
-
 
   const handleProfileSelection = (userId) => {
     setSelectedProfileIds((selectedIds) => {
@@ -72,46 +72,62 @@ function MembershipRequest() {
 
     try {
       await api.put("/auth/membership-requests/bulk-approve", {
-        userIds: selectedProfileIds.map((id) => Number(id))
+        userIds: selectedProfileIds.map((id) => Number(id)),
       });
 
-      setUsers((currentUsers) => currentUsers.filter((user) => !selectedProfileIds.includes(String(user.id))));
+      setUsers((currentUsers) =>
+        currentUsers.filter(
+          (user) => !selectedProfileIds.includes(String(user.id)),
+        ),
+      );
       setSelectedProfileIds([]);
     } catch (error) {
       console.error("Error approving selected membership requests:", error);
-      alert(error.response?.data?.message || "Unable to approve selected requests.");
+      alert(
+        error.response?.data?.message || "Unable to approve selected requests.",
+      );
     } finally {
       setBulkApproving(false);
     }
   };
-  
+
   const handleApprove = async (userId) => {
     setApprovingId(userId);
 
     try {
       await api.put(`/auth/membership-requests/${userId}/approve`);
-      setUsers((currentUsers) => currentUsers.filter((user) => user.id !== userId));
+      setUsers((currentUsers) =>
+        currentUsers.filter((user) => user.id !== userId),
+      );
     } catch (error) {
       console.error("Error approving membership request:", error);
-      alert(error.response?.data?.message || "Unable to approve membership request.");
+      alert(
+        error.response?.data?.message ||
+          "Unable to approve membership request.",
+      );
     } finally {
       setApprovingId(null);
-    }  
-  }; 
+    }
+  };
   const handleDecline = async (userId) => {
     setApprovingId(userId);
 
     try {
       await api.put(`/auth/membership-requests/${userId}/decline`);
-      setUsers((currentUsers) => currentUsers.filter((user) => user.id !== userId));
+      setUsers((currentUsers) =>
+        currentUsers.filter((user) => user.id !== userId),
+      );
     } catch (error) {
       console.error("Error declining membership request:", error);
-      alert(error.response?.data?.message || "Unable to decline membership request.");
+      alert(
+        error.response?.data?.message ||
+          "Unable to decline membership request.",
+      );
     } finally {
       setApprovingId(null);
     }
-  }; 
-  
+  };
+
   const handleSelectAll = (event) => {
     if (event.target.checked) {
       setSelectedProfileIds(filteredProfiles.map((user) => String(user.id)));
@@ -119,7 +135,6 @@ function MembershipRequest() {
       setSelectedProfileIds([]);
     }
   };
-
 
   if (!localStorage.getItem("token")) return null;
 
@@ -134,7 +149,10 @@ function MembershipRequest() {
           <label className="profile-select-all">
             <input
               type="checkbox"
-              checked={filteredProfiles.length > 0 && selectedProfileIds.length === filteredProfiles.length}
+              checked={
+                filteredProfiles.length > 0 &&
+                selectedProfileIds.length === filteredProfiles.length
+              }
               onChange={handleSelectAll}
             />
             Select all ({filteredProfiles.length})
@@ -147,7 +165,9 @@ function MembershipRequest() {
               onClick={handleBulkApprove}
               disabled={bulkApproving}
             >
-              {bulkApproving ? "Approving..." : `Approve Selected (${selectedProfileIds.length})`}
+              {bulkApproving
+                ? "Approving..."
+                : `Approve Selected (${selectedProfileIds.length})`}
             </button>
           )}
         </div>
@@ -158,43 +178,57 @@ function MembershipRequest() {
       ) : users.length === 0 ? (
         <p>No users with active = 2.</p>
       ) : (
-        <div className={viewMode === "list" ? "profile-list-view" : "profile-card-grid"}>
+        <div
+          className={
+            viewMode === "list" ? "profile-list-view" : "profile-card-grid"
+          }
+        >
           {users.map((user) => (
             <article className="profile-card" key={user.id}>
-              <div className="profile-card-body " >
-              
-              <label className="profile-select-checkbox">
-                <input
-                  type="checkbox"
-                  checked={selectedProfileIds.includes(String(user.id))}
-                  onChange={() => handleProfileSelection(user.id)}
-                  aria-label={`Select ${user.firstname || "user"} ${user.lastname || ""}`}
-                />
-              </label>
-              <div className="profile-avatar">
-                {(user.username || "U").charAt(0).toUpperCase()}
-              </div>
-              
-              <h3>{[user.firstname, user.lastname].filter(Boolean).join(" ") || "Unknown user"}</h3>
-                
-                <p><strong>Graduated:</strong> {user.year} &nbsp;<strong>Student ID:</strong> { user.student_id }</p>
-                
+              <div className="profile-card-body ">
+                <label className="profile-select-checkbox">
+                  <input
+                    type="checkbox"
+                    checked={selectedProfileIds.includes(String(user.id))}
+                    onChange={() => handleProfileSelection(user.id)}
+                    aria-label={`Select ${user.firstname || "user"} ${user.lastname || ""}`}
+                  />
+                </label>
+                <div className="profile-avatar">
+                  {(user.username || "U").charAt(0).toUpperCase()}
+                </div>
+
+                <h3>
+                  {[user.firstname, user.lastname].filter(Boolean).join(" ") ||
+                    "Unknown user"}
+                </h3>
+
                 <p>
-                <button
-                  type="button"
-                  className="btn btn-success"
-                  onClick={() => handleApprove(user.id)}
-                  disabled={approvingId === user.id}
-                >
-                  {approvingId === user.id ? "Approving..." : "Approve"}
-                </button> <button type="button" className="btn btn-danger" onClick={() => handleDecline(user.id)} disabled={approvingId === user.id}>
-                  Decline
-                </button></p>
-                   
+                  <strong>Graduated:</strong> {user.year} &nbsp;
+                  <strong>Student ID:</strong> {user.student_id}
+                </p>
+
+                <p style={{ marginLeft: "auto" }}>
+                  <button
+                    type="button"
+                    className="btn btn-success"
+                    onClick={() => handleApprove(user.id)}
+                    disabled={approvingId === user.id}
+                  >
+                    {approvingId === user.id ? "Approving..." : "Approve"}
+                  </button>{" "}
+                  <button
+                    type="button"
+                    className="btn btn-danger"
+                    onClick={() => handleDecline(user.id)}
+                    disabled={approvingId === user.id}
+                  >
+                    Decline
+                  </button>
+                </p>
               </div>
             </article>
-          ))}           
-            
+          ))}
         </div>
       )}
     </div>
