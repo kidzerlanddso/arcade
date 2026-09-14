@@ -14,6 +14,7 @@ const Project = function (profile) {
   this.profile_image_url = profile.profile_image_url;
   this.mentorship_available = profile.mentorship_available ?? false;
   this.mentorship_availability = profile.mentorship_availability || "";
+  this.expertise_sharing_types = profile.expertise_sharing_types ?? [];
 };
 
 Project.getAll = (result) => {
