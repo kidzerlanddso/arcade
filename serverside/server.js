@@ -1,13 +1,26 @@
 // Setup Express
 require("dotenv").config();
 
+const {
+  isMembershipEmailConfigured,
+} = require("./app/services/membershipEmail.service");
+
+console.log(
+  "[startup] Membership email service configured:",
+  isMembershipEmailConfigured(),
+);
+console.log(
+  "[startup] Resend sender:",
+  process.env.RESEND_FROM_EMAIL || "Alumni Connect <onboarding@resend.dev>",
+);
+
 const express = require("express");
 const cors = require("cors");
-const path = require("path"); 
+const path = require("path");
 const db = require("./app/models/db");
 
-const cookieParser = require('cookie-parser');
-const jwt = require('jsonwebtoken');
+const cookieParser = require("cookie-parser");
+const jwt = require("jsonwebtoken");
 
 const app = express();
 
@@ -17,19 +30,26 @@ const allowedOrigins = [
   process.env.FRONTEND_URL,
 ].filter(Boolean);
 
-app.use(cors({
-  origin: function (origin, callback) {
-    // Allow non-browser tools (no Origin header) and configured frontends.
-    const isLocalDevelopmentOrigin = /^http:\/\/localhost:\d+$/.test(origin || "");
+app.use(
+  cors({
+    origin: function (origin, callback) {
+      // Allow non-browser tools (no Origin header) and configured frontends.
+      const isLocalDevelopmentOrigin = /^http:\/\/localhost:\d+$/.test(
+        origin || "",
+      );
 
-    if (!origin || allowedOrigins.includes(origin) || isLocalDevelopmentOrigin) {
-      return callback(null, true);
-    }
-    return callback(new Error(`CORS blocked for origin: ${origin}`));
-  },
-  credentials: true
-}));
-
+      if (
+        !origin ||
+        allowedOrigins.includes(origin) ||
+        isLocalDevelopmentOrigin
+      ) {
+        return callback(null, true);
+      }
+      return callback(new Error(`CORS blocked for origin: ${origin}`));
+    },
+    credentials: true,
+  }),
+);
 
 // To help with POST and PUT requests to the server
 app.use(express.json());
@@ -37,11 +57,18 @@ app.use(cookieParser());
 app.use(express.urlencoded({ extended: true }));
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
-
 app.get("/", (req, res) => {
-  res.json({ message: "Welcome to Alumni Portal" }); 
+  res.json({ message: "Welcome to Alumni Portal" });
 });
-
+app.get("/keepalive", async (req, res) => {
+  try {
+    await db.query("SELECT 1");
+    res.status(200).json({ ok: true, ts: new Date().toISOString() });
+  } catch (error) {
+    console.error("keepalive failed:", error.message);
+    res.status(500).json({ ok: false, error: error.message });
+  }
+});
 require("./app/routes/auth.routes.js")(app);
 require("./app/routes/profile.routes.js")(app);
 require("./app/routes/employment.routes.js")(app);
@@ -59,7 +86,9 @@ const PORT = process.env.PORT || 3001;
 
 db.ensureEventAttendeesTable((migrationError) => {
   if (migrationError) {
-    console.error(`Could not prepare event attendees table: ${migrationError.message}`);
+    console.error(
+      `Could not prepare event attendees table: ${migrationError.message}`,
+    );
     process.exitCode = 1;
     return;
   }
@@ -79,10 +108,10 @@ db.ensureEventAttendeesTable((migrationError) => {
     }
 
     app.listen(PORT, () => {
-      console.log(`CORS enabled Express web server is running on port ${PORT}.`);
+      console.log(
+        `CORS enabled Express web server is running on port ${PORT}.`,
+      );
     });
     });
   });
 });
-
-

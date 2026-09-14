@@ -27,7 +27,6 @@ const getAdminFromToken = () => {
 function AdminList() {
   const navigate = useNavigate();
   const [admins, setAdmins] = useState([]);
-  const [eventRegistrations, setEventRegistrations] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [viewMode, setViewMode] = useState("list");
@@ -47,14 +46,11 @@ function AdminList() {
       return;
     }
 
-    Promise.all([
-      api.get("/admin", { signal: controller.signal }),
-      api.get("/events/attendees", { signal: controller.signal }),
-    ])
-      .then(([adminResponse, registrationsResponse]) => {
-        const adminData = adminResponse.data.data || adminResponse.data;
+    api
+      .get("/admin", { signal: controller.signal })
+      .then((response) => {
+        const adminData = response.data.data || response.data;
         setAdmins(Array.isArray(adminData) ? adminData : []);
-        setEventRegistrations(registrationsResponse.data || []);
       })
       .catch((error) => {
         if (error.code !== "ERR_CANCELED") {
@@ -246,7 +242,6 @@ function AdminList() {
           })}
         </div>
       )}
-
     </div>
   );
 }

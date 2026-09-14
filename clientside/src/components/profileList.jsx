@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import * as XLSX from "xlsx";
 import Register from "../components/Register";
 
@@ -14,7 +14,12 @@ const getAdminFromToken = () => {
     const payload = JSON.parse(atob(currentToken.split(".")[1] || ""));
     const adminValue = payload.admin;
     if (adminValue !== undefined && adminValue !== null) {
-      return adminValue === true || adminValue === 1 || adminValue === "1" || adminValue === "true";
+      return (
+        adminValue === true ||
+        adminValue === 1 ||
+        adminValue === "1" ||
+        adminValue === "true"
+      );
     }
   } catch (error) {
     console.error("Error decoding token for admin status:", error);
@@ -36,7 +41,6 @@ const getCurrentUserId = () => {
   }
 };
 
-
 function ProfileList() {
   const navigate = useNavigate();
   const [profiles, setProfiles] = useState([]);
@@ -46,6 +50,7 @@ function ProfileList() {
   // const [showModal, setShowModal] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedYear, setSelectedYear] = useState("all");
+  const [selectedInstitution, setSelectedInstitution] = useState("all");
   const [selectedExpertise, setSelectedExpertise] = useState("all");
   const [sortBy, setSortBy] = useState("firstname");
   const [sortDirection, setSortDirection] = useState("asc");
@@ -58,6 +63,7 @@ function ProfileList() {
   const [connectingUserId, setConnectingUserId] = useState(null);
   // Shape: { [user_id]: { status, connectionId, direction } }
   const [connectionStatus, setConnectionStatus] = useState({});
+  const [profileInstitutions, setProfileInstitutions] = useState({});
   const [connectToast, setConnectToast] = useState("");
   const [showRegister, setShowRegister] = useState(false);
 
@@ -76,12 +82,14 @@ function ProfileList() {
       if (!me) return;
 
       const others = profileList.filter(
-        (profile) => Number(profile.user_id) !== me
+        (profile) => Number(profile.user_id) !== me,
       );
       const entries = await Promise.all(
         others.map(async (profile) => {
           try {
-            const response = await api.get(`/connection/status/${profile.user_id}`);
+            const response = await api.get(
+              `/connection/status/${profile.user_id}`,
+            );
             return [profile.user_id, response.data];
           } catch (error) {
             console.error("Error loading connection status:", error);
@@ -90,17 +98,42 @@ function ProfileList() {
               { status: "none", connectionId: null, direction: null },
             ];
           }
-        })
+        }),
       );
       setConnectionStatus(Object.fromEntries(entries));
-      
+    };
+
+    const loadEducationInstitutions = async (profileList) => {
+      const userIds = [
+        ...new Set(
+          profileList.map((profile) => Number(profile.user_id)).filter(Boolean),
+        ),
+      ];
+
+      const entries = await Promise.all(
+        userIds.map(async (userId) => {
+          try {
+            const response = await api.get(`/education/user/${userId}`);
+            const institutions = (response.data || [])
+              .map((item) => String(item.institution || "").trim())
+              .filter(Boolean);
+            return [userId, institutions];
+          } catch (error) {
+            console.error("Error loading education institutions:", error);
+            return [userId, []];
+          }
+        }),
+      );
+
+      setProfileInstitutions(Object.fromEntries(entries));
     };
 
     api
       .get("/profile", { signal: controller.signal })
-      .then(async(response) => {
+      .then(async (response) => {
         const profileData = response.data.data || response.data;
         setProfiles(profileData);
+        await loadEducationInstitutions(profileData);
         // Admins do not use Connect — skip relationship status loading
         if (!isAdmin) {
           await loadConnectionStatuses(profileData);
@@ -128,66 +161,72 @@ function ProfileList() {
   };
   // Send a connection request (receiver_id must be profile.user_id)
   const handleConnect = async (profile) => {
-    if (isAdmin) return; 
+    if (isAdmin) return;
     const userId = Number(profile.user_id);
     setConnectingUserId(userId);
     try {
       const response = await api.post("/connection", {
         receiver_id: userId,
-       
-      });  
-      setConnectionStatus((prev) => ({ ...prev, 
-        [userId]:
-        {
+      });
+      setConnectionStatus((prev) => ({
+        ...prev,
+        [userId]: {
           status: "pending",
           connectionId: response.data.id,
-          direction: "sent"
-        } 
-       }));
-       const name = `${profile.firstname || ""} ${profile.lastname || ""}`.trim();
-       showConnectSuccessToast(
-        name ? `Connection request sent to ${name}!` : "Connection request sent successfully!");
+          direction: "sent",
+        },
+      }));
+      const name =
+        `${profile.firstname || ""} ${profile.lastname || ""}`.trim();
+      showConnectSuccessToast(
+        name
+          ? `Connection request sent to ${name}!`
+          : "Connection request sent successfully!",
+      );
     } catch (error) {
-      alert(error.response?.data?.message || "Error sending connection request");
-       }
-      finally {
-        setConnectingUserId(null);
-      }
-    };
-// Accept an incoming connection request
-const handleAccept = async (connectionId, userId) => {
-  try {
-    await api.patch(`/connection/${connectionId}/accept`);
-    setConnectionStatus((prev) => ({ 
-      ...prev,
-     [userId]:
-      {
-        status: "accepted",
-        connectionId,
-        direction: null
-      } 
-     }));
-  } catch (error) {
-    alert(error.response?.data?.message || "Error accepting connection request");
-     }
+      alert(
+        error.response?.data?.message || "Error sending connection request",
+      );
+    } finally {
+      setConnectingUserId(null);
+    }
+  };
+  // Accept an incoming connection request
+  const handleAccept = async (connectionId, userId) => {
+    try {
+      await api.patch(`/connection/${connectionId}/accept`);
+      setConnectionStatus((prev) => ({
+        ...prev,
+        [userId]: {
+          status: "accepted",
+          connectionId,
+          direction: null,
+        },
+      }));
+    } catch (error) {
+      alert(
+        error.response?.data?.message || "Error accepting connection request",
+      );
+    }
   };
 
   // Reject an incoming connection request
-  const handleReject = async (connectionId, userId) => { 
+  const handleReject = async (connectionId, userId) => {
     try {
       await api.patch(`/connection/${connectionId}/reject`);
-      setConnectionStatus((prev) => ({ 
+      setConnectionStatus((prev) => ({
         ...prev,
-       [userId]:
-      {
-        status: "none",
-        connectionId: null,
-        direction: null,
-      } 
-     }));
-  } catch (error) {
-    alert(error.response?.data?.message || "Error rejecting connection request");
-     }
+        [userId]: {
+          status: "none",
+          connectionId: null,
+          direction: null,
+        },
+      }));
+    } catch (error) {
+      alert(
+        error.response?.data?.message || "Error rejecting connection request",
+      );
+    }
   };
 
   const getConnectionForProfile = (profile) => {
@@ -219,138 +258,166 @@ const handleAccept = async (connectionId, userId) => {
 
     const userId = Number(profile.user_id);
     // Hide Connect on the current user's own card
-    if (!userId || userId === currentUserId)
-       return null;
-  
+    if (!userId || userId === currentUserId) return null;
 
     const connection = getConnectionForProfile(profile);
     const isLoading = connectingUserId === userId;
-  
+
     // Already connected — click opens their profile (same as Connections list)
-    if(connection.status === "accepted") 
+    if (connection.status === "accepted")
       return (
-    
+        <button
+          type="button"
+          className="connect-button connect-button--connected"
+          onClick={(event) => {
+            event.stopPropagation();
+            handleOpenProfileView(profile);
+          }}
+        >
+          Connected
+        </button>
+      );
+
+    // Request sent by me, awaiting response
+    if (connection.status === "pending" && connection.direction === "sent") {
+      return (
+        <button
+          type="button"
+          className="connect-button connect-button--pending"
+          disabled
+        >
+          Pending
+        </button>
+      );
+    }
+    // Request received from them; show Accept / Reject
+    if (
+      connection.status === "pending" &&
+      connection.direction === "received"
+    ) {
+      return (
+        <>
+          <button
+            type="button"
+            className="connect-button connect-button--accept"
+            onClick={() => handleAccept(connection.connectionId, userId)}
+          >
+            Accept
+          </button>
+          <button
+            type="button"
+            className="connect-button connect-button--reject"
+            onClick={() => handleReject(connection.connectionId, userId)}
+          >
+            Reject
+          </button>
+        </>
+      );
+    }
+
+    // No connection: show + Connect
+    return (
       <button
         type="button"
-        className="connect-button connect-button--connected"
-        onClick={(event) => {
-          event.stopPropagation();
-          handleOpenProfileView(profile);
-        }}
+        className="connect-button"
+        onClick={() => handleConnect(profile)}
+        disabled={isLoading}
       >
-        Connected
+        {isLoading ? "sending..." : "+ Connect"}
       </button>
     );
-  
-     
-  // Request sent by me, awaiting response
-  if (connection.status === "pending" && connection.direction === "sent") {
-    return (
-      <button type="button" className="connect-button connect-button--pending" disabled>
-        Pending
-      </button>
-    );
-}
-  // Request received from them; show Accept / Reject
-  if (connection.status === "pending" && connection.direction === "received") {
-    return (
-      <>
-      <button 
-        type="button" className="connect-button connect-button--accept"
-        onClick={() => handleAccept(connection.connectionId, userId)}
-      
-      >
-        Accept
-      </button>
-      <button type="button" className="connect-button connect-button--reject"
-      onClick={() => handleReject(connection.connectionId, userId)}
-      >
-        Reject
-      </button>
-    </>
-    );
-  }
-
-  // No connection: show + Connect
-  return (
-    <button type="button" className="connect-button"
-    onClick={() => handleConnect(profile)}
-    disabled={isLoading}
-    >
-      {isLoading ? "sending..." : "+ Connect"}
-     
-    </button>
-  );
-};
+  };
 
   const years = Array.from(
     new Set(
       profiles
         .map((profile) => Number(profile.year || profile.graduation_year))
-        .filter((year) => !Number.isNaN(year))
-    )
+        .filter((year) => !Number.isNaN(year)),
+    ),
   ).sort((a, b) => b - a);
 
-
-
   const expertiseOptions = Array.from(
-  new Set(
+    new Set(
       profiles.flatMap((profile) =>
-        (profile.expertise || []).map((e) => e.name).filter(Boolean)
-      )
-    )
+        (profile.expertise || []).map((e) => e.name).filter(Boolean),
+      ),
+    ),
+  ).sort((a, b) => a.localeCompare(b));
+
+  const institutionOptions = Array.from(
+    new Set(
+      Object.values(profileInstitutions).flatMap(
+        (institutions) => institutions,
+      ),
+    ),
   ).sort((a, b) => a.localeCompare(b));
 
   const filteredProfiles = profiles.filter((profile) => {
-    const fullName = `${profile.firstname || ""} ${profile.lastname || ""}`.toLowerCase();
+    const fullName =
+      `${profile.firstname || ""} ${profile.lastname || ""}`.toLowerCase();
     const city = `${profile.current_city || ""}`.toLowerCase();
     const student_id = `${profile.student_id || ""}`.toLowerCase();
-    const expertise = (profile.expertise || []).map((e) => e.name).join(" ").toLowerCase();
+    const expertise = (profile.expertise || [])
+      .map((e) => e.name)
+      .join(" ")
+      .toLowerCase();
     const searchValue = searchTerm.toLowerCase().trim();
     const matchesSearch =
       searchValue === "" ||
       fullName.includes(searchValue) ||
-      city.includes(searchValue)||
-      student_id.includes(searchValue)||
+      city.includes(searchValue) ||
+      student_id.includes(searchValue) ||
       expertise.includes(searchValue);
     const profileYear = profile.year || profile.graduation_year;
-    const matchesYear = selectedYear === "all" || String(profileYear) === String(selectedYear);
-    const profileExpertise = (profile.expertise || [])
-      .map((e) => e.name?.trim().toLowerCase())
-      .filter(Boolean);
+    const matchesYear =
+      selectedYear === "all" || String(profileYear) === String(selectedYear);
     const matchesExpertise =
       selectedExpertise === "all"
         ? true
         : selectedExpertise === "has-expertise"
-        ? (profile.expertise?.length || 0) > 0
-        : (profile.expertise || []).some(
-            (e) =>
-              e.name?.trim().toLowerCase() ===
-              selectedExpertise.trim().toLowerCase()
-          );
-    console.log("PROFILE:", profile);
-    return matchesSearch && matchesYear && matchesExpertise;
-
+          ? (profile.expertise?.length || 0) > 0
+          : (profile.expertise || []).some(
+              (e) =>
+                e.name?.trim().toLowerCase() ===
+                selectedExpertise.trim().toLowerCase(),
+            );
+    const matchingInstitutions = (
+      profileInstitutions[Number(profile.user_id)] || []
+    )
+      .map((entry) => entry.trim().toLowerCase())
+      .filter(Boolean);
+    const matchesInstitution =
+      selectedInstitution === "all" ||
+      matchingInstitutions.includes(selectedInstitution.trim().toLowerCase());
+    //console.log("PROFILE:", profile);
+    return (
+      matchesSearch && matchesYear && matchesExpertise && matchesInstitution
+    );
   });
 
-  const sortedProfiles = [...filteredProfiles].sort((firstProfile, secondProfile) => {
-    const firstValue = (firstProfile[sortBy] || "").toLowerCase();
-    const secondValue = (secondProfile[sortBy] || "").toLowerCase();
-    const comparison = firstValue.localeCompare(secondValue);
+  const sortedProfiles = [...filteredProfiles].sort(
+    (firstProfile, secondProfile) => {
+      const firstValue = (firstProfile[sortBy] || "").toLowerCase();
+      const secondValue = (secondProfile[sortBy] || "").toLowerCase();
+      const comparison = firstValue.localeCompare(secondValue);
 
-    return sortDirection === "asc" ? comparison : -comparison;
-  });
+      return sortDirection === "asc" ? comparison : -comparison;
+    },
+  );
 
-  const totalPages = Math.max(1, Math.ceil(sortedProfiles.length / profilesPerPage));
+  const totalPages = Math.max(
+    1,
+    Math.ceil(sortedProfiles.length / profilesPerPage),
+  );
   const visiblePage = Math.min(currentPage, totalPages);
   const visibleProfiles = sortedProfiles.slice(
     (visiblePage - 1) * profilesPerPage,
-    visiblePage * profilesPerPage
+    visiblePage * profilesPerPage,
   );
 
   const handleSort = (field) => {
     if (sortBy === field) {
-      setSortDirection((direction) => direction === "asc" ? "desc" : "asc");
+      setSortDirection((direction) => (direction === "asc" ? "desc" : "asc"));
       return;
     }
 
@@ -370,7 +437,9 @@ const handleAccept = async (connectionId, userId) => {
 
   const handleSelectAll = (event) => {
     if (event.target.checked) {
-      setSelectedProfileIds(sortedProfiles.map((profile) => String(profile.id)));
+      setSelectedProfileIds(
+        sortedProfiles.map((profile) => String(profile.id)),
+      );
     } else {
       setSelectedProfileIds([]);
     }
@@ -380,16 +449,19 @@ const handleAccept = async (connectionId, userId) => {
     const reportRows = sortedProfiles
       .filter((profile) => selectedProfileIds.includes(String(profile.id)))
       .map((profile) => ({
-      "First name": profile.firstname || profile.first_name || "",
-      "Last name": profile.lastname || profile.last_name || "",
-      Username: profile.username || "",
-      Email: profile.email || "",
-      City: profile.current_city || "",
-      Country: profile.current_country || "",
-      "Batch year": profile.year || profile.graduation_year || "",
-      "Student ID": profile.student_id || "",
-      Expertise: (profile.expertise || []).map((e) => e.name).join(", "),
-      "Subcategories": (profile.expertise || []).flatMap((e) => e.subcategories || []).map((sub) => sub.name).join(", ")
+        "First name": profile.firstname || profile.first_name || "",
+        "Last name": profile.lastname || profile.last_name || "",
+        Username: profile.username || "",
+        Email: profile.email || "",
+        City: profile.current_city || "",
+        Country: profile.current_country || "",
+        "Batch year": profile.year || profile.graduation_year || "",
+        "Student ID": profile.student_id || "",
+        Expertise: (profile.expertise || []).map((e) => e.name).join(", "),
+        Subcategories: (profile.expertise || [])
+          .flatMap((e) => e.subcategories || [])
+          .map((sub) => sub.name)
+          .join(", "),
       }));
 
     if (!reportRows.length) return;
@@ -420,10 +492,11 @@ const handleAccept = async (connectionId, userId) => {
       console.error("Unable to copy email addresses:", error);
     }
 
-    const mailtoRecipients = emailAddresses.map((email) => encodeURIComponent(email)).join(",");
+    const mailtoRecipients = emailAddresses
+      .map((email) => encodeURIComponent(email))
+      .join(",");
     window.location.assign(`mailto:${mailtoRecipients}`);
   };
-  
 
   if (!token) return null;
 
@@ -438,19 +511,21 @@ const handleAccept = async (connectionId, userId) => {
         <h2>List of Profiles</h2>
         <div className="action-row">
           {isAdmin && (
-            
             <button
               type="button"
               className="auth-tab btn btn-success "
               onClick={() => setShowRegister(true)}
             >
-             + Create a profile
+              + Create a profile
             </button>
           )}
         </div>
       </div>
       {showRegister && (
-        <Register isOpen={showRegister} onClose={() => setShowRegister(false)} />
+        <Register
+          isOpen={showRegister}
+          onClose={() => setShowRegister(false)}
+        />
       )}
 
       <div className="profile-toolbar">
@@ -474,35 +549,56 @@ const handleAccept = async (connectionId, userId) => {
             </option>
           ))}
         </select>
-        
-        <select
-            className="year-filter"
-            value={selectedExpertise}
-            onChange={(e) => {
-              setSelectedExpertise(e.target.value);
-              setCurrentPage(1);
-            }}
-          >
-            <option value="all">All profiles</option>
-            <option value="has-expertise">All expertise</option>
 
-            {expertiseOptions.map((expertise) => (
-              <option key={expertise} value={expertise}>
-                {expertise}
-              </option>
-            ))}
+        <select
+          className="year-filter"
+          value={selectedInstitution}
+          onChange={(e) => {
+            setSelectedInstitution(e.target.value);
+            setCurrentPage(1);
+          }}
+        >
+          <option value="all">All Education Institution</option>
+
+          {institutionOptions.map((educationInstitution) => (
+            <option key={educationInstitution} value={educationInstitution}>
+              {educationInstitution}
+            </option>
+          ))}
         </select>
 
-        </div>
-        <div className="profile-toolbar">
+        <select
+          className="year-filter"
+          value={selectedExpertise}
+          onChange={(e) => {
+            setSelectedExpertise(e.target.value);
+            setCurrentPage(1);
+          }}
+        >
+          <option value="all">All profiles</option>
+          <option value="has-expertise">- Profiles with expertise</option>
+
+          {expertiseOptions.map((expertise) => (
+            <option key={expertise} value={expertise}>
+              -- {expertise}
+            </option>
+          ))}
+        </select>
+      </div>
+      <div className="profile-toolbar">
         {isAdmin && (
-          <div className="profile-view-controls" aria-label="Profile view options">
-          
+          <div
+            className="profile-view-controls"
+            aria-label="Profile view options"
+          >
             {viewMode === "list" && (
               <label className="profile-select-all">
                 <input
                   type="checkbox"
-                  checked={sortedProfiles.length > 0 && selectedProfileIds.length === sortedProfiles.length}
+                  checked={
+                    sortedProfiles.length > 0 &&
+                    selectedProfileIds.length === sortedProfiles.length
+                  }
                   onChange={handleSelectAll}
                 />
                 Select all ({sortedProfiles.length})
@@ -522,7 +618,7 @@ const handleAccept = async (connectionId, userId) => {
             >
               List View
             </button>
-              
+
             {viewMode === "list" && (
               <button
                 type="button"
@@ -544,88 +640,120 @@ const handleAccept = async (connectionId, userId) => {
               </button>
             )}
           </div>
-           )}
+        )}
         <div className="profile-sort-controls" aria-label="Sort profiles">
-            <span>Sort by:</span>
-            <button
-              type="button"
-              className={sortBy === "firstname" ? "active" : ""}
-              onClick={() => handleSort("firstname")}
-            >
-              First name {sortBy === "firstname" ? (sortDirection === "asc" ? "↑" : "↓") : ""}
-            </button>
-            <button
-              type="button"
-              className={sortBy === "lastname" ? "active" : ""}
-              onClick={() => handleSort("lastname")}
-            >
-              Last name {sortBy === "lastname" ? (sortDirection === "asc" ? "↑" : "↓") : ""}
-            </button>
-          </div>
+          <span>Sort by:</span>
+          <button
+            type="button"
+            className={sortBy === "firstname" ? "active" : ""}
+            onClick={() => handleSort("firstname")}
+          >
+            First name{" "}
+            {sortBy === "firstname"
+              ? sortDirection === "asc"
+                ? "↑"
+                : "↓"
+              : ""}
+          </button>
+          <button
+            type="button"
+            className={sortBy === "lastname" ? "active" : ""}
+            onClick={() => handleSort("lastname")}
+          >
+            Last name{" "}
+            {sortBy === "lastname" ? (sortDirection === "asc" ? "↑" : "↓") : ""}
+          </button>
+        </div>
       </div>
-      <br/>
+      <br />
 
       {loading ? (
         <p>Loading profiles...</p>
       ) : (
-        <div className={viewMode === "list" ? "profile-list-view" : "profile-card-grid"}>
+        <div
+          className={
+            viewMode === "list" ? "profile-list-view" : "profile-card-grid"
+          }
+        >
           {visibleProfiles.map((profile) => {
             // Connected alumni cards are clickable; admins skip Connect UX
             const connected = isAdmin || isProfileConnected(profile);
 
             return (
-          <article
-            className={`profile-card${connected ? " profile-card--clickable" : ""}`}
-            key={profile.id}
-            onClick={
-              connected
-                ? () => handleOpenProfileView(profile)
-                : undefined
-            }
-            onKeyDown={
-              connected 
-                ? (event) => {
-                    if (event.key === "Enter" || event.key === " ") {
-                      event.preventDefault();
-                      handleOpenProfileView(profile);
-                    }
-                  }
-                : undefined
-            }
-            role={connected ? "button" : undefined}
-            tabIndex={connected ? 0 : undefined}
-          >
-            {isAdmin && viewMode === "list" && (
-              <label
-                className="profile-select-checkbox"
-                onClick={(event) => event.stopPropagation()}
+              <article
+                className={`profile-card${connected ? " profile-card--clickable" : ""}`}
+                key={profile.id}
+                onClick={
+                  connected ? () => handleOpenProfileView(profile) : undefined
+                }
+                onKeyDown={
+                  connected
+                    ? (event) => {
+                        if (event.key === "Enter" || event.key === " ") {
+                          event.preventDefault();
+                          handleOpenProfileView(profile);
+                        }
+                      }
+                    : undefined
+                }
+                role={connected ? "button" : undefined}
+                tabIndex={connected ? 0 : undefined}
               >
-                <input
-                  type="checkbox"
-                  checked={selectedProfileIds.includes(String(profile.id))}
-                  onChange={() => handleProfileSelection(profile.id)}
-                  aria-label={`Select ${profile.firstname || "profile"} ${profile.lastname || ""}`}
-                />
-              </label>
-            )}
-            <div className="profile-avatar">
-              {profile.profile_image_url ? (
-                <img src={profile.profile_image_url} alt={`${profile.firstname || "User"}'s avatar`} className="dp-image"/>
-              ) : (
-                (profile.firstname || "U").charAt(0).toUpperCase()
-              )}
-            </div>
+                {isAdmin && viewMode === "list" && (
+                  <label
+                    className="profile-select-checkbox"
+                    onClick={(event) => event.stopPropagation()}
+                  >
+                    <input
+                      type="checkbox"
+                      checked={selectedProfileIds.includes(String(profile.id))}
+                      onChange={() => handleProfileSelection(profile.id)}
+                      aria-label={`Select ${profile.firstname || "profile"} ${profile.lastname || ""}`}
+                    />
+                  </label>
+                )}
+                <div className="profile-avatar">
+                  {profile.profile_image_url ? (
+                    <img
+                      src={profile.profile_image_url}
+                      alt={`${profile.firstname || "User"}'s avatar`}
+                      className="dp-image"
+                    />
+                  ) : (
+                    (profile.firstname || "U").charAt(0).toUpperCase()
+                  )}
+                </div>
 
-            <div className="profile-card-body">
-              <h3>
-                {profile.firstname || profile.first_name || "Unknown"} {profile.lastname || profile.last_name || ""}
-              </h3>
-              <p><strong>{profile.current_city}</strong> {profile.current_country}</p>
-              {/* <p><strong>Email:</strong> {profile.email || "-"}</p> */}
-              <p><strong>Batch of </strong> {profile.year || profile.graduation_year || "-"}</p>
-              <p><strong>Expertise:</strong>{" "} {profile.expertise?.length? profile.expertise.map((e) => e.name).join(", ") : "-"}              </p>
-              <p><strong>Subcategories:</strong>{" "} {profile.expertise?.length? profile.expertise.flatMap((e) => e.subcategories || []).map((sub) => sub.name).join(", ") || "-": "-"}</p>
-              {/*<div>
+                <div className="profile-card-body">
+                  <h3>
+                    {profile.firstname || profile.first_name || "Unknown"}{" "}
+                    {profile.lastname || profile.last_name || ""}
+                  </h3>
+                  <p>
+                    <strong>{profile.current_city}</strong>{" "}
+                    {profile.current_country}
+                  </p>
+                  {/* <p><strong>Email:</strong> {profile.email || "-"}</p> */}
+                  <p>
+                    <strong>Batch of </strong>{" "}
+                    {profile.year || profile.graduation_year || "-"}
+                  </p>
+                  <p>
+                    <strong>Expertise:</strong>{" "}
+                    {profile.expertise?.length
+                      ? profile.expertise.map((e) => e.name).join(", ")
+                      : "-"}{" "}
+                  </p>
+                  <p>
+                    <strong>Subcategories:</strong>{" "}
+                    {profile.expertise?.length
+                      ? profile.expertise
+                          .flatMap((e) => e.subcategories || [])
+                          .map((sub) => sub.name)
+                          .join(", ") || "-"
+                      : "-"}
+                  </p>
+                  {/*<div>
                     <strong>Expertise:</strong>
                     {profile.expertise?.length ? (
                       profile.expertise.map((e) => (
@@ -646,18 +774,17 @@ const handleAccept = async (connectionId, userId) => {
                     )}
               </div>*/}
 
-                {/* Connect actions — alumni users only */}
-                {!isAdmin && (
-                <div
-                  className="profile-connect-actions"
-                  onClick={(event) => event.stopPropagation()}
-                >
-                  {renderConnectionActions(profile)}
+                  {/* Connect actions — alumni users only */}
+                  {!isAdmin && (
+                    <div
+                      className="profile-connect-actions"
+                      onClick={(event) => event.stopPropagation()}
+                    >
+                      {renderConnectionActions(profile)}
+                    </div>
+                  )}
                 </div>
-                )}
-            
-            </div>
-          </article>
+              </article>
             );
           })}
         </div>
@@ -668,24 +795,32 @@ const handleAccept = async (connectionId, userId) => {
           <button
             type="button"
             className="btn btn-light"
-            onClick={() => setCurrentPage((page) => Math.max(1, Math.min(page, totalPages) - 1))}
+            onClick={() =>
+              setCurrentPage((page) =>
+                Math.max(1, Math.min(page, totalPages) - 1),
+              )
+            }
             disabled={visiblePage === 1}
           >
             Previous
           </button>
-          <span>Page {visiblePage} of {totalPages}</span>
+          <span>
+            Page {visiblePage} of {totalPages}
+          </span>
           <button
             type="button"
             className="btn btn-light"
-            onClick={() => setCurrentPage((page) => Math.min(totalPages, Math.min(page, totalPages) + 1))}
+            onClick={() =>
+              setCurrentPage((page) =>
+                Math.min(totalPages, Math.min(page, totalPages) + 1),
+              )
+            }
             disabled={visiblePage === totalPages}
           >
             Next
           </button>
         </div>
       )}
-
-      
     </div>
   );
 }

@@ -7,7 +7,6 @@ $soft-border: #d9d9d9;
 $shadow: rgba(0, 0, 0, 0.12);
 $primary-font-family: "DM Sans", sans-serif;
 
-
 * {
   box-sizing: border-box;
 }
@@ -16,7 +15,10 @@ body {
   margin: 0;
   background: #f3f2ef;
   font-family: "Segoe UI", sans-serif;
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+  font-family:
+    -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue",
+    Arial, "Noto Sans", sans-serif, "Apple Color Emoji", "Segoe UI Emoji",
+    "Segoe UI Symbol", "Noto Color Emoji";
   color: $dark-text;
 }
 
@@ -982,6 +984,47 @@ a {
   color: #6c757d;
 }
 
+.auth-form .register-select {
+  width: 100%;
+  min-height: 48px;
+  padding: 12px 42px 12px 14px;
+  border: 1px solid $soft-border;
+  border-radius: 10px;
+  background-color: #fff;
+  color: $dark-text;
+  cursor: pointer;
+  font-size: 15px;
+  appearance: none;
+  background-image:
+    linear-gradient(45deg, transparent 50%, $primary-blue 50%),
+    linear-gradient(135deg, $primary-blue 50%, transparent 50%);
+  background-position:
+    calc(100% - 18px) 21px,
+    calc(100% - 12px) 21px;
+  background-size:
+    6px 6px,
+    6px 6px;
+  background-repeat: no-repeat;
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.auth-form .register-select:hover {
+  border-color: $primary-blue;
+}
+
+.auth-form .register-select:focus {
+  border-color: $primary-blue;
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(10, 102, 194, 0.16);
+}
+
+.auth-form .register-select option {
+  background: #fff;
+  color: $dark-text;
+}
+
 .auth-form button,
 .btn {
   border: none;
@@ -1012,6 +1055,12 @@ a {
   color: #fff;
 }
 
+.expertise-button {
+  background: #051655f0;
+  color: #ffffff;
+  margin: 25px 10px 5px 10px;
+}
+
 .RegisterAdmin-button {
   width: 100%;
 }
@@ -1026,6 +1075,17 @@ a {
   box-shadow: none;
   padding: 28px 24px 40px;
   color: $dark-text;
+}
+
+.half-screen {
+  width: min(1100px, calc(100% - 32px));
+  margin: 32px auto 0;
+  padding: 24px 22px 28px;
+  background: #fff;
+  border: 1px solid $soft-border;
+  border-radius: 18px;
+  box-shadow: 0 12px 28px rgba(15, 23, 42, 0.06);
+  box-sizing: border-box;
 }
 
 .page-header {
@@ -1196,10 +1256,28 @@ a {
 }
 
 .profile-list-view .profile-card-body {
-  display: grid;
-  grid-template-columns: 1.2fr 1fr 1.3fr 0.8fr auto;
+  display: flex;
+  flex-direction: row;
   align-items: center;
   gap: 12px;
+  width: 100%;
+}
+
+.profile-list-view .profile-card-info {
+  flex: 1;
+  min-width: 0;
+  display: grid;
+  grid-template-columns: 1.2fr 1fr 0.8fr 1.3fr 1.3fr;
+  align-items: center;
+  gap: 12px;
+}
+
+.profile-list-view .profile-connect-actions {
+  margin-top: 0;
+  flex-shrink: 0;
+  justify-content: flex-end;
+  align-items: center;
+  min-width: 148px;
 }
 
 .profile-list-view .profile-select-checkbox {
@@ -1217,8 +1295,8 @@ a {
   grid-column: 3;
 }
 
-.profile-list-view .profile-card-body h3,
-.profile-list-view .profile-card-body p {
+.profile-list-view .profile-card-info h3,
+.profile-list-view .profile-card-info p {
   margin: 0;
 }
 
@@ -1249,11 +1327,12 @@ a {
 .profile-card {
   position: relative;
   display: flex;
-  justify-content: center; /* Centers text horizontally */
-  align-items: center;     /* Centers text vertically */
-  text-align: center; 
+  justify-content: flex-start;
+  align-items: stretch;
+  text-align: center;
   flex-direction: column;
   gap: 14px;
+  height: 100%;
   padding: 18px;
   background: #fff;
   border: 1px solid $soft-border;
@@ -1268,15 +1347,26 @@ a {
   display: flex;
   align-items: center;
   justify-content: center;
+  align-self: center;
+  flex-shrink: 0;
   background: linear-gradient(135deg, $primary-blue 0%, #5ca7ff 100%);
   color: #fff;
   font-weight: 700;
   font-size: 1.5rem;
 }
-.dp-image{
+.dp-image {
   border-radius: 50%;
 }
 .profile-card-body {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  width: 100%;
+  gap: 8px;
+  min-height: 0;
+}
+
+.profile-card-info {
   display: flex;
   flex-direction: column;
   gap: 8px;
@@ -1293,13 +1383,13 @@ a {
 }
 
 .profile-card-actions {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    text-align: center;
-    gap: 10px;
-    margin-top: auto;
-    padding-top: 8px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  gap: 10px;
+  margin-top: auto;
+  padding-top: 8px;
 }
 
 .icon-action {
@@ -1355,7 +1445,7 @@ a {
   margin-bottom: 8px;
   padding-top: 10px;
   padding-left: 150px;
-    min-height: 70px;
+  min-height: 70px;
 }
 
 .linkedin-avatar {
@@ -1365,8 +1455,8 @@ a {
   overflow: hidden;
   flex-shrink: 0;
   position: absolute;
-    top: -65px;
-    left: 35px;
+  top: -65px;
+  left: 35px;
   background: linear-gradient(135deg, $primary-blue 0%, #5ca7ff 100%);
   color: #fff;
   display: flex;
@@ -1403,11 +1493,11 @@ a {
   border-bottom: 1px solid #edf2f7;
 }
 
-.linkedin-detail-row a{
+.linkedin-detail-row a {
   color: #000000;
   text-decoration: none;
   font-style: italic;
-  font-size: smaller;  
+  font-size: smaller;
 }
 /* LinkedIn style profile editing */
 
@@ -1428,7 +1518,7 @@ a {
   min-height: 100px;
   resize: vertical;
 }
- 
+
 .linkedin-profile-body input:focus,
 .linkedin-profile-body textarea:focus,
 .linkedin-profile-body select:focus {
@@ -1585,13 +1675,13 @@ a {
   flex-direction: column;
   gap: 4px;
   font-size: 0.65rem;
-  text-align: left;      
+  text-align: left;
   align-items: flex-start;
 }
 .password-rules li {
   color: #6c757d;
   display: list-item;
-  text-align: left;  
+  text-align: left;
 }
 .password-rules li.valid {
   color: #198754;
@@ -1649,7 +1739,9 @@ a {
   font-size: 1rem;
   text-decoration: none;
   box-shadow: 0 8px 18px rgba(28, 142, 245, 0.22);
-  transition: transform 0.2s ease, background 0.2s ease;
+  transition:
+    transform 0.2s ease,
+    background 0.2s ease;
 }
 
 .events-icon-link:hover,
@@ -1687,7 +1779,9 @@ a {
   min-width: 0;
   cursor: pointer;
   border-radius: 28px;
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
 }
 
 .event-card:hover,
@@ -2352,7 +2446,9 @@ a {
   background: #fff;
   box-shadow: 0 10px 24px rgba(27, 30, 43, 0.07);
   cursor: pointer;
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
 }
 
 .events-page-card:hover,
@@ -2447,7 +2543,9 @@ a {
   border-radius: 28px;
   background-position: center;
   background-size: cover;
-  box-shadow: 0 18px 35px rgba(39, 44, 58, 0.16), 12px -10px 0 #eef0f3;
+  box-shadow:
+    0 18px 35px rgba(39, 44, 58, 0.16),
+    12px -10px 0 #eef0f3;
 }
 
 .event-hero-edit-button {
@@ -2650,7 +2748,13 @@ a {
   place-items: center;
   border: 1px solid #d9dee6;
   border-radius: 18px;
-  background: linear-gradient(135deg, #dceee6 0 25%, #edf3ec 25% 52%, #d9e5ef 52% 75%, #eef0e8 75%);
+  background: linear-gradient(
+    135deg,
+    #dceee6 0 25%,
+    #edf3ec 25% 52%,
+    #d9e5ef 52% 75%,
+    #eef0e8 75%
+  );
   color: #536574;
   font-weight: 800;
 }
@@ -3248,8 +3352,20 @@ a {
 
   .profile-list-view .profile-card-body {
     grid-column: 3;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
+  }
+
+  .profile-list-view .profile-card-info {
     grid-template-columns: 1fr;
     gap: 6px;
+  }
+
+  .profile-list-view .profile-connect-actions {
+    justify-content: flex-start;
+    min-width: 0;
+    width: 100%;
   }
 
   .profile-list-view .profile-card-actions {
@@ -3431,7 +3547,7 @@ button {
   border: 1px solid #e0e0e0;
   border-radius: 16px;
   box-sizing: border-box;
-}/* Education and Experience form fields */
+} /* Education and Experience form fields */
 .profile-section input,
 .profile-section textarea {
   background: #ffffff;
@@ -3542,7 +3658,7 @@ button {
 .experience-item button:hover {
   background: #fdecec;
 }
-.linkedin-profile-header>button {
+.linkedin-profile-header > button {
   padding: 8px 16px;
   border: 1px solid #0a66c2;
   border-radius: 20px;
@@ -3552,7 +3668,7 @@ button {
   cursor: pointer;
 }
 
-.linkedin-profile-header>button:hover {
+.linkedin-profile-header > button:hover {
   background: #eef6ff;
 }
 .location-edit-fields {
@@ -3671,7 +3787,7 @@ button {
   width: 260px;
   margin-top: 12px;
 
-  >button {
+  > button {
     width: 100%;
     height: 42px;
     padding: 0 12px;
@@ -3732,13 +3848,14 @@ button {
   justify-content: center;
   padding: 0;
   position: absolute;
-    right: 18px;
-    top: 18px;
+  right: 18px;
+  top: 18px;
 }
 
 .profile-edit-button:hover {
   background: #f3f2ef !important;
-}.profile-edit-button {
+}
+.profile-edit-button {
   width: 48px !important;
   height: 48px !important;
   padding: 12px !important;
@@ -3954,7 +4071,7 @@ button {
 
 /* Track color when checkbox is checked */
 input:checked + .slider {
-  background-color: #2196F3;
+  background-color: #2196f3;
 }
 
 /* Move the knob to the right when checked */
@@ -4039,6 +4156,7 @@ input:checked + .slider::before {
 .about-save-button:hover {
   background: #004182 !important;
 }
+
 .linkedin-experience-item {
   padding: 22px 0;
   border-bottom: 1px solid #e5e5e5;
@@ -4199,12 +4317,24 @@ input:checked + .slider::before {
   width: 100%;
 }
 
-.mentorship-days-dropdown>button {
+.mentorship-days-dropdown > button {
   width: 100%;
-  min-height: 58px;
+  height: 72px;
+    min-height: 72px;
   text-align: left;
-  padding: 0 18px;
+  padding: 0 14px;
   box-sizing: border-box;
+  position: relative;
+}
+.dropdown-arrow {
+  position: absolute;
+  right: 14px;
+  top: 50%;
+  width: 7px;
+  height: 7px;
+  border-right: 1.5px solid #1f2937;
+  border-bottom: 1.5px solid #1f2937;
+  transform: translateY(-65%) rotate(45deg);
 }
 .mentorship-expertise-select {
   width: 100%;
@@ -4339,6 +4469,302 @@ input:checked + .slider::before {
   font-family: inherit;
 }
 
+/* ========== Connect feature styles (profileList + MyProfilePage) ========== */
+.profile-connect-actions {
+  margin-top: auto;
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+  min-height: 2.25rem;
+  padding-top: 0.75rem;
+}
+
+.connect-button {
+  padding: 0.35rem 0.75rem;
+  border-radius: 6px;
+  border: 1px solid #1a5f2a;
+  background: #1a5f2a;
+  color: #fff;
+  font-size: 0.9rem;
+  cursor: pointer;
+}
+
+.connect-button:disabled {
+  cursor: not-allowed;
+}
+
+.connect-button--pending {
+  background: #f0f0f0;
+  border-color: #ccc;
+  color: #666;
+}
+
+.connect-button--connected {
+  background: #e8f5e9;
+  border-color: #a5d6a7;
+  color: #2e7d32;
+}
+
+.connect-button--accept {
+  background: #1a5f2a;
+}
+
+.connect-button--reject {
+  background: #fff;
+  color: #333;
+  border-color: #ccc;
+}
+
+.profile-header-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  align-items: center;
+}
+
+.connect-open-button {
+  position: relative;
+  padding: 0.5rem 1rem;
+  border-radius: 20px;
+  border: 1px solid #1a5f2a;
+  background: #fff;
+  color: #1a5f2a;
+  font-size: 0.95rem;
+  cursor: pointer;
+}
+
+.connect-open-button:hover {
+  background: #f3faf5;
+}
+
+.connect-open-badge {
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  border-radius: 999px;
+  background: #e53935;
+  color: #fff;
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 18px;
+  text-align: center;
+  box-shadow: 0 0 0 2px #fff;
+}
+
+.profile-header-button,
+.profile-header-actions .profile-header-button,
+.profile-header-actions a.profile-header-button,
+.profile-header-actions button.profile-header-button {
+  padding: 10px 22px;
+  border-radius: 24px;
+  border: 1px solid #0a66c2;
+  background: #fff;
+  color: #0a66c2;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: 0.2s ease;
+}
+
+.profile-header-button:hover,
+.profile-header-actions a.profile-header-button:hover,
+.profile-header-actions button.profile-header-button:hover {
+  background: #eef6ff;
+  color: #0a66c2;
+  border-color: #0a66c2;
+}
+
+.modal-card.connect-modal {
+  width: min(560px, 100%);
+  height: 920px;
+  max-height: 85vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  padding: 22px 20px;
+  box-sizing: border-box;
+}
+
+.connect-modal .modal-header {
+  flex-shrink: 0;
+  margin-bottom: 0;
+  padding-bottom: 16px;
+  border-bottom: 1px solid #eee;
+}
+
+.connect-modal-body {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding-top: 16px;
+  padding-right: 4px;
+}
+
+.connect-modal h3,
+.connect-modal h4 {
+  margin: 0;
+}
+
+.connect-section {
+  margin-bottom: 1.25rem;
+
+  &:last-child {
+    margin-bottom: 0;
+  }
+}
+
+.connect-section h4 {
+  margin-bottom: 0.75rem;
+  font-size: 1rem;
+  color: #000;
+  font-weight: 700;
+}
+
+.connect-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.75rem 0;
+  border-bottom: 1px solid #eee;
+}
+
+.connect-row--clickable {
+  cursor: pointer;
+  border-radius: 8px;
+  padding-left: 0.5rem;
+  padding-right: 0.5rem;
+  transition: background 0.15s ease;
+
+  &:hover {
+    background: #f5f8fc;
+  }
+}
+
+.connect-row-main {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  min-width: 0;
+  flex: 1;
+}
+
+.connect-row-avatar {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  object-fit: cover;
+  flex-shrink: 0;
+}
+
+.connect-row-avatar--placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, $primary-blue 0%, #5ca7ff 100%);
+  color: #fff;
+  font-weight: 700;
+  font-size: 1rem;
+}
+
+.connect-row-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  min-width: 0;
+}
+
+.connect-row-info span {
+  color: #666;
+  font-size: 0.9rem;
+}
+
+.connect-row-actions {
+  display: flex;
+  gap: 0.5rem;
+  flex-shrink: 0;
+}
+
+.connect-empty,
+.connect-status-label {
+  color: #666;
+  font-size: 0.9rem;
+}
+
+.connect-empty {
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid #eee;
+  color: #000;
+  font-weight: 400;
+  font-size: 0.95rem;
+}
+
+.connect-status-label {
+  font-style: italic;
+}
+
+.connect-toast {
+  position: fixed;
+  top: 24px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 2000;
+  padding: 0.75rem 1.25rem;
+  background: #1a5f2a;
+  color: #fff;
+  border-radius: 8px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+  font-size: 0.95rem;
+  animation: connect-toast-fade 1s ease forwards;
+}
+
+@keyframes connect-toast-fade {
+  0% {
+    opacity: 0;
+    transform: translateX(-50%) translateY(-8px);
+  }
+  15% {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+  85% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+.connect-toast--long {
+  animation: connect-toast-fade-long 3s ease forwards;
+}
+
+@keyframes connect-toast-fade-long {
+  0% {
+    opacity: 0;
+    transform: translateX(-50%) translateY(-8px);
+  }
+  10% {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+  90% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
 /* Site footer — RHS style: Contact Us + Find Us + Privacy */
 .site-footer {
   color: #fff;
@@ -4362,6 +4788,7 @@ input:checked + .slider::before {
   background-repeat: repeat-x;
   background-position: center top;
   background-size: contain;
+  margin-top: 10em;
   flex-shrink: 0;
 }
 
