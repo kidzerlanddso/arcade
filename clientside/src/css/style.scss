@@ -4505,3 +4505,249 @@ input:checked + .slider::before {
     opacity: 0.12;
   }
 }
+
+.donations-page {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 2rem 1.25rem 3rem;
+}
+
+.donations-hero h1 {
+  margin: 0.25rem 0;
+  font-size: clamp(2rem, 4vw, 2.75rem);
+  color: $dark-text;
+}
+
+.donations-eyebrow {
+  margin: 0;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-size: 0.8rem;
+  color: $primary-blue;
+  font-weight: 600;
+}
+
+.donations-lead {
+  margin: 0.5rem 0 0;
+  font-size: 1.25rem;
+  color: $primary-green;
+  font-weight: 600;
+}
+
+.donations-section {
+  margin-top: 2rem;
+  line-height: 1.6;
+}
+
+.donations-form-card {
+  padding: 1.25rem 1.25rem 1.5rem;
+  background: #fff;
+  border: 1px solid $soft-border;
+  border-radius: 0.35rem;
+}
+
+.donations-tax-note {
+  font-size: 0.95rem;
+}
+
+.donations-tax-note a {
+  color: $primary-blue;
+}
+
+.donations-section h2 {
+  margin: 0 0 0.75rem;
+  font-size: 1.35rem;
+}
+
+.donations-section p {
+  margin: 0 0 1rem;
+}
+
+.donations-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin: 1rem 0;
+}
+
+.donations-amount-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.75rem;
+  margin: 1rem 0;
+}
+
+.donations-amount-btn {
+  width: 100%;
+  min-height: 3.25rem;
+  padding: 0.75rem 0.5rem;
+  border-radius: 0.25rem;
+  border: 1px solid #c9cdd3;
+  background: #fff;
+  color: $dark-text;
+  font-weight: 600;
+  font-size: 1rem;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: none;
+  transition:
+    border-color 0.15s ease,
+    background 0.15s ease,
+    color 0.15s ease;
+}
+
+.donations-amount-btn:hover {
+  border-color: $primary-green;
+  background: #f7fbf8;
+  box-shadow: none;
+}
+
+.donations-amount-btn.is-active {
+  border-color: $primary-green;
+  background: #fff;
+  color: $primary-green;
+  box-shadow: inset 0 0 0 1px $primary-green;
+}
+
+.donations-other-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  margin-bottom: 1rem;
+  font-weight: 600;
+}
+
+.donations-other-field input {
+  max-width: 220px;
+  padding: 0.65rem 0.75rem;
+  border: 1px solid $soft-border;
+  border-radius: 0.5rem;
+  background: #fff;
+}
+
+.donations-regular {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  width: 100%;
+  margin: 0 0 1.25rem;
+  font-weight: 600;
+  cursor: pointer;
+  user-select: none;
+}
+
+.donations-regular input {
+  appearance: none;
+  -webkit-appearance: none;
+  width: 1.5rem;
+  height: 1.5rem;
+  margin: 0;
+  flex-shrink: 0;
+  border-radius: 50%;
+  border: 2px solid $primary-green;
+  background: transparent;
+  cursor: pointer;
+  display: grid;
+  place-content: center;
+  transition:
+    background 0.15s ease,
+    box-shadow 0.15s ease,
+    border-color 0.15s ease;
+}
+
+.donations-regular input::before {
+  content: "";
+  width: 0.7rem;
+  height: 0.7rem;
+  border-radius: 50%;
+  transform: scale(0);
+  transition: transform 0.12s ease;
+  background: $primary-green;
+}
+
+.donations-regular input:checked::before {
+  transform: scale(1);
+}
+
+.donations-regular input:hover {
+  box-shadow: 0 0 0 3px rgba($primary-green, 0.12);
+}
+
+.donations-regular input:focus-visible {
+  outline: 2px solid $primary-blue;
+  outline-offset: 2px;
+}
+
+.donations-cta {
+  display: inline-block;
+  width: auto;
+  min-width: 12rem;
+  max-width: 100%;
+  margin-top: 0.25rem;
+  padding: 0.75rem 1.5rem;
+  border-radius: 0.5rem;
+  background: $primary-green;
+  color: #fff;
+  text-decoration: none;
+  font-weight: 600;
+  border: 2px solid $primary-green;
+  cursor: pointer;
+  text-align: center;
+  transition:
+    background 0.15s ease,
+    color 0.15s ease;
+}
+
+.donations-cta:hover:not(:disabled) {
+  background: #086638;
+  border-color: #086638;
+  color: #fff;
+}
+
+.donations-cta:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.donations-cta-secondary {
+  background: transparent;
+  color: $primary-green;
+}
+
+.donations-cta-secondary:hover {
+  background: rgba($primary-green, 0.08);
+  color: $primary-green;
+}
+
+.donations-note {
+  font-size: 0.9rem;
+  opacity: 0.75;
+  margin-top: 1rem;
+}
+
+.donations-email {
+  font-weight: 600;
+  color: $primary-blue;
+  text-decoration: none;
+}
+
+.donations-email:hover {
+  text-decoration: underline;
+}
+
+.donations-list {
+  margin: 0;
+  padding-left: 1.25rem;
+}
+
+.donations-list li {
+  margin: 0.4rem 0;
+}
+
+@media (max-width: 520px) {
+  .donations-amount-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}

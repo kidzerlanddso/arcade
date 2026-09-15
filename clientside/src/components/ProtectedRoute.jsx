@@ -211,7 +211,11 @@ function ProtectedRoute({ children }) {
             id="main-navigation"
             className={`app-header-nav${mobileMenuOpen ? " is-open" : ""}`}
             aria-label="Main navigation"
+
           >
+            <Link to="/donations" onClick={() => setMobileMenuOpen(false)}>
+              Donate
+            </Link>
             <Link to="/about" onClick={() => setMobileMenuOpen(false)}>
               About
             </Link>
