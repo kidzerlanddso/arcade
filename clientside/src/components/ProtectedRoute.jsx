@@ -54,6 +54,7 @@ function ProtectedRoute({ children }) {
   const [adminMenuOpen, setAdminMenuOpen] = useState(false);
   const [profileMenuOpen, setProfileMenuOpen] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [pendingMembershipCount, setPendingMembershipCount] = useState(0);
   const [resetOpen, setResetOpen] = useState(false);
   const [formData, setFormData] = useState({
     currentPassword: "",
@@ -87,6 +88,37 @@ function ProtectedRoute({ children }) {
     setProfileMenuOpen(false);
     setMobileMenuOpen(false);
   }, [navigate]);
+
+  useEffect(() => {
+    if (!isAdmin) {
+      return undefined;
+    }
+
+    let isMounted = true;
+
+    const loadPendingMembershipCount = async () => {
+      try {
+        const response = await api.get(
+          "/auth/membership-requests/pending-requests",
+        );
+        if (isMounted) {
+          setPendingMembershipCount(Number(response.data?.count || 0));
+        }
+      } catch (error) {
+        if (error.response?.status !== 401 && error.response?.status !== 403) {
+          console.error("Failed to load membership request count:", error);
+        }
+      }
+    };
+
+    loadPendingMembershipCount();
+    const refreshTimer = window.setInterval(loadPendingMembershipCount, 30000);
+
+    return () => {
+      isMounted = false;
+      window.clearInterval(refreshTimer);
+    };
+  }, [isAdmin]);
 
   const handleLogout = async () => {
     try {
@@ -181,7 +213,7 @@ function ProtectedRoute({ children }) {
             aria-label="Main navigation"
           >
             <Link to="/about" onClick={() => setMobileMenuOpen(false)}>
-              About AlumniConnect
+              About
             </Link>
 
             <Link to="/profile" onClick={() => setMobileMenuOpen(false)}>
@@ -199,7 +231,18 @@ function ProtectedRoute({ children }) {
                     setProfileMenuOpen(false);
                   }}
                 >
-                  Admin ▾
+                  Admin{" "}
+                  {pendingMembershipCount > 0 && (
+                    <span
+                      className="admin-menu-notification-badge"
+                      aria-label={`${pendingMembershipCount} pending membership requests`}
+                    >
+                      {pendingMembershipCount > 99
+                        ? "99+"
+                        : pendingMembershipCount}
+                    </span>
+                  )}{" "}
+                  ▾
                 </button>
 
                 {adminMenuOpen && (
@@ -211,7 +254,19 @@ function ProtectedRoute({ children }) {
                         setMobileMenuOpen(false);
                       }}
                     >
-                      Membership Request
+                      <span className="admin-menu-notification-link">
+                        Membership Request
+                        {pendingMembershipCount > 0 && (
+                          <span
+                            className="admin-menu-notification-badge"
+                            aria-label={`${pendingMembershipCount} pending membership requests`}
+                          >
+                            {pendingMembershipCount > 99
+                              ? "99+"
+                              : pendingMembershipCount}
+                          </span>
+                        )}
+                      </span>
                     </Link>
 
                     <Link
