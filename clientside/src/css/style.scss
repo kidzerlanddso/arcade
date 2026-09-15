@@ -265,6 +265,28 @@ a {
   color: $primary-blue;
 }
 
+.admin-menu-notification-link {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+}
+
+.admin-menu-notification-badge {
+  display: inline-flex;
+  min-width: 21px;
+  height: 21px;
+  align-items: center;
+  justify-content: center;
+  padding: 0 6px;
+  border-radius: 999px;
+  background: #d92d20;
+  color: #fff;
+  font-size: 0.72rem;
+  font-weight: 800;
+  line-height: 1;
+}
+
 .brand-panel h1 {
   margin: 20px 0 10px;
   font-size: clamp(2.4rem, 4vw, 4rem);
@@ -1693,6 +1715,73 @@ a {
   border: 1px solid #dfe3ea;
   border-radius: 16px;
   background: #f7f9fc;
+}
+
+.add-event-form .form-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+
+.add-event-form .form-field input,
+.add-event-form .event-image-field input,
+.add-event-form > textarea {
+  width: 100%;
+  min-height: 44px;
+  padding: 11px 12px;
+  border: 1px solid #cfd4db;
+  border-radius: 8px;
+  background: #fff;
+  color: #1f2937;
+  font-size: 0.95rem;
+  outline: none;
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.add-event-form .form-field input:focus,
+.add-event-form .event-image-field input:focus,
+.add-event-form > textarea:focus {
+  border-color: #1c8ef5;
+  box-shadow: 0 0 0 3px rgba(28, 142, 245, 0.14);
+}
+
+.add-event-form .form-field input::placeholder,
+.add-event-form .event-image-field input::placeholder,
+.add-event-form > textarea::placeholder {
+  color: #6b7280;
+}
+
+.event-edit-modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  background: rgba(15, 23, 42, 0.55);
+  overflow-y: auto;
+}
+
+.add-event-form.event-edit-modal {
+  width: min(720px, 100%);
+  max-height: calc(100vh - 40px);
+  margin: 0;
+  padding: 22px 20px;
+  border: 1px solid $soft-border;
+  border-radius: 18px;
+  background: #fff;
+  overflow-y: auto;
+}
+
+.add-event-form.event-create-modal {
+  width: min(720px, 100%);
+  max-height: calc(100vh - 40px);
+  margin: 0;
+  overflow-y: auto;
 }
 
 .add-event-form h2 {
@@ -3742,7 +3831,7 @@ input:checked + .slider::before {
 .mentorship-days-dropdown > button {
   width: 100%;
   height: 72px;
-    min-height: 72px;
+  min-height: 72px;
   text-align: left;
   padding: 0 14px;
   box-sizing: border-box;

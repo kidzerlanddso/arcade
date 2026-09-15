@@ -34,11 +34,22 @@ const getAdminFromToken = () => {
   return storedAdmin === "true" || storedAdmin === "1";
 };
 
+const DASHBOARD_INTRO_DISMISSED_KEY = "dashboard-intro-dismissed";
+
 function Dashboard() {
   const [selectedEvent, setSelectedEvent] = useState(null);
   const [events, setEvents] = useState([]);
-  const [showIntroModal, setShowIntroModal] = useState(true);
+  const [showIntroModal, setShowIntroModal] = useState(
+    () => localStorage.getItem(DASHBOARD_INTRO_DISMISSED_KEY) !== "true",
+  );
   const isAdmin = getAdminFromToken();
+
+  const dismissIntroModal = (rememberChoice = false) => {
+    if (rememberChoice) {
+      localStorage.setItem(DASHBOARD_INTRO_DISMISSED_KEY, "true");
+    }
+    setShowIntroModal(false);
+  };
 
   useEffect(() => {
     const fetchPendingUsers = async () => {
@@ -187,12 +198,13 @@ function Dashboard() {
             zIndex: 2000,
             padding: "1rem",
           }}
-          onClick={() => setShowIntroModal(false)}
+          onClick={() => dismissIntroModal()}
         >
           <div
             onClick={(event) => event.stopPropagation()}
             style={{
-              width: "min(700px, 100%)",
+              width: "80%",
+              height: "80%",
               background: "#fff",
               borderRadius: "18px",
               boxShadow: "0 20px 50px rgba(0,0,0,0.25)",
@@ -203,7 +215,7 @@ function Dashboard() {
             <button
               type="button"
               aria-label="Close welcome message"
-              onClick={() => setShowIntroModal(false)}
+              onClick={() => dismissIntroModal()}
               style={{
                 position: "absolute",
                 top: "1rem",
@@ -252,7 +264,23 @@ function Dashboard() {
             >
               <button
                 type="button"
-                onClick={() => setShowIntroModal(false)}
+                onClick={() => dismissIntroModal(true)}
+                style={{
+                  marginTop: "0.75rem",
+                  padding: 0,
+                  border: "none",
+                  background: "transparent",
+                  color: "#0a66c2",
+                  cursor: "pointer",
+                  fontSize: "0.9rem",
+                  marginRight: "auto",
+                }}
+              >
+                Don&apos;t show me again
+              </button>{" "}
+              <button
+                type="button"
+                onClick={() => dismissIntroModal()}
                 style={{
                   background: "#0a66c2",
                   color: "#fff",
