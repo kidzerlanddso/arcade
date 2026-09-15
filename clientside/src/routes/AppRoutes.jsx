@@ -1,5 +1,5 @@
 import { Navigate, Route, Routes } from "react-router-dom";
-
+import DonationsPage from "../pages/DonationsPage";
 import ProtectedRoute from "../components/ProtectedRoute";
 import AuthPage from "../pages/AuthPage";
 import ProfilePage from "../pages/profilePage";
@@ -37,12 +37,21 @@ function AppRoutes() {
         }
       />
       <Route
+        path="/donations"
+        element={
+          <ProtectedRoute>
+            <DonationsPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
         path="/events"
         element={
           <ProtectedRoute>
             <EventsPage />
           </ProtectedRoute>
         }
+
       />
       {/* <Route
         path="/about"
