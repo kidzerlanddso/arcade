@@ -1,6 +1,7 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import api from "../api/axios";
+import GoogleSignInButton from "./GoogleSignInButton";
 
 const passwordRequirements = [
   { label: "At least 8 characters ", test: (password) => password.length >= 8 },
@@ -22,7 +23,12 @@ const passwordRequirements = [
 const isPasswordStrong = (password) =>
   passwordRequirements.every((rule) => rule.test(password));
 
-function Register({ isOpen, onClose }) {
+function Register({
+  isOpen,
+  onClose,
+  googleSignup,
+  onGoogleNeedsRegistration,
+}) {
   const [formData, setFormData] = useState({
     firstName: "",
     lastName: "",
@@ -42,7 +48,29 @@ function Register({ isOpen, onClose }) {
   });
   const [status, setStatus] = useState({ type: "", message: "" });
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [step, setStep] = useState(1);
+  const [step, setStep] = useState(googleSignup ? 2 : 1);
+  const [registrationToken, setRegistrationToken] = useState(
+    googleSignup?.registrationToken || "",
+  );
+
+  useEffect(() => {
+    if (!isOpen) {
+      return;
+    }
+
+    if (googleSignup?.registrationToken) {
+      setRegistrationToken(googleSignup.registrationToken);
+      setStep(2);
+      setFormData((prev) => ({
+        ...prev,
+        firstName: googleSignup.profile?.firstName || "",
+        lastName: googleSignup.profile?.lastName || "",
+        email: googleSignup.profile?.email || "",
+      }));
+    }
+  }, [googleSignup, isOpen]);
+
+  const isGoogleSignup = Boolean(registrationToken);
 
   if (!isOpen) return null;
 
@@ -67,17 +95,27 @@ function Register({ isOpen, onClose }) {
     event.preventDefault();
     setStatus({ type: "", message: "" });
 
-    if (!isPasswordStrong(formData.password)) {
-      setStatus({
-        type: "error",
-        message:
-          "Password must include at least 8 characters, uppercase, lowercase, a number, and a special character.",
-      });
-      return;
+    if (!isGoogleSignup) {
+      if (!isPasswordStrong(formData.password)) {
+        setStatus({
+          type: "error",
+          message:
+            "Password must include at least 8 characters, uppercase, lowercase, a number, and a special character.",
+        });
+        return;
+      }
+
+      if (formData.password !== formData.confirmPassword) {
+        setStatus({ type: "error", message: "Passwords do not match." });
+        return;
+      }
     }
 
-    if (formData.password !== formData.confirmPassword) {
-      setStatus({ type: "error", message: "Passwords do not match." });
+    if (isGoogleSignup && !String(formData.yearOfGraduation).trim()) {
+      setStatus({
+        type: "error",
+        message: "Year of graduation is required.",
+      });
       return;
     }
 
@@ -136,7 +174,15 @@ function Register({ isOpen, onClose }) {
       pathway,
     };
 
-    if (
+    if (isGoogleSignup) {
+      if (!payload.firstname || !payload.lastname || !payload.email) {
+        setStatus({
+          type: "error",
+          message: "Google profile details are missing. Please sign in with Google again.",
+        });
+        return;
+      }
+    } else if (
       !payload.firstname ||
       !payload.lastname ||
       !payload.username ||
@@ -153,10 +199,21 @@ function Register({ isOpen, onClose }) {
     setIsSubmitting(true);
 
     try {
-      const response = await api.post("/auth/register", payload);
+      const response = isGoogleSignup
+        ? await api.post("/auth/google/register", {
+            registrationToken,
+            year: payload.year,
+            student_id: payload.student_id,
+            pathway,
+          })
+        : await api.post("/auth/register", payload);
       setStatus({
         type: "success",
-        message: response.data.message || "Registration successful!",
+        message:
+          response.data.message ||
+          (isGoogleSignup
+            ? "Registration submitted for admin approval."
+            : "Registration successful!"),
       });
 
       window.setTimeout(() => {
@@ -380,9 +437,77 @@ function Register({ isOpen, onClose }) {
               <button className="register-button" type="submit">
                 Next
               </button>
+
+              <div className="auth-divider">
+                <span>or</span>
+              </div>
+
+              <GoogleSignInButton
+                context="signup"
+                onNeedsRegistration={(payload) => {
+                  setRegistrationToken(payload.registrationToken);
+                  setStep(2);
+                  setFormData((prev) => ({
+                    ...prev,
+                    firstName: payload.profile?.firstName || "",
+                    lastName: payload.profile?.lastName || "",
+                    email: payload.profile?.email || "",
+                  }));
+                  onGoogleNeedsRegistration?.(payload);
+                }}
+                onLoginSuccess={() => {
+                  setStatus({
+                    type: "success",
+                    message: "Account already active. Redirecting to dashboard...",
+                  });
+                  window.setTimeout(() => {
+                    window.location.href = "/dashboard";
+                  }, 900);
+                }}
+              />
             </>
           ) : (
             <>
+              {isGoogleSignup && (
+                <>
+                  <p className="google-signup-summary">
+                    Signed in with Google as{" "}
+                    <strong>
+                      {formData.firstName} {formData.lastName}
+                    </strong>{" "}
+                    ({formData.email}). Complete your alumni details below for
+                    admin approval.
+                  </p>
+
+                  <div className="form-field">
+                    <label htmlFor="yearOfGraduation">
+                      Year of graduation<span className="required-mark">*</span>
+                    </label>
+                    <input
+                      id="yearOfGraduation"
+                      type="number"
+                      name="yearOfGraduation"
+                      value={formData.yearOfGraduation}
+                      placeholder="Year of graduation"
+                      onChange={handleChange}
+                      required
+                    />
+                  </div>
+
+                  <div className="form-field">
+                    <label htmlFor="studentId">Student ID</label>
+                    <input
+                      id="studentId"
+                      type="text"
+                      name="studentId"
+                      value={formData.studentId}
+                      placeholder="Student ID"
+                      onChange={handleChange}
+                    />
+                  </div>
+                </>
+              )}
+
               <div className=" form-field">
                 <label htmlFor="pathwayType">
                   Post-school pathway <span className="required-mark">*</span>
@@ -503,14 +628,16 @@ function Register({ isOpen, onClose }) {
               </p>
 
               <div className="register-actions">
-                <button
-                  className="register-button"
-                  type="button"
-                  onClick={() => setStep(1)}
-                  disabled={isSubmitting}
-                >
-                  Back
-                </button>
+                {!isGoogleSignup && (
+                  <button
+                    className="register-button"
+                    type="button"
+                    onClick={() => setStep(1)}
+                    disabled={isSubmitting}
+                  >
+                    Back
+                  </button>
+                )}
                 <button
                   className="register-button"
                   type="submit"

@@ -3,6 +3,9 @@ module.exports = app => {
   const { verifyToken, verifyAdmin } = require("../middleware/authJwt.js");
 
   app.post("/auth/register", auth.register);
+  app.get("/auth/google/config", auth.getGoogleConfig);
+  app.post("/auth/google", auth.googleAuth);
+  app.post("/auth/google/register", auth.googleRegister);
   app.post("/auth/RegisterAdmin", verifyToken, verifyAdmin, auth.RegisterAdmin);
   app.post("/auth/login", auth.login);
   app.post("/auth/refresh", auth.refresh);

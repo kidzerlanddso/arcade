@@ -6,6 +6,17 @@ import logo from "../assets/logo.png";
 
 function AuthPage() {
   const [showRegister, setShowRegister] = useState(false);
+  const [googleSignup, setGoogleSignup] = useState(null);
+
+  const handleGoogleNeedsRegistration = (payload) => {
+    setGoogleSignup(payload);
+    setShowRegister(true);
+  };
+
+  const handleCloseRegister = () => {
+    setShowRegister(false);
+    setGoogleSignup(null);
+  };
 
   return (
     <main className="auth-shell">
@@ -34,12 +45,17 @@ function AuthPage() {
             </button>
           </div>
 
-          <Login />
+          <Login onGoogleNeedsRegistration={handleGoogleNeedsRegistration} />
         </div>
       </section>
 
       {showRegister && (
-        <Register isOpen={showRegister} onClose={() => setShowRegister(false)} />
+        <Register
+          isOpen={showRegister}
+          onClose={handleCloseRegister}
+          googleSignup={googleSignup}
+          onGoogleNeedsRegistration={handleGoogleNeedsRegistration}
+        />
       )}
     </main>
   );

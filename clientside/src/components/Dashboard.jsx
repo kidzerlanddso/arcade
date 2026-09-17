@@ -203,13 +203,18 @@ function Dashboard() {
           <div
             onClick={(event) => event.stopPropagation()}
             style={{
-              width: "80%",
-              height: "80%",
+              width: "85rem",
+              height: "40rem",
               background: "#fff",
               borderRadius: "18px",
               boxShadow: "0 20px 50px rgba(0,0,0,0.25)",
               padding: "2rem 2rem 1.5rem",
               position: "relative",
+              justifyContent: "center",
+              alignItems: "center",
+              display: "flex" /* Added: Enables flexbox layout */,
+              flexDirection: "column",
+              textAlign: "center",
             }}
           >
             <button
@@ -266,7 +271,6 @@ function Dashboard() {
                 type="button"
                 onClick={() => dismissIntroModal(true)}
                 style={{
-                  marginTop: "0.75rem",
                   padding: 0,
                   border: "none",
                   background: "transparent",
@@ -274,6 +278,9 @@ function Dashboard() {
                   cursor: "pointer",
                   fontSize: "0.9rem",
                   marginRight: "auto",
+                  position: "absolute",
+                  bottom: "2.5rem",
+                  left: "3rem",
                 }}
               >
                 Don&apos;t show me again
@@ -290,6 +297,9 @@ function Dashboard() {
                   fontSize: "1rem",
                   fontWeight: 600,
                   cursor: "pointer",
+                  position: "absolute",
+                  bottom: "2.5rem",
+                  right: "2rem",
                 }}
               >
                 Continue
