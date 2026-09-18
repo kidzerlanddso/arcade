@@ -1633,6 +1633,10 @@ style={{
               background: isSelected
                 ? "#e7f3ff"
                 : "white",
+                margin: "4px 8px",
+borderRadius: "6px",
+width: "calc(100% - 16px)",
+boxSizing: "border-box",
                 fontSize: "18px",
             }}
           >
