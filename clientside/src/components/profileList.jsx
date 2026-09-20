@@ -52,6 +52,7 @@ function ProfileList() {
   const [selectedYear, setSelectedYear] = useState("all");
   const [selectedInstitution, setSelectedInstitution] = useState("all");
   const [selectedExpertise, setSelectedExpertise] = useState("all");
+  const [selectedSharingType, setSelectedSharingType] = useState("all");
   const [sortBy, setSortBy] = useState("firstname");
   const [sortDirection, setSortDirection] = useState("asc");
   const [currentPage, setCurrentPage] = useState(1);
@@ -344,6 +345,16 @@ function ProfileList() {
     ),
   ).sort((a, b) => a.localeCompare(b));
 
+  const expertiseSharingOptions = Array.from(
+    new Set(
+      profiles.flatMap((profile) =>
+        Array.isArray(profile.expertise_sharing_types)
+          ? profile.expertise_sharing_types
+          : [],
+      ),
+    ),
+  ).sort((a, b) => a.localeCompare(b));
+
   const institutionOptions = Array.from(
     new Set(
       Object.values(profileInstitutions).flatMap(
@@ -389,9 +400,23 @@ function ProfileList() {
     const matchesInstitution =
       selectedInstitution === "all" ||
       matchingInstitutions.includes(selectedInstitution.trim().toLowerCase());
+    const sharingTypes = Array.isArray(profile.expertise_sharing_types)
+      ? profile.expertise_sharing_types
+      : [];
+    const matchesSharingType =
+      selectedSharingType === "all" ||
+      sharingTypes.some(
+        (sharingType) =>
+          sharingType.trim().toLowerCase() ===
+          selectedSharingType.trim().toLowerCase(),
+      );
     //console.log("PROFILE:", profile);
     return (
-      matchesSearch && matchesYear && matchesExpertise && matchesInstitution
+      matchesSearch &&
+      matchesYear &&
+      matchesExpertise &&
+      matchesInstitution &&
+      matchesSharingType
     );
   });
 
@@ -498,6 +523,43 @@ function ProfileList() {
     window.location.assign(`mailto:${mailtoRecipients}`);
   };
 
+  const handleDisableUser = async (profile, event) => {
+    event?.stopPropagation();
+
+    const targetUserId = Number(profile.user_id ?? profile.userId);
+    if (!Number.isInteger(targetUserId) || targetUserId <= 0) {
+      alert("Unable to disable this user.");
+      return;
+    }
+
+    const fullName =
+      `${profile.firstname || ""} ${profile.lastname || ""}`.trim() ||
+      profile.username ||
+      "this user";
+
+    const confirmed = window.confirm(
+      `Are you sure you want to disable ${fullName}?`,
+    );
+    if (!confirmed) return;
+
+    try {
+      await api.patch(`/auth/user/${targetUserId}/disable`);
+      setProfiles((currentProfiles) =>
+        currentProfiles.filter(
+          (currentProfile) =>
+            Number(currentProfile.user_id ?? currentProfile.userId) !==
+            targetUserId,
+        ),
+      );
+      setSelectedProfileIds((currentIds) =>
+        currentIds.filter((id) => Number(id) !== targetUserId),
+      );
+      setCurrentPage(1);
+    } catch (error) {
+      alert(error.response?.data?.message || "Unable to disable user.");
+    }
+  };
+
   if (!token) return null;
 
   return (
@@ -581,6 +643,22 @@ function ProfileList() {
           {expertiseOptions.map((expertise) => (
             <option key={expertise} value={expertise}>
               -- {expertise}
+            </option>
+          ))}
+        </select>
+
+        <select
+          className="year-filter"
+          value={selectedSharingType}
+          onChange={(event) => {
+            setSelectedSharingType(event.target.value);
+            setCurrentPage(1);
+          }}
+        >
+          <option value="all">All sharing preferences</option>
+          {expertiseSharingOptions.map((sharingType) => (
+            <option key={sharingType} value={sharingType}>
+              {sharingType}
             </option>
           ))}
         </select>
@@ -725,56 +803,51 @@ function ProfileList() {
                 </div>
 
                 <div className="profile-card-body">
-                  <h3>
-                    {profile.firstname || profile.first_name || "Unknown"}{" "}
-                    {profile.lastname || profile.last_name || ""}
-                  </h3>
-                  <p>
-                    <strong>{profile.current_city}</strong>{" "}
-                    {profile.current_country}
-                  </p>
-                  {/* <p><strong>Email:</strong> {profile.email || "-"}</p> */}
-                  <p>
-                    <strong>Batch of </strong>{" "}
-                    {profile.year || profile.graduation_year || "-"}
-                  </p>
-                  <p>
-                    <strong>Expertise:</strong>{" "}
-                    {profile.expertise?.length
-                      ? profile.expertise.map((e) => e.name).join(", ")
-                      : "-"}{" "}
-                  </p>
-                  <p>
-                    <strong>Subcategories:</strong>{" "}
-                    {profile.expertise?.length
-                      ? profile.expertise
-                          .flatMap((e) => e.subcategories || [])
-                          .map((sub) => sub.name)
-                          .join(", ") || "-"
-                      : "-"}
-                  </p>
-                  {/*<div>
-                    <strong>Expertise:</strong>
-                    {profile.expertise?.length ? (
-                      profile.expertise.map((e) => (
-                        <div key={e.id}>
-                          <strong>{e.name}</strong>
+                  <div className="profile-card-info">
+                    <h3>
+                      {profile.firstname || profile_first_name || "Unknown"}{" "}
+                      {profile.lastname || profile.last_name || ""}
+                    </h3>
+                    <p>
+                      <strong>{profile.current_city}</strong>{" "}
+                      {profile.current_country}
+                    </p>
+                    <p>
+                      <strong>Batch of </strong>{" "}
+                      {profile.year || profile.graduation_year || "-"}
+                    </p>
+                    <p>
+                      <strong>Expertise:</strong>{" "}
+                      {profile.expertise?.length
+                        ? profile.expertise.map((e) => e.name).join(", ")
+                        : "-"}{" "}
+                    </p>
+                    <p>
+                      <strong>Subcategories:</strong>{" "}
+                      {profile.expertise?.length
+                        ? profile.expertise
+                            .flatMap((e) => e.subcategories || [])
+                            .map((sub) => sub.name)
+                            .join(", ") || "-"
+                        : "-"}
+                    </p>
+                  </div>
 
-                          {e.subcategories?.length > 0 && (
-                            <ul>
-                              {e.subcategories.map((sub) => (
-                                <li key={sub.id}>{sub.name}</li>
-                              ))}
-                            </ul>
-                          )}
-                        </div>
-                      ))
-                    ) : (
-                      <span> - </span>
-                    )}
-              </div>*/}
+                  {isAdmin && viewMode === "list" && (
+                    <div
+                      className="profile-connect-actions"
+                      onClick={(event) => event.stopPropagation()}
+                    >
+                      <button
+                        type="button"
+                        className="connect-button connect-button--reject btn btn-danger"
+                        onClick={(event) => handleDisableUser(profile, event)}
+                      >
+                        Disable user
+                      </button>
+                    </div>
+                  )}
 
-                  {/* Connect actions — alumni users only */}
                   {!isAdmin && (
                     <div
                       className="profile-connect-actions"

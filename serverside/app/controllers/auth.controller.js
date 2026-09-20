@@ -45,8 +45,7 @@ const parsePathwayPayload = (pathway) => {
 
   if (requiredPathwayFields.some((value) => !value)) {
     return {
-      error:
-        "Please complete all current situation fields before signing up.",
+      error: "Please complete all current situation fields before signing up.",
     };
   }
 
@@ -345,76 +344,88 @@ exports.googleAuth = async function (req, res) {
     });
   }
 
-  User.findByGoogleId(googleUser.googleId, (googleLookupError, userByGoogle) => {
-    if (googleLookupError && googleLookupError.kind !== "not_found") {
-      return res.status(500).send({
-        message:
-          googleLookupError.message || "An error occurred during Google sign-in.",
-      });
-    }
-
-    if (userByGoogle) {
-      return respondForAuthenticatedUser(res, userByGoogle);
-    }
-
-    User.findByProfileEmail(googleUser.email, (emailLookupError, userByEmail) => {
-      if (emailLookupError && emailLookupError.kind !== "not_found") {
+  User.findByGoogleId(
+    googleUser.googleId,
+    (googleLookupError, userByGoogle) => {
+      if (googleLookupError && googleLookupError.kind !== "not_found") {
         return res.status(500).send({
           message:
-            emailLookupError.message || "An error occurred during Google sign-in.",
+            googleLookupError.message ||
+            "An error occurred during Google sign-in.",
         });
       }
 
-      if (userByEmail) {
-        if (userByEmail.google_id && userByEmail.google_id !== googleUser.googleId) {
-          return res.status(409).send({
-            message:
-              "This email is linked to a different Google account. Contact an administrator.",
-          });
-        }
-
-        if (!userByEmail.google_id) {
-          return User.linkGoogleId(
-            userByEmail.id,
-            googleUser.googleId,
-            (linkError, linkedUser) => {
-              if (linkError) {
-                return res.status(500).send({
-                  message:
-                    linkError.message || "Unable to link your Google account.",
-                });
-              }
-              return respondForAuthenticatedUser(res, linkedUser);
-            },
-          );
-        }
-
-        return respondForAuthenticatedUser(res, userByEmail);
+      if (userByGoogle) {
+        return respondForAuthenticatedUser(res, userByGoogle);
       }
 
-      const registrationToken = jwt.sign(
-        {
-          purpose: "google_register",
-          googleId: googleUser.googleId,
-          email: googleUser.email,
-          firstName: googleUser.firstName,
-          lastName: googleUser.lastName,
-        },
-        config.JWT_SECRET,
-        { expiresIn: "30m" },
-      );
+      User.findByProfileEmail(
+        googleUser.email,
+        (emailLookupError, userByEmail) => {
+          if (emailLookupError && emailLookupError.kind !== "not_found") {
+            return res.status(500).send({
+              message:
+                emailLookupError.message ||
+                "An error occurred during Google sign-in.",
+            });
+          }
 
-      return res.status(200).send({
-        needsRegistration: true,
-        registrationToken,
-        profile: {
-          email: googleUser.email,
-          firstName: googleUser.firstName,
-          lastName: googleUser.lastName,
+          if (userByEmail) {
+            if (
+              userByEmail.google_id &&
+              userByEmail.google_id !== googleUser.googleId
+            ) {
+              return res.status(409).send({
+                message:
+                  "This email is linked to a different Google account. Contact an administrator.",
+              });
+            }
+
+            if (!userByEmail.google_id) {
+              return User.linkGoogleId(
+                userByEmail.id,
+                googleUser.googleId,
+                (linkError, linkedUser) => {
+                  if (linkError) {
+                    return res.status(500).send({
+                      message:
+                        linkError.message ||
+                        "Unable to link your Google account.",
+                    });
+                  }
+                  return respondForAuthenticatedUser(res, linkedUser);
+                },
+              );
+            }
+
+            return respondForAuthenticatedUser(res, userByEmail);
+          }
+
+          const registrationToken = jwt.sign(
+            {
+              purpose: "google_register",
+              googleId: googleUser.googleId,
+              email: googleUser.email,
+              firstName: googleUser.firstName,
+              lastName: googleUser.lastName,
+            },
+            config.JWT_SECRET,
+            { expiresIn: "30m" },
+          );
+
+          return res.status(200).send({
+            needsRegistration: true,
+            registrationToken,
+            profile: {
+              email: googleUser.email,
+              firstName: googleUser.firstName,
+              lastName: googleUser.lastName,
+            },
+          });
         },
-      });
-    });
-  });
+      );
+    },
+  );
 };
 
 exports.googleRegister = function (req, res) {
@@ -422,7 +433,8 @@ exports.googleRegister = function (req, res) {
 
   if (!registrationToken) {
     return res.status(400).send({
-      message: "Google signup session is missing. Please sign in with Google again.",
+      message:
+        "Google signup session is missing. Please sign in with Google again.",
     });
   }
 
@@ -431,11 +443,16 @@ exports.googleRegister = function (req, res) {
     decoded = jwt.verify(registrationToken, config.JWT_SECRET);
   } catch (error) {
     return res.status(401).send({
-      message: "Google signup session expired. Please sign in with Google again.",
+      message:
+        "Google signup session expired. Please sign in with Google again.",
     });
   }
 
-  if (decoded.purpose !== "google_register" || !decoded.googleId || !decoded.email) {
+  if (
+    decoded.purpose !== "google_register" ||
+    !decoded.googleId ||
+    !decoded.email
+  ) {
     return res.status(400).send({ message: "Invalid Google signup session." });
   }
 
@@ -447,7 +464,11 @@ exports.googleRegister = function (req, res) {
 
   const yearRaw = req.body.year ?? req.body.yearOfGraduation;
   let year = null;
-  if (yearRaw !== undefined && yearRaw !== null && String(yearRaw).trim() !== "") {
+  if (
+    yearRaw !== undefined &&
+    yearRaw !== null &&
+    String(yearRaw).trim() !== ""
+  ) {
     const parsedYear = Number(yearRaw);
     if (!Number.isFinite(parsedYear)) {
       return res.status(400).send({
@@ -477,79 +498,93 @@ exports.googleRegister = function (req, res) {
     profileData.student_id = null;
   }
 
-  User.findByGoogleId(decoded.googleId, (existingGoogleError, existingGoogleUser) => {
-    if (existingGoogleError && existingGoogleError.kind !== "not_found") {
-      return res.status(500).send({
-        message:
-          existingGoogleError.message ||
-          "An error occurred during Google registration.",
-      });
-    }
-
-    if (existingGoogleUser) {
-      return res.status(409).send({
-        message: "This Google account is already registered.",
-      });
-    }
-
-    User.findByProfileEmail(decoded.email, (existingEmailError, existingEmailUser) => {
-      if (existingEmailError && existingEmailError.kind !== "not_found") {
+  User.findByGoogleId(
+    decoded.googleId,
+    (existingGoogleError, existingGoogleUser) => {
+      if (existingGoogleError && existingGoogleError.kind !== "not_found") {
         return res.status(500).send({
           message:
-            existingEmailError.message ||
+            existingGoogleError.message ||
             "An error occurred during Google registration.",
         });
       }
 
-      if (existingEmailUser) {
+      if (existingGoogleUser) {
         return res.status(409).send({
-          message:
-            "An account with this email already exists. Sign in with username and password or Google.",
+          message: "This Google account is already registered.",
         });
       }
 
-      const emailLocalPart = decoded.email.split("@")[0] || "alumni";
-      User.generateUniqueUsername(emailLocalPart, (usernameError, username) => {
-        if (usernameError) {
-          return res.status(500).send({
-            message:
-              usernameError.message || "Unable to create your account username.",
-          });
-        }
-
-        const hashedPassword = bcrypt.hashSync(
-          crypto.randomBytes(32).toString("hex"),
-          10,
-        );
-
-        const user = new User({
-          username,
-          password: hashedPassword,
-          active: 2,
-          google_id: decoded.googleId,
-        });
-
-        User.create(user, profileData, pathwayData, function (err, data) {
-          if (err) {
+      User.findByProfileEmail(
+        decoded.email,
+        (existingEmailError, existingEmailUser) => {
+          if (existingEmailError && existingEmailError.kind !== "not_found") {
             return res.status(500).send({
-              message: err.message || "An error occurred during registration.",
+              message:
+                existingEmailError.message ||
+                "An error occurred during Google registration.",
             });
           }
 
-          console.log("[membership-email] Google registration committed", {
-            userId: data.user.id,
-            profileId: data.profile.id,
-            active: data.user.active,
-          });
-          notifyEmailEnabledAdmins(data, pathwayData);
-          res.status(201).send({
-            message:
-              "Registration submitted. An admin must approve your account before you can sign in.",
-          });
-        });
-      });
-    });
-  });
+          if (existingEmailUser) {
+            return res.status(409).send({
+              message:
+                "An account with this email already exists. Sign in with username and password or Google.",
+            });
+          }
+
+          const emailLocalPart = decoded.email.split("@")[0] || "alumni";
+          User.generateUniqueUsername(
+            emailLocalPart,
+            (usernameError, username) => {
+              if (usernameError) {
+                return res.status(500).send({
+                  message:
+                    usernameError.message ||
+                    "Unable to create your account username.",
+                });
+              }
+
+              const hashedPassword = bcrypt.hashSync(
+                crypto.randomBytes(32).toString("hex"),
+                10,
+              );
+
+              const user = new User({
+                username,
+                password: hashedPassword,
+                active: 2,
+                google_id: decoded.googleId,
+              });
+
+              User.create(user, profileData, pathwayData, function (err, data) {
+                if (err) {
+                  return res.status(500).send({
+                    message:
+                      err.message || "An error occurred during registration.",
+                  });
+                }
+
+                console.log(
+                  "[membership-email] Google registration committed",
+                  {
+                    userId: data.user.id,
+                    profileId: data.profile.id,
+                    active: data.user.active,
+                  },
+                );
+                notifyEmailEnabledAdmins(data, pathwayData);
+                res.status(201).send({
+                  message:
+                    "Registration submitted. An admin must approve your account before you can sign in.",
+                });
+              });
+            },
+          );
+        },
+      );
+    },
+  );
 };
 
 // Refresh and return a new JWT
@@ -713,6 +748,31 @@ exports.declineMembershipRequest = function (req, res) {
 
     return res.status(200).send({
       message: "Membership request declined.",
+      user: data,
+    });
+  });
+};
+
+exports.disableUser = function (req, res) {
+  const userId = Number(req.params.id);
+
+  if (!Number.isInteger(userId) || userId <= 0) {
+    return res.status(400).send({ message: "A valid user ID is required." });
+  }
+
+  User.disableById(userId, function (err, data) {
+    if (err) {
+      if (err.kind === "not_found") {
+        return res.status(404).send({ message: "User not found." });
+      }
+
+      return res.status(500).send({
+        message: err.message || "Unable to disable user.",
+      });
+    }
+
+    return res.status(200).send({
+      message: "User disabled.",
       user: data,
     });
   });

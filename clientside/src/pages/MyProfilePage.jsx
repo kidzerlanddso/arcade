@@ -60,7 +60,7 @@ function MyProfilePage({ readOnly = false }) {
     useState(false);
   const expertiseSharingOptions = [
     "As a guest speaker",
-    "As a mentor (e.g. in Puna Wananga)",
+    "As a mentor",
     "Offering work experience",
     "As a tutor",
   ];

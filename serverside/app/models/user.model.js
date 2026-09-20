@@ -231,6 +231,26 @@ User.declineById = function (userId, result) {
   );
 };
 
+User.disableById = function (userId, result) {
+  db.query(
+    "UPDATE users SET active = 0 WHERE id = $1 AND active <> 0 RETURNING id, username, active",
+    [userId],
+    function (err, res) {
+      if (err) {
+        result(err, null);
+        return;
+      }
+
+      if (!res.rows.length) {
+        result({ kind: "not_found" }, null);
+        return;
+      }
+
+      result(null, res.rows[0]);
+    },
+  );
+};
+
 User.approveByIds = function (userIds, result) {
   const safeUserIds = [
     ...new Set(
@@ -378,10 +398,11 @@ User.linkGoogleId = function (userId, googleId, result) {
 };
 
 User.generateUniqueUsername = function (preferredBase, result) {
-  const base = String(preferredBase || "alumni")
-    .toLowerCase()
-    .replace(/[^a-z0-9_]/g, "")
-    .slice(0, 40) || "alumni";
+  const base =
+    String(preferredBase || "alumni")
+      .toLowerCase()
+      .replace(/[^a-z0-9_]/g, "")
+      .slice(0, 40) || "alumni";
 
   const tryUsername = (candidate, attempt) => {
     User.findByUsername(candidate, (err, existing) => {

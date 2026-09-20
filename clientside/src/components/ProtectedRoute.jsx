@@ -211,7 +211,6 @@ function ProtectedRoute({ children }) {
             id="main-navigation"
             className={`app-header-nav${mobileMenuOpen ? " is-open" : ""}`}
             aria-label="Main navigation"
-
           >
             <Link to="/donations" onClick={() => setMobileMenuOpen(false)}>
               Donate
@@ -252,6 +251,15 @@ function ProtectedRoute({ children }) {
                 {adminMenuOpen && (
                   <div className="profile-menu-panel" role="menu">
                     <Link
+                      to="/stats"
+                      onClick={() => {
+                        setAdminMenuOpen(false);
+                        setMobileMenuOpen(false);
+                      }}
+                    >
+                      Statistics
+                    </Link>
+                    <Link
                       to="/membership-request"
                       onClick={() => {
                         setAdminMenuOpen(false);
@@ -280,7 +288,7 @@ function ProtectedRoute({ children }) {
                         setMobileMenuOpen(false);
                       }}
                     >
-                      Admin
+                      Manage Admins
                     </Link>
 
                     <Link
