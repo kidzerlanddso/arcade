@@ -15,6 +15,7 @@ import AdminList from "../components/adminlist";
 import NewProfile from "../components/NewProfile";
 import MembershipRequest from "../components/membershiprequest";
 import AlumniProfilePage from "../pages/AlumniProfilePage";
+import StatsPage from "../pages/StatsPage";
 
 function AppRoutes() {
   return (
@@ -51,7 +52,6 @@ function AppRoutes() {
             <EventsPage />
           </ProtectedRoute>
         }
-
       />
       <Route
         path="/about"
@@ -82,6 +82,14 @@ function AppRoutes() {
         element={
           <ProtectedRoute>
             <DynamicData />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/stats"
+        element={
+          <ProtectedRoute>
+            <StatsPage />
           </ProtectedRoute>
         }
       />
