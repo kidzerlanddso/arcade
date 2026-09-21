@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import api from "../api/axios";
 import { Link, useNavigate, useParams } from "react-router-dom";
@@ -43,6 +43,85 @@ const getAdminFromToken = () => {
 };
 
 function MyProfilePage({ readOnly = false }) {
+    const { id: viewProfileId } = useParams();
+    const isViewingOther = readOnly && Boolean(viewProfileId);
+    const navigate = useNavigate();
+    const [profile, setProfile] = useState(null);
+    const isAdmin = getAdminFromToken();
+    const [loading, setLoading] = useState(true);
+    const [editing, setEditing] = useState(false);
+    const [showIntroModal, setShowIntroModal] = useState(false);
+    const [bio, setBio] = useState("");
+    const [linkedinUrl, setLinkedinUrl] = useState("");
+    const [enableEmail, setEnableEmail] = useState("");
+    const [mentorshipAvailable, setMentorshipAvailable] = useState(false);
+    const [expertiseSharingTypes, setExpertiseSharingTypes] = useState([]);
+const [showExpertiseSharingDropdown, setShowExpertiseSharingDropdown] = useState(false);
+const expertiseSharingOptions = [
+  "As a guest speaker",
+  "As a mentor (e.g. in Puna Wananga)",
+  "Offering work experience",
+  "As a tutor",
+];
+    const [expertise, setExpertise] = useState("");
+    const [expertiseId, setExpertiseId] = useState("");
+    const [subcategoryId, setSubcategoryId] = useState("");
+    const [selectedExpertiseIds, setSelectedExpertiseIds] = useState([]);
+const [selectedSubcategoryIds, setSelectedSubcategoryIds] = useState([]);
+const [showMultiSubcategoryDropdown, setShowMultiSubcategoryDropdown] =
+  useState(false);
+const [showMultiExpertiseDropdown, setShowMultiExpertiseDropdown] =
+  useState(false);
+  const multiExpertiseDropdownRef = useRef(null);
+  const multiSubcategoryDropdownRef = useRef(null);
+  const mentorshipDaysDropdownRef = useRef(null);
+  useEffect(() => {
+  const handleClickOutside = (event) => {
+    if (
+      multiExpertiseDropdownRef.current &&
+      !multiExpertiseDropdownRef.current.contains(event.target)
+    ) {
+      setShowMultiExpertiseDropdown(false);
+    }
+
+    if (
+      multiSubcategoryDropdownRef.current &&
+      !multiSubcategoryDropdownRef.current.contains(event.target)
+    ) {
+      setShowMultiSubcategoryDropdown(false);
+    }
+    if (
+  mentorshipDaysDropdownRef.current &&
+  !mentorshipDaysDropdownRef.current.contains(event.target)
+) {
+  setShowMentorshipDaysDropdown(false);
+}
+  };
+
+  document.addEventListener("mousedown", handleClickOutside);
+
+  return () => {
+    document.removeEventListener("mousedown", handleClickOutside);
+  };
+}, []);
+    const [expertiseOptions, setExpertiseOptions] = useState([]);
+    const [subcategoryOptions, setSubcategoryOptions] = useState([]);
+    const [mentorshipAvailability, setMentorshipAvailability] = useState("");
+    const mentorshipDays = [
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+        "Saturday",
+        "Sunday",
+    ];
+    const canAccess = isAdmin || !isViewingOther;
+    const handleMentorshipDayChange = (day) => {
+        const selectedDays = mentorshipAvailability
+            .split(",")
+            .map((item) => item.trim())
+            .filter((item) => mentorshipDays.includes(item));
   const { id: viewProfileId } = useParams();
   const isViewingOther = readOnly && Boolean(viewProfileId);
   const navigate = useNavigate();
@@ -350,21 +429,28 @@ function MyProfilePage({ readOnly = false }) {
       });
   }, []);
   useEffect(() => {
-    if (!expertiseId) {
-      setSubcategoryOptions([]);
-      return;
-    }
+  if (selectedExpertiseIds.length === 0) {
+    setSubcategoryOptions([]);
+    return;
+  }
 
-    api
-      .get(`/profile/expertise/${expertiseId}/subcategories`)
-      .then((response) => {
-        setSubcategoryOptions(response.data || []);
-      })
-      .catch((error) => {
-        console.error("Error loading expertise subcategories:", error);
-        setSubcategoryOptions([]);
-      });
-  }, [expertiseId]);
+  Promise.all(
+    selectedExpertiseIds.map((id) =>
+      api.get(`/profile/expertise/${id}/subcategories`)
+    )
+  )
+    .then((responses) => {
+      const allSubcategories = responses.flatMap(
+        (response) => response.data || []
+      );
+
+      setSubcategoryOptions(allSubcategories);
+    })
+    .catch((error) => {
+      console.error("Error loading expertise subcategories:", error);
+      setSubcategoryOptions([]);
+    });
+}, [selectedExpertiseIds]);
 
   useEffect(() => {
     if (isViewingOther || isAdmin) return;
@@ -381,7 +467,21 @@ function MyProfilePage({ readOnly = false }) {
 
   useEffect(() => {
     if (!profile || expertiseOptions.length === 0) return;
+const savedExpertiseIds = Array.isArray(profile.expertise_id)
+  ? profile.expertise_id.map(String)
+  : profile.expertise_id
+    ? [String(profile.expertise_id)]
+    : [];
 
+setSelectedExpertiseIds(savedExpertiseIds);
+
+const savedSubcategoryIds = Array.isArray(profile.subcategory_id)
+  ? profile.subcategory_id.map(String)
+  : profile.subcategory_id
+    ? [String(profile.subcategory_id)]
+    : [];
+
+setSelectedSubcategoryIds(savedSubcategoryIds);
     const savedId = Array.isArray(profile.expertise_id)
       ? profile.expertise_id[0]
       : profile.expertise_id;
@@ -531,26 +631,31 @@ function MyProfilePage({ readOnly = false }) {
     try {
       await api.patch(`/profile/${profile.id}`, {
         mentorship_available: mentorshipAvailable,
-        expertise_id: expertiseId ? [Number(expertiseId)] : [],
+      expertise_id: mentorshipAvailable
+  ? selectedExpertiseIds.map(Number)
+  : [],
         expertise_sharing_types: mentorshipAvailable
-          ? expertiseSharingTypes
-          : [],
-        subcategory_id: subcategoryId ? [Number(subcategoryId)] : [],
-        mentorship_availability: mentorshipAvailable
-          ? mentorshipAvailability
-          : "",
+  ? expertiseSharingTypes
+  : [],
+    subcategory_id: mentorshipAvailable
+  ? selectedSubcategoryIds.map(Number)
+  : [],
+    mentorship_availability: mentorshipAvailable
+  ? mentorshipAvailability
+  : "",
       });
       setProfile((prev) => ({
         ...prev,
         mentorship_available: mentorshipAvailable,
         expertise_sharing_types: mentorshipAvailable
-          ? expertiseSharingTypes
-          : [],
-        expertise_id:
-          mentorshipAvailable && expertiseId ? [Number(expertiseId)] : [],
-
-        subcategory_id:
-          mentorshipAvailable && subcategoryId ? [Number(subcategoryId)] : [],
+  ? expertiseSharingTypes
+  : [],
+  expertise_id: mentorshipAvailable
+  ? selectedExpertiseIds.map(Number)
+  : [],
+  subcategory_id: mentorshipAvailable
+  ? selectedSubcategoryIds.map(Number)
+  : [],
 
         expertise: mentorshipAvailable ? expertise : "",
 
@@ -1391,161 +1496,300 @@ function MyProfilePage({ readOnly = false }) {
                     </button>
                   </div>
 
-                  <div className="intro-modal-body mentorship-edit-fields">
-                    <label
-                      className="mentorship-field-label"
-                      htmlFor="expertise-sharing-available"
-                    >
-                      Are you available to share your expertise?
-                    </label>
+                <div
+  className="intro-modal-body mentorship-edit-fields"
+  style={{ gap: "12px" }}
+>
+            
+                     <label
+  className="mentorship-field-label"
+  htmlFor="expertise-sharing-available"
+>
+  Are you available to share your expertise?
+</label>
 
-                    <select
-                      id="expertise-sharing-available"
-                      className="mentorship-availability-select"
-                      value={mentorshipAvailable ? "yes" : "no"}
-                      onChange={(e) => {
-                        const isAvailable = e.target.value === "yes";
-                        setMentorshipAvailable(isAvailable);
+<select
+  id="expertise-sharing-available"
+  className="mentorship-availability-select"
+  value={mentorshipAvailable ? "yes" : "no"}
+onChange={(e) => {
+  const isAvailable = e.target.value === "yes";
+  setMentorshipAvailable(isAvailable);
 
-                        if (!isAvailable) {
-                          setExpertiseSharingTypes([]);
-                          setExpertiseId("");
-                          setSubcategoryId("");
-                          setExpertise("");
-                          setMentorshipAvailability("");
-                          setShowExpertiseSharingDropdown(false);
-                          setShowMentorshipDaysDropdown(false);
-                        }
-                      }}
-                    >
-                      <option value="yes">Yes</option>
-                      <option value="no">No</option>
-                    </select>
-                    {mentorshipAvailable && (
+  if (!isAvailable) {
+  setExpertiseSharingTypes([]);
+  setExpertiseId("");
+  setSubcategoryId("");
+  setExpertise("");
+  setMentorshipAvailability("");
+  setShowExpertiseSharingDropdown(false);
+  setShowMentorshipDaysDropdown(false);
+}
+}}
+>
+  <option value="yes">Yes</option>
+  <option value="no">No</option>
+</select>
+{mentorshipAvailable && (
                       <>
-                        <label className="mentorship-field-label">
-                          How would you like to share your expertise?
-                        </label>
+                      <label className="mentorship-field-label">
+  How would you like to share your expertise?
+</label>
 
-                        <p className="mentorship-field-help">
-                          Select one or more options.
-                        </p>
+<p
+  className="mentorship-field-help"
+style={{ margin: "0 0 6px 0" }}
+>
+  Select one or more options.
+</p>
+<div
+  className="mentorship-days-dropdown"
+>
+  <button
+    type="button"
+    aria-controls="expertise-sharing-options"
+style={{
+  display: "flex",
+  alignItems: "center",
+  width: "100%",
+  textAlign: "left",
+}}
+    className="mentorship-availability-select"
+    onClick={() =>
+      setShowExpertiseSharingDropdown((prev) => !prev)
+    }
+  >
+    {expertiseSharingTypes.length > 0
+      ? expertiseSharingTypes.join(", ")
+      : "Select an option"}
+      <span className="dropdown-arrow" aria-hidden="true" />
+  </button>
 
-                        <div className="mentorship-days-dropdown">
-                          <button
-                            type="button"
-                            aria-controls="expertise-sharing-options"
-                            style={{
-                              display: "flex",
-                              alignItems: "center",
-                              width: "100%",
-                              textAlign: "left",
-                            }}
-                            className="mentorship-availability-select"
-                            onClick={() =>
-                              setShowExpertiseSharingDropdown((prev) => !prev)
-                            }
-                          >
-                            {expertiseSharingTypes.length > 0
-                              ? expertiseSharingTypes.join(", ")
-                              : "Select an option"}
-                            <span
-                              className="dropdown-arrow"
-                              aria-hidden="true"
-                            />
-                          </button>
+  {showExpertiseSharingDropdown && (
+    <div
+      id="expertise-sharing-options"
+      className="mentorship-days-options"
+    >
+      {expertiseSharingOptions.map((option) => (
+        <label key={option}>
+          <input
+            type="checkbox"
+            checked={expertiseSharingTypes.includes(option)}
+            onChange={(e) => {
+              const checked = e.target.checked;
 
-                          {showExpertiseSharingDropdown && (
-                            <div
-                              id="expertise-sharing-options"
-                              className="mentorship-days-options"
-                            >
-                              {expertiseSharingOptions.map((option) => (
-                                <label key={option}>
-                                  <input
-                                    type="checkbox"
-                                    checked={expertiseSharingTypes.includes(
-                                      option,
-                                    )}
-                                    onChange={(e) => {
-                                      const checked = e.target.checked;
+              setExpertiseSharingTypes((prev) =>
+                checked
+                  ? [...prev, option]
+                  : prev.filter((item) => item !== option)
+              );
 
-                                      setExpertiseSharingTypes((prev) =>
-                                        checked
-                                          ? [...prev, option]
-                                          : prev.filter(
-                                              (item) => item !== option,
-                                            ),
-                                      );
-
-                                      setShowExpertiseSharingDropdown(false);
-                                    }}
-                                  />
-                                  {option}
-                                </label>
-                              ))}
-                            </div>
-                          )}
-                        </div>
+              setShowExpertiseSharingDropdown(false);
+            }}
+          />
+          {option}
+        </label>
+      ))}
+    </div>
+  )}
+</div>
                         <label className="mentorship-field-label">
                           Expertise
                         </label>
-                        <select
-                          className="mentorship-expertise-select"
-                          value={expertiseId}
-                          onChange={(e) => {
-                            setExpertiseId(e.target.value);
-                            setSubcategoryId("");
+                        <div
+  className="mentorship-days-dropdown"
+  ref={multiExpertiseDropdownRef}
+>
+  <button
+    type="button"
+    className="mentorship-expertise-select"
+    style={{
+  whiteSpace: "normal",
+  height: "auto",
+  minHeight: "56px",
+  textAlign: "left",
+  lineHeight: "1.5",
+  overflowWrap: "anywhere",
+}}
+    onClick={() =>
+      setShowMultiExpertiseDropdown((prev) => !prev)
+    }
+  >
+    {selectedExpertiseIds.length > 0
+      ? expertiseOptions
+          .filter((item) =>
+            selectedExpertiseIds.includes(
+              String(item.expertise_id)
+            )
+          )
+          .map((item) => item.expertise)
+          .join(", ")
+      : "Select expertise"}
 
-                            const selected = expertiseOptions.find(
-                              (item) =>
-                                String(item.expertise_id) === e.target.value,
-                            );
+    <span className="dropdown-arrow" aria-hidden="true" />
+  </button>
 
-                            setExpertise(selected?.expertise || "");
-                          }}
-                        >
-                          <option value="">Select expertise</option>
+{showMultiExpertiseDropdown && (
+  <div
+    className="mentorship-days-options"
+    style={{
+      width: "100%",
+      minWidth: "100%",
+      maxWidth: "none",
+      left: 0,
+      right: 0,
+      boxSizing: "border-box",
+    }}
+  >
+      {expertiseOptions.map((item) => {
+        const id = String(item.expertise_id);
 
-                          {expertiseOptions.map((item) => (
-                            <option
-                              key={item.expertise_id}
-                              value={item.expertise_id}
-                            >
-                              {item.expertise}
-                            </option>
-                          ))}
-                        </select>
+        const isSelected =
+          selectedExpertiseIds.includes(id);
+
+        return (
+          <div
+            key={item.expertise_id}
+            onClick={() => {
+              const updatedIds = isSelected
+                ? selectedExpertiseIds.filter(
+                    (selectedId) => selectedId !== id
+                  )
+                : [...selectedExpertiseIds, id];
+
+              setSelectedExpertiseIds(updatedIds);
+
+              setExpertise(
+                expertiseOptions
+                  .filter((option) =>
+                    updatedIds.includes(
+                      String(option.expertise_id)
+                    )
+                  )
+                  .map((option) => option.expertise)
+                  .join(", ")
+              );
+            }}
+            style={{
+              padding: "10px 14px",
+              cursor: "pointer",
+              background: isSelected
+                ? "#e7f3ff"
+                : "white",
+                margin: "4px 8px",
+borderRadius: "6px",
+width: "calc(100% - 16px)",
+boxSizing: "border-box",
+                fontSize: "18px",
+            }}
+          >
+            {item.expertise}
+          </div>
+        );
+      })}
+    </div>
+  )}
+</div>
                         <label className="mentorship-field-label">
                           Subcategory
                         </label>
 
-                        <select
-                          className="mentorship-availability-select"
-                          value={subcategoryId}
-                          onChange={(e) => setSubcategoryId(e.target.value)}
-                          disabled={!expertiseId}
-                        >
-                          <option value="">Select subcategory</option>
+                        <div
+  className="mentorship-days-dropdown"
+  ref={multiSubcategoryDropdownRef}
+>
+  <button
+    type="button"
+    className="mentorship-availability-select"
+    style={{
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "space-between",
+  width: "100%",
+  height: "56px",
+  minHeight: "56px",
+  padding: "0 20px",
+  textAlign: "left",
+  boxSizing: "border-box",
+}}
+    onClick={() =>
+      setShowMultiSubcategoryDropdown((prev) => !prev)
+    }
+    disabled={selectedExpertiseIds.length === 0}
+  >
+    {selectedSubcategoryIds.length > 0
+      ? subcategoryOptions
+          .filter((item) =>
+            selectedSubcategoryIds.includes(
+              String(item.subcategory_id)
+            )
+          )
+          .map((item) => item.subcategory)
+          .join(", ")
+      : "Select subcategory"}
 
-                          {subcategoryOptions.map((item) => (
-                            <option
-                              key={item.subcategory_id}
-                              value={item.subcategory_id}
-                            >
-                              {item.subcategory}
-                            </option>
-                          ))}
-                        </select>
+    <span className="dropdown-arrow" aria-hidden="true" />
+  </button>
+
+  {showMultiSubcategoryDropdown && (
+    <div
+      className="mentorship-days-options"
+      style={{
+        width: "100%",
+        minWidth: "100%",
+        maxWidth: "none",
+        left: 0,
+        right: 0,
+        boxSizing: "border-box",
+      }}
+    >
+      {subcategoryOptions.map((item) => {
+        const id = String(item.subcategory_id);
+        const isSelected =
+          selectedSubcategoryIds.includes(id);
+
+        return (
+          <div
+            key={item.subcategory_id}
+            onClick={() => {
+              const updatedIds = isSelected
+                ? selectedSubcategoryIds.filter(
+                    (selectedId) => selectedId !== id
+                  )
+                : [...selectedSubcategoryIds, id];
+
+              setSelectedSubcategoryIds(updatedIds);
+            }}
+            style={{
+              padding: "10px 14px",
+              cursor: "pointer",
+              fontSize: "18px",
+              background: isSelected
+                ? "#e7f3ff"
+                : "white",
+            }}
+          >
+            {item.subcategory}
+          </div>
+        );
+      })}
+    </div>
+  )}
+</div>
                         <label className="mentorship-field-label">
                           Availability
                         </label>
 
-                        <small className="mentorship-field-help">
-                          Choose one or more days when you are available to
-                          mentor.
-                        </small>
-                        <div className="mentorship-days-dropdown">
+                        <small
+  className="mentorship-field-help"
+  style={{ margin: "0 0 6px 0" }}
+>
+  Choose one or more days when you are available.
+</small>
+                      <div
+  className="mentorship-days-dropdown"
+  ref={mentorshipDaysDropdownRef}
+>
                           <button
                             type="button"
                             className="mentorship-availability-select"
@@ -1555,7 +1799,9 @@ function MyProfilePage({ readOnly = false }) {
                               )
                             }
                           >
-                            {mentorshipAvailability || "Select days"} ▾
+                          {mentorshipAvailability || "Select days"}
+
+<span className="dropdown-arrow" aria-hidden="true" />
                           </button>
 
                           {showMentorshipDaysDropdown && (
@@ -1595,38 +1841,73 @@ function MyProfilePage({ readOnly = false }) {
               </div>
             ) : (
               <>
-                <p>
-                  <strong>Willing to share expertise:</strong>{" "}
-                  {mentorshipAvailable ? "Yes" : "No"}
-                </p>
+                <div style={{ marginBottom: "14px" }}>
+  <strong>Willing to share expertise</strong>
+  <div style={{ marginTop: "4px" }}>
+    {mentorshipAvailable ? "Yes" : "No"}
+  </div>
+</div>
                 {mentorshipAvailable &&
-                  profile?.expertise_sharing_types?.length > 0 && (
-                    <p>
-                      <strong>I can share my expertise as:</strong>{" "}
-                      {profile.expertise_sharing_types.join(", ")}
-                    </p>
-                  )}
+  profile?.expertise_sharing_types?.length > 0 && (
+    <div style={{ marginBottom: "14px" }}>
+      <strong>I can share my expertise as</strong>
+      <div style={{ marginTop: "4px" }}>
+        {profile.expertise_sharing_types.join(", ")}
+      </div>
+    </div>
+  )}
 
                 {mentorshipAvailable && (
                   <>
-                    <p>
-                      <strong>Expertise:</strong> {expertise || "-"}
-                      {subcategoryId && (
-                        <>
-                          {" > "}
-                          {subcategoryOptions.find(
-                            (item) =>
-                              String(item.subcategory_id) ===
-                              String(subcategoryId),
-                          )?.subcategory || ""}
-                        </>
-                      )}
-                    </p>
+                    <div>
+  <strong>Areas of Expertise</strong>
 
-                    <p>
-                      <strong>Availability:</strong>{" "}
-                      {mentorshipAvailability || "-"}
-                    </p>
+  {selectedExpertiseIds.length > 0 ? (
+    <div style={{ marginTop: "6px" }}>
+      {selectedExpertiseIds.map((expertiseId) => {
+        const expertiseItem = expertiseOptions.find(
+          (item) =>
+            String(item.expertise_id) === String(expertiseId)
+        );
+
+        const relatedSubcategories = subcategoryOptions
+          .filter(
+            (item) =>
+              String(item.expertise_id) === String(expertiseId) &&
+              selectedSubcategoryIds.includes(
+                String(item.subcategory_id)
+              )
+          )
+          .map((item) => item.subcategory);
+
+        return (
+          <div
+            key={expertiseId}
+            style={{ marginBottom: "4px" }}
+          >
+          <strong>{expertiseItem?.expertise || ""}</strong>
+
+            {relatedSubcategories.length > 0 && (
+              <>
+                {" > "}
+                {relatedSubcategories.join(", ")}
+              </>
+            )}
+          </div>
+        );
+      })}
+    </div>
+  ) : (
+    " -"
+  )}
+</div>
+
+                    <div style={{ marginTop: "14px" }}>
+  <strong>Days Available to Share Expertise</strong>
+  <div style={{ marginTop: "4px" }}>
+    {mentorshipAvailability || "-"}
+  </div>
+</div>
                   </>
                 )}
               </>
