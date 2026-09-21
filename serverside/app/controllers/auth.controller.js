@@ -1,4 +1,5 @@
 const bcrypt = require("bcryptjs");
+const crypto = require("crypto");
 const jwt = require("jsonwebtoken");
 const User = require("../models/user.model");
 const Profile = require("../models/profile.model");
@@ -6,6 +7,96 @@ const config = require("../config/db.config.js");
 const {
   sendMembershipRequestEmail,
 } = require("../services/membershipEmail.service");
+const { verifyGoogleIdToken } = require("../services/googleAuth.service");
+
+const parsePathwayPayload = (pathway) => {
+  const isStudying = pathway?.type === "studying";
+  const isWorking = pathway?.type === "working";
+
+  if (!isStudying && !isWorking) {
+    return {
+      error: "Please select whether you are currently studying or working.",
+    };
+  }
+
+  const pathwayData = isStudying
+    ? {
+        type: "studying",
+        institution: String(pathway.institution || "").trim(),
+        qualification: String(pathway.qualification || "").trim(),
+        field_of_study: String(pathway.field_of_study || "").trim(),
+        start_date: pathway.start_date || null,
+      }
+    : {
+        type: "working",
+        company: String(pathway.company || "").trim(),
+        job_title: String(pathway.job_title || "").trim(),
+        start_date: pathway.start_date || null,
+      };
+
+  const requiredPathwayFields = isStudying
+    ? [
+        pathwayData.institution,
+        pathwayData.qualification,
+        pathwayData.field_of_study,
+        pathwayData.start_date,
+      ]
+    : [pathwayData.company, pathwayData.job_title, pathwayData.start_date];
+
+  if (requiredPathwayFields.some((value) => !value)) {
+    return {
+      error: "Please complete all current situation fields before signing up.",
+    };
+  }
+
+  return { pathwayData };
+};
+
+const sendAuthTokens = (res, user) => {
+  const isAdmin = Number(user.admin) === 1;
+  const token = jwt.sign(
+    { userId: user.id, username: user.username, admin: isAdmin },
+    config.JWT_SECRET,
+    { expiresIn: "15m" },
+  );
+  const refreshToken = jwt.sign(
+    { userId: user.id, username: user.username, admin: isAdmin },
+    config.REFRESH_SECRET,
+    { expiresIn: "7d" },
+  );
+
+  const isProd = process.env.NODE_ENV === "production";
+
+  res.cookie("refreshToken", refreshToken, {
+    httpOnly: true,
+    secure: isProd,
+    sameSite: isProd ? "none" : "lax",
+    path: "/",
+    maxAge: 7 * 24 * 60 * 60 * 1000,
+  });
+
+  res.status(200).send({
+    message: "Login successful.",
+    token,
+    admin: isAdmin,
+  });
+};
+
+const respondForAuthenticatedUser = (res, user) => {
+  if (Number(user.active) === 2) {
+    return res.status(403).send({
+      message: "Admin needs to approve your account.",
+    });
+  }
+
+  if (Number(user.active) !== 1) {
+    return res.status(403).send({
+      message: "Your account is not active.",
+    });
+  }
+
+  return sendAuthTokens(res, user);
+};
 
 const notifyEmailEnabledAdmins = (data, pathwayData) => {
   console.log("[membership-email] Looking up email-enabled administrators", {
@@ -58,46 +149,11 @@ exports.register = function (req, res) {
       .send({ message: "Username and password are required." });
   }
 
-  const pathway = req.body.pathway;
-  const isStudying = pathway?.type === "studying";
-  const isWorking = pathway?.type === "working";
-
-  if (!isStudying && !isWorking) {
-    return res.status(400).send({
-      message: "Please select whether you are currently studying or working.",
-    });
+  const pathwayResult = parsePathwayPayload(req.body.pathway);
+  if (pathwayResult.error) {
+    return res.status(400).send({ message: pathwayResult.error });
   }
-
-  const pathwayData = isStudying
-    ? {
-        type: "studying",
-        institution: String(pathway.institution || "").trim(),
-        qualification: String(pathway.qualification || "").trim(),
-        field_of_study: String(pathway.field_of_study || "").trim(),
-        start_date: pathway.start_date || null,
-      }
-    : {
-        type: "working",
-        company: String(pathway.company || "").trim(),
-        job_title: String(pathway.job_title || "").trim(),
-        start_date: pathway.start_date || null,
-      };
-
-  const requiredPathwayFields = isStudying
-    ? [
-        pathwayData.institution,
-        pathwayData.qualification,
-        pathwayData.field_of_study,
-        pathwayData.start_date,
-      ]
-    : [pathwayData.company, pathwayData.job_title, pathwayData.start_date];
-
-  if (requiredPathwayFields.some((value) => !value)) {
-    return res.status(400).send({
-      message:
-        "Please complete all current situation fields before signing up.",
-    });
-  }
+  const pathwayData = pathwayResult.pathwayData;
 
   // Hash the password before saving
   const hashedPassword = bcrypt.hashSync(req.body.password, 10);
@@ -247,53 +303,288 @@ exports.login = function (req, res) {
         .send({ message: "Invalid username/email or password." });
     }
 
-    if (Number(data.active) === 2) {
-      return res.status(403).send({
-        message: "Admin needs to approve your account.",
-      });
-    }
-
-    if (Number(data.active) === 2) {
-      return res.status(403).send({
-        message: "Admin needs to approve your account.",
-      });
-    }
-
-    const isAdmin = Number(data.admin) === 1;
-
-    // Sign and return the token (expires in 2 hours)
-    const token = jwt.sign(
-      { userId: data.id, username: data.username, admin: isAdmin },
-      config.JWT_SECRET,
-      { expiresIn: "15m" },
-    );
-    const refreshToken = jwt.sign(
-      { userId: data.id, username: data.username, admin: isAdmin },
-      config.REFRESH_SECRET,
-      { expiresIn: "7d" },
-    );
-
-    // Cross-site cookies need secure + SameSite=None in production (Vercel ↔ Render).
-    const isProd = process.env.NODE_ENV === "production";
-
-    // 3. Send refresh token in a secure, hidden cookie
-    res.cookie("refreshToken", refreshToken, {
-      httpOnly: true, // Prevents XSS scripts from reading the cookie
-      secure: isProd, // Required for HTTPS / SameSite=None
-      sameSite: isProd ? "none" : "lax",
-      path: "/", // Must match the path used when clearing the cookie
-      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days matching token expiration
-    });
-
-    // 4. Send access token and user profile in the JSON body
-    //return res.json({ accessToken, user });
-
-    res.status(200).send({
-      message: "Login successful.",
-      token: token,
-      admin: isAdmin,
-    });
+    return respondForAuthenticatedUser(res, data);
   });
+};
+
+exports.getGoogleConfig = function (req, res) {
+  const clientId = String(process.env.GOOGLE_CLIENT_ID || "").trim();
+  return res.status(200).send({
+    enabled: Boolean(clientId),
+    clientId: clientId || null,
+  });
+};
+
+exports.googleAuth = async function (req, res) {
+  const credential = req.body?.credential;
+
+  if (!credential) {
+    return res.status(400).send({ message: "Google credential is required." });
+  }
+
+  if (!process.env.GOOGLE_CLIENT_ID) {
+    return res.status(503).send({
+      message: "Google sign-in is not configured on the server.",
+    });
+  }
+
+  let googleUser;
+  try {
+    googleUser = await verifyGoogleIdToken(credential);
+  } catch (error) {
+    console.error("Google token verification failed:", error.message);
+    return res.status(401).send({
+      message: "Google sign-in failed. Please try again.",
+    });
+  }
+
+  if (!googleUser.emailVerified) {
+    return res.status(403).send({
+      message: "Please verify your Google email before continuing.",
+    });
+  }
+
+  User.findByGoogleId(
+    googleUser.googleId,
+    (googleLookupError, userByGoogle) => {
+      if (googleLookupError && googleLookupError.kind !== "not_found") {
+        return res.status(500).send({
+          message:
+            googleLookupError.message ||
+            "An error occurred during Google sign-in.",
+        });
+      }
+
+      if (userByGoogle) {
+        return respondForAuthenticatedUser(res, userByGoogle);
+      }
+
+      User.findByProfileEmail(
+        googleUser.email,
+        (emailLookupError, userByEmail) => {
+          if (emailLookupError && emailLookupError.kind !== "not_found") {
+            return res.status(500).send({
+              message:
+                emailLookupError.message ||
+                "An error occurred during Google sign-in.",
+            });
+          }
+
+          if (userByEmail) {
+            if (
+              userByEmail.google_id &&
+              userByEmail.google_id !== googleUser.googleId
+            ) {
+              return res.status(409).send({
+                message:
+                  "This email is linked to a different Google account. Contact an administrator.",
+              });
+            }
+
+            if (!userByEmail.google_id) {
+              return User.linkGoogleId(
+                userByEmail.id,
+                googleUser.googleId,
+                (linkError, linkedUser) => {
+                  if (linkError) {
+                    return res.status(500).send({
+                      message:
+                        linkError.message ||
+                        "Unable to link your Google account.",
+                    });
+                  }
+                  return respondForAuthenticatedUser(res, linkedUser);
+                },
+              );
+            }
+
+            return respondForAuthenticatedUser(res, userByEmail);
+          }
+
+          const registrationToken = jwt.sign(
+            {
+              purpose: "google_register",
+              googleId: googleUser.googleId,
+              email: googleUser.email,
+              firstName: googleUser.firstName,
+              lastName: googleUser.lastName,
+            },
+            config.JWT_SECRET,
+            { expiresIn: "30m" },
+          );
+
+          return res.status(200).send({
+            needsRegistration: true,
+            registrationToken,
+            profile: {
+              email: googleUser.email,
+              firstName: googleUser.firstName,
+              lastName: googleUser.lastName,
+            },
+          });
+        },
+      );
+    },
+  );
+};
+
+exports.googleRegister = function (req, res) {
+  const registrationToken = req.body?.registrationToken;
+
+  if (!registrationToken) {
+    return res.status(400).send({
+      message:
+        "Google signup session is missing. Please sign in with Google again.",
+    });
+  }
+
+  let decoded;
+  try {
+    decoded = jwt.verify(registrationToken, config.JWT_SECRET);
+  } catch (error) {
+    return res.status(401).send({
+      message:
+        "Google signup session expired. Please sign in with Google again.",
+    });
+  }
+
+  if (
+    decoded.purpose !== "google_register" ||
+    !decoded.googleId ||
+    !decoded.email
+  ) {
+    return res.status(400).send({ message: "Invalid Google signup session." });
+  }
+
+  const pathwayResult = parsePathwayPayload(req.body.pathway);
+  if (pathwayResult.error) {
+    return res.status(400).send({ message: pathwayResult.error });
+  }
+  const pathwayData = pathwayResult.pathwayData;
+
+  const yearRaw = req.body.year ?? req.body.yearOfGraduation;
+  let year = null;
+  if (
+    yearRaw !== undefined &&
+    yearRaw !== null &&
+    String(yearRaw).trim() !== ""
+  ) {
+    const parsedYear = Number(yearRaw);
+    if (!Number.isFinite(parsedYear)) {
+      return res.status(400).send({
+        message: "Please enter a valid year of graduation.",
+      });
+    }
+    year = parsedYear;
+  }
+
+  if (year === null) {
+    return res.status(400).send({
+      message: "Year of graduation is required.",
+    });
+  }
+
+  const profileData = {
+    firstname: decoded.firstName || "",
+    lastname: decoded.lastName || "",
+    email: decoded.email,
+    current_city: req.body.current_city || "Hamilton",
+    current_country: req.body.current_country || "New Zealand",
+    year,
+    student_id: req.body.student_id || req.body.studentId || null,
+  };
+
+  if (profileData.student_id === "") {
+    profileData.student_id = null;
+  }
+
+  User.findByGoogleId(
+    decoded.googleId,
+    (existingGoogleError, existingGoogleUser) => {
+      if (existingGoogleError && existingGoogleError.kind !== "not_found") {
+        return res.status(500).send({
+          message:
+            existingGoogleError.message ||
+            "An error occurred during Google registration.",
+        });
+      }
+
+      if (existingGoogleUser) {
+        return res.status(409).send({
+          message: "This Google account is already registered.",
+        });
+      }
+
+      User.findByProfileEmail(
+        decoded.email,
+        (existingEmailError, existingEmailUser) => {
+          if (existingEmailError && existingEmailError.kind !== "not_found") {
+            return res.status(500).send({
+              message:
+                existingEmailError.message ||
+                "An error occurred during Google registration.",
+            });
+          }
+
+          if (existingEmailUser) {
+            return res.status(409).send({
+              message:
+                "An account with this email already exists. Sign in with username and password or Google.",
+            });
+          }
+
+          const emailLocalPart = decoded.email.split("@")[0] || "alumni";
+          User.generateUniqueUsername(
+            emailLocalPart,
+            (usernameError, username) => {
+              if (usernameError) {
+                return res.status(500).send({
+                  message:
+                    usernameError.message ||
+                    "Unable to create your account username.",
+                });
+              }
+
+              const hashedPassword = bcrypt.hashSync(
+                crypto.randomBytes(32).toString("hex"),
+                10,
+              );
+
+              const user = new User({
+                username,
+                password: hashedPassword,
+                active: 2,
+                google_id: decoded.googleId,
+              });
+
+              User.create(user, profileData, pathwayData, function (err, data) {
+                if (err) {
+                  return res.status(500).send({
+                    message:
+                      err.message || "An error occurred during registration.",
+                  });
+                }
+
+                console.log(
+                  "[membership-email] Google registration committed",
+                  {
+                    userId: data.user.id,
+                    profileId: data.profile.id,
+                    active: data.user.active,
+                  },
+                );
+                notifyEmailEnabledAdmins(data, pathwayData);
+                res.status(201).send({
+                  message:
+                    "Registration submitted. An admin must approve your account before you can sign in.",
+                });
+              });
+            },
+          );
+        },
+      );
+    },
+  );
 };
 
 // Refresh and return a new JWT
@@ -457,6 +748,31 @@ exports.declineMembershipRequest = function (req, res) {
 
     return res.status(200).send({
       message: "Membership request declined.",
+      user: data,
+    });
+  });
+};
+
+exports.disableUser = function (req, res) {
+  const userId = Number(req.params.id);
+
+  if (!Number.isInteger(userId) || userId <= 0) {
+    return res.status(400).send({ message: "A valid user ID is required." });
+  }
+
+  User.disableById(userId, function (err, data) {
+    if (err) {
+      if (err.kind === "not_found") {
+        return res.status(404).send({ message: "User not found." });
+      }
+
+      return res.status(500).send({
+        message: err.message || "Unable to disable user.",
+      });
+    }
+
+    return res.status(200).send({
+      message: "User disabled.",
       user: data,
     });
   });

@@ -5,7 +5,8 @@ import react from '@vitejs/plugin-react'
 export default defineConfig({
   plugins: [react()],
   server: {
-    port: 5173,
+    // 5173 falls in a Windows excluded port range (often Hyper-V/WSL), which causes EACCES
+    port: 3000,
     strictPort: false,
     proxy: {
       '/api': {

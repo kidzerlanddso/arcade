@@ -7,6 +7,7 @@ const User = function (user) {
   this.admin = user.admin !== undefined ? Number(user.admin) : 0;
   this.enableEmail =
     user.enableEmail !== undefined ? Number(user.enableEmail) : 0;
+  this.google_id = user.google_id || null;
 };
 
 User.create = function (newUser, profileData, pathwayData, result) {
@@ -37,13 +38,14 @@ User.create = function (newUser, profileData, pathwayData, result) {
       if (beginError) return rollback(beginError);
 
       client.query(
-        'INSERT INTO users (username, password, active, admin, "enableEmail") VALUES ($1, $2, $3, $4, $5) RETURNING *',
+        'INSERT INTO users (username, password, active, admin, "enableEmail", google_id) VALUES ($1, $2, $3, $4, $5, $6) RETURNING *',
         [
           newUser.username,
           newUser.password,
           newUser.active,
           newUser.admin,
           newUser.enableEmail ?? 0,
+          newUser.google_id || null,
         ],
         (userError, userResult) => {
           if (userError) return rollback(userError);
@@ -229,6 +231,26 @@ User.declineById = function (userId, result) {
   );
 };
 
+User.disableById = function (userId, result) {
+  db.query(
+    "UPDATE users SET active = 0 WHERE id = $1 AND active <> 0 RETURNING id, username, active",
+    [userId],
+    function (err, res) {
+      if (err) {
+        result(err, null);
+        return;
+      }
+
+      if (!res.rows.length) {
+        result({ kind: "not_found" }, null);
+        return;
+      }
+
+      result(null, res.rows[0]);
+    },
+  );
+};
+
 User.approveByIds = function (userIds, result) {
   const safeUserIds = [
     ...new Set(
@@ -315,6 +337,93 @@ User.updateEnableEmail = function (userId, enabled, result) {
       result(null, res.rows[0]);
     },
   );
+};
+
+User.findByGoogleId = function (googleId, result) {
+  db.query(
+    "SELECT * FROM users WHERE google_id = $1 LIMIT 1",
+    [googleId],
+    function (err, res) {
+      if (err) {
+        result(err, null);
+        return;
+      }
+      if (res.rows.length) {
+        result(null, res.rows[0]);
+        return;
+      }
+      result({ kind: "not_found" }, null);
+    },
+  );
+};
+
+User.findByProfileEmail = function (email, result) {
+  db.query(
+    `SELECT u.*
+     FROM users u
+     INNER JOIN profile p ON p.user_id = u.id
+     WHERE LOWER(BTRIM(p.email)) = LOWER(BTRIM($1))
+     LIMIT 1`,
+    [email],
+    function (err, res) {
+      if (err) {
+        result(err, null);
+        return;
+      }
+      if (res.rows.length) {
+        result(null, res.rows[0]);
+        return;
+      }
+      result({ kind: "not_found" }, null);
+    },
+  );
+};
+
+User.linkGoogleId = function (userId, googleId, result) {
+  db.query(
+    "UPDATE users SET google_id = $1 WHERE id = $2 AND google_id IS NULL RETURNING *",
+    [googleId, userId],
+    function (err, res) {
+      if (err) {
+        result(err, null);
+        return;
+      }
+      if (!res.rows.length) {
+        result({ kind: "not_found" }, null);
+        return;
+      }
+      result(null, res.rows[0]);
+    },
+  );
+};
+
+User.generateUniqueUsername = function (preferredBase, result) {
+  const base =
+    String(preferredBase || "alumni")
+      .toLowerCase()
+      .replace(/[^a-z0-9_]/g, "")
+      .slice(0, 40) || "alumni";
+
+  const tryUsername = (candidate, attempt) => {
+    User.findByUsername(candidate, (err, existing) => {
+      if (err && err.kind !== "not_found") {
+        result(err, null);
+        return;
+      }
+      if (!existing) {
+        result(null, candidate);
+        return;
+      }
+      if (attempt >= 20) {
+        result(new Error("Unable to generate a unique username."), null);
+        return;
+      }
+      const suffix = Math.floor(1000 + Math.random() * 9000);
+      tryUsername(`${base}${suffix}`.slice(0, 100), attempt + 1);
+    });
+  };
+
+  tryUsername(base, 0);
 };
 
 User.findByLogin = function (login, result) {

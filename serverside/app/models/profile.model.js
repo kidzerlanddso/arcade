@@ -66,12 +66,9 @@ Project.getAll = (result) => {
         return;
       }
       result(null, res.rows);
-    })
-
-  
+    },
+  );
 };
-
-
 
 Project.findById = (id, result) => {
   // Use p.* so profile.id is not overwritten by users.id from JOIN
@@ -96,7 +93,7 @@ Project.findById = (id, result) => {
       }
 
       result(null, null);
-    }
+    },
   );
 };
 
@@ -116,7 +113,7 @@ Project.findByUserId = (userId, result) => {
       }
 
       result(null, res.rows[0] || null);
-    }
+    },
   );
 };
 
@@ -166,7 +163,7 @@ Project.create = (newProfile, result) => {
       }
 
       result(null, res.rows[0]);
-    }
+    },
   );
 };
 
@@ -187,8 +184,8 @@ Project.findByName = (name, result) => {
       }
 
       result(null, []);
-    }
-);
+    },
+  );
 };
 Project.getExpertise = (result) => {
   db.query(
@@ -201,7 +198,7 @@ Project.getExpertise = (result) => {
       }
 
       result(null, res.rows);
-    }
+    },
   );
 };
 Project.getExpertiseSubcategories = (expertiseId, result) => {
@@ -216,19 +213,19 @@ Project.getExpertiseSubcategories = (expertiseId, result) => {
       }
 
       result(null, res.rows);
-    }
+    },
   );
 };
-Project.updateById = (id, profile, userId, result) => {
+Project.updateById = (id, profile, userId, isAdmin, result) => {
   const entries = Object.entries(profile);
   const fields = entries.map(([key], index) => `${key} = $${index + 1}`);
   const values = entries.map(([, value]) => value);
   values.push(id);
-  values.push(userId);
+  if (!isAdmin) values.push(userId);
 
   db.query(
     `UPDATE profile SET ${fields.join(", ")} WHERE id = $${fields.length + 1}
-     AND user_id = $${fields.length + 2} RETURNING *`,
+     ${isAdmin ? "" : `AND user_id = $${fields.length + 2}`} RETURNING *`,
     values,
     (err, res) => {
       if (err) {
@@ -243,25 +240,29 @@ Project.updateById = (id, profile, userId, result) => {
       }
 
       result(null, res.rows[0]);
-    }
+    },
   );
 };
 
 Project.deleteById = (id, result) => {
-  db.query("UPDATE users SET active = 0 WHERE id = $1 RETURNING *", [id], (err, res) => {
-    if (err) {
-      console.log("Error while Deleting: ", err);
-      result(err, null);
-      return;
-    }
+  db.query(
+    "UPDATE users SET active = 0 WHERE id = $1 RETURNING *",
+    [id],
+    (err, res) => {
+      if (err) {
+        console.log("Error while Deleting: ", err);
+        result(err, null);
+        return;
+      }
 
-    if (!res.rows.length) {
-      result({ kind: "NO such ID found" }, null);
-      return;
-    }
+      if (!res.rows.length) {
+        result({ kind: "NO such ID found" }, null);
+        return;
+      }
 
-    result(null, res.rows);
-  });
+      result(null, res.rows);
+    },
+  );
 };
 
 module.exports = Project;
