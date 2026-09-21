@@ -3,94 +3,95 @@
 ## Project Progress Report
 
 **Project:** Alumni management and digital archive platform for Rototuna Senior High School
-**Report date:** 7 September 2026
+**Report date:** 21 September 2026
 **Current branch:** Aza
 
 ## Project Overview
 
-The application is a full-stack alumni management system for Rototuna Senior High School. It supports alumni registration, admin approval, profile management, event pages, expertise filters, messaging, and administrative reporting workflows.
+The application is a full-stack alumni management platform for Rototuna Senior High School. It supports registration, authentication, profile editing, admin review, alumni directory browsing, events, reporting, and Google SSO login. The project combines a React frontend, an Express backend, and a PostgreSQL-backed data model.
 
 ## Current Status
 
-The project has a working frontend and backend foundation with login, admin approval, profile management, ProtectedRoute access control, dynamic data management, and dashboard reporting implemented. The most recent work completed focused on route correctness, admin access flow, backend runtime stability, and verification of the build and server startup.
+The project is in a stable and feature-rich state. The latest work includes Google authentication support, admin user management, profile visibility controls, reporting dashboards, and performance improvements for large alumni datasets. The frontend and backend are both in a working state, and the recent build and syntax validation checks have remained successful.
 
 ## Recent Completed Work
 
-- Fixed protected route configuration so admin and dynamic-data pages load correctly without redirecting to login.
-- Corrected the frontend route aliases for /dynamicdata and /admin.
-- Verified the React/Vite frontend builds successfully.
-- Cleared a stale backend process blocking port 3001.
-- Restarted the Express server and confirmed the API is running on port 3001.
-- Resolved the backend startup issue that had been causing the 502/route failure symptoms.
-- Confirmed the app is in a usable state for continued development and testing.
+- Integrated Google Sign-In / Google SSO into the login and registration flow.
+- Added backend Google OAuth verification and user registration linking with `google_id` support.
+- Added Google account linking for existing users and registration flow for new Google-based accounts.
+- Added disable-user functionality in the admin list so an account can be deactivated by setting `active = 0`.
+- Fixed profile card alignment so text no longer overlaps the profile picture.
+- Added a new admin statistics page for alumni reporting and dashboard insights.
+- Added a sharing-preference filter to the alumni list to match the profile edit configuration.
+- Implemented server-side pagination for profile listings to reduce database load and improve performance for large datasets.
+- Prepared presentation materials and project reporting documentation for stakeholder review.
 
-## Work Timeline (Updated: 2026-09-07)
+## Work Timeline (Updated: 2026-09-21)
 
-* **2026-09-07**: fixed protected route configuration for admin and dynamic data pages, cleared stale backend port 3001 lock, verified the React build succeeds, and confirmed the API server is running correctly after route/backend fixes (bcsazar)
+- **2026-09-21**: prepared final presentation materials and progressed project reporting documents; confirmed the app continues to be in a stable, build-valid state.
 
-* **2026-09-07**: added toastify notification on dashboard (bcsazar)
-## Work Timeline (Updated: 2026-09-08)
+- **2026-09-18**: added the statistics dashboard and alumni reporting menu item; completed the expertise-sharing filter and improved list controls for better management and discovery.
 
-* **2026-09-08**: added event RSVP "Join this event" on the event details page — new event_attendees table in the Supabase Postgres DB, GET/POST /events/:id/join (verifyToken), transactional join/leave toggle with live attendee counts, wired to replace the local-only stub button (mohesh)
+- **2026-09-14**: fixed the profile card layout issue so profile details align properly beside the profile image; improved readability across the alumni listing.
 
-* **2026-09-08**: added admin event photo editing on the event details page — file upload via new POST /events/:id/image endpoint (multer + sharp + Supabase storage) and photo URL update via PATCH, styled editor UI in the Photos section (mohesh)
+- **2026-09-11**: implemented disable-user functionality in admin view and updated the backend to deactivate a user by setting `active = 0`.
 
+- **2026-09-10**: integrated Google SSO flow for login and registration, including front-end Google auth provider and backend Google ID token verification and linkage.
 
-* **2026-09-06**: Merge branch 'Aza' of https://github.com/jiangshan123/rototuna-alumni-platform into Aza (bcsazar)
+- **2026-09-08**: added event RSVP and image upload features for event management; enhanced the event details experience and attendee tracking.
 
-* **2026-09-06**: added toastify notification on dashboard (bcsazar)
+- **2026-09-07**: fixed protected route issues, resolved backend runtime problems, verified the React build succeeds, and confirmed the API server is running correctly.
 
-* **2026-09-06**: Merge pull request #46 from jiangshan123/main (bcsazar)
+- **2026-09-07**: added toast notifications on the dashboard for user feedback improvements.
 
-* **2026-09-06**: Merge branch 'Aza' into main (bcsazar)
+- **2026-09-06**: merged branch updates and continued stabilization across the project.
 
-* **2026-09-06**: added toastify notification on dashboard (bcsazar)
+- **2026-09-04**: completed the alumni connection module and fixed the axios refresh issue.
 
-* **2026-09-04**: Merge origin/main; keep Connect profile view and safe profile id select. (µ’%’Ã’%’%)
+- **2026-09-03**: added the expertise list, updated the profile list view, and continued event and calendar improvements.
 
-* **2026-09-04**: finished alumni connection module and axios refresh issue (µ’%’Ã’%’%)
+- **2026-09-02**: updated profile page functionality and continued admin feature enhancements.
 
-* **2026-09-04**: Merge origin/main with Connect feature (µ’%’Ã’%’%)
+- **2026-09-01**: completed admin additions, email/export functionality, DB/server configuration updates, and project setup improvements.
 
-* **2026-09-03**: Merge pull request #45 from jiangshan123/Aza (bcsazar)
+## Work Timeline (Earlier Project History)
 
-* **2026-09-03**: Add alumni Connect feature with profile view and auth proxy fixes (µ’%’Ã’%’%)
+- **2026-09-08**: added RSVP functionality for events with attendee tracking and newer event photo editing tools.
 
-* **2026-09-03**: Merge pull request #43 from jiangshan123/main (bcsazar)
+- **2026-09-06**: merged branch updates and continued project stabilization across the Aza branch and main branch.
 
-* **2026-09-03**: pull from Aza. (bcsazar)
+- **2026-09-04**: finalized the alumni connection feature and fixed profile view and refresh logic.
 
-* **2026-09-03**: added expertise list, updated profile list view (bcsazar)
+- **2026-09-03**: added expertise list and updated the profile list UI; integrated alumni Connect functionality and profile view improvements.
 
-* **2026-09-03**: Merge branch 'mohesh' into main (bcsazar)
+- **2026-09-02**: improved the profile page with email-enabled actions and continued admin enhancements.
 
-* **2026-09-03**: Update events calendar (Mohesh2001e)
+- **2026-09-01**: added admin and export features, updated server configuration, and continued integration of the project core modules.
 
-* **2026-09-02**: Merge pull request #41 from jiangshan123/main (bcsazar)
+## Key Implementation Details
 
-* **2026-09-02**: Merge pull request #40 from jiangshan123/Aza (bcsazar)
+### Google SSO Integration
 
-* **2026-09-02**: profile page updated with enableEmail button (bcsazar)
+- Frontend provider and Google sign-in button were added to the login and registration flows.
+- Backend endpoints were added for Google configuration, Google authentication, and Google registration.
+- Token verification was implemented using Google OAuth libraries.
+- `google_id` support was added to the user model and database migration to support account linking.
 
-* **2026-09-01**: Merge pull request #39 from jiangshan123/Aza (bcsazar)
+### Admin and Profile Management
 
-* **2026-09-01**: db and server config updates (bcsazar)
+- Admin list supports user deactivation.
+- Profile list provides better alignment and formatting for details such as name, city, and profile metadata.
+- Sharing preference filters were added for alumni expertise visibility.
 
-* **2026-09-01**: Merge pull request #38 from jiangshan123/Aza (bcsazar)
+### Performance Improvements
 
-* **2026-09-01**: admin addition, email and export option (bcsazar)
-
-* **2026-09-01**: Merge pull request #37 from jiangshan123/Aza (bcsazar)
-
-* **2026-09-01**: Merge pull request #36 from jiangshan123/main (bcsazar)
-
-* **2026-09-01**: admin addition, email and export option (bcsazar)
-
-* **2026-09-01**: Add Rototuna Alumni Connect project (Mohesh2001e)
+- Profile lists now paginate data in batches instead of loading the full result set at once.
+- Search and filters remain functional while reducing server/database strain.
 
 ## Next Steps
 
-- Continue browser-level validation of the admin and approval workflows.
-- Test membership approval and bulk-update operations against the live database.
-- Confirm image upload works with valid cloud storage credentials.
-- Review production hardening before release.
+- Continue browser-level validation of Google login and registration flows.
+- Test deactivation and admin access controls with live data.
+- Validate pagination and filtering on larger alumni datasets.
+- Confirm event attendee and upload flows work under final production-ready credentials.
+- Review production hardening and deployment readiness.

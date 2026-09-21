@@ -257,7 +257,7 @@ function ProtectedRoute({ children }) {
                         setMobileMenuOpen(false);
                       }}
                     >
-                      Statistics
+                      Admin Intelligence
                     </Link>
                     <Link
                       to="/membership-request"
