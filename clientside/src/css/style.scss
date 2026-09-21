@@ -634,6 +634,89 @@ a {
   justify-content: flex-end;
   margin: 0 0 18px;
 }
+
+.add-news-button {
+  min-width: 180px;
+  min-height: 58px;
+  padding: 0 28px;
+  border: 1px solid #2b7adf;
+  border-radius: 12px;
+  background: linear-gradient(180deg, #2f87e7 0%, #1f6ed4 100%);
+  box-shadow: 0 10px 18px rgba(37, 104, 196, 0.18);
+  color: #fff;
+  font-size: 1.04rem;
+  font-weight: 700;
+}
+
+.news-modal-card {
+  width: min(620px, calc(100vw - 24px));
+  padding: 22px 22px 18px;
+  border: 1px solid #d9dbe5;
+  border-radius: 22px;
+  background: linear-gradient(180deg, #fffdfc 0%, #f8f3f0 100%);
+  box-shadow: 0 18px 42px rgba(60, 34, 19, 0.14);
+}
+
+.news-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 18px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid #e8ddd6;
+}
+
+.news-modal-header h2 {
+  margin: 0;
+  color: #2c1a14;
+  font-size: clamp(2rem, 3vw, 2.8rem);
+  line-height: 1.15;
+  letter-spacing: -0.04em;
+  font-weight: 700;
+}
+
+.news-content-editor-form {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+}
+
+.news-form-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px 14px;
+}
+
+.news-form-grid .field-group,
+.news-content-editor-form .full-width {
+  grid-column: 1 / -1;
+}
+
+.news-content-editor-form textarea {
+  min-height: 110px;
+  border: 1px solid #e1d4cd;
+  border-radius: 10px;
+  background: #fffdfb;
+}
+
+.news-form-grid .field-group,
+.news-content-editor-form .full-width {
+  grid-column: 1 / -1;
+}
+
+.news-content-editor-form .content-editor-actions {
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 12px;
+}
+
+.news-content-editor-form .content-editor-actions button {
+  flex: 1;
+  min-height: 54px;
+  border-radius: 10px;
+  font-size: 1rem;
+  font-weight: 700;
+}
 .content-editor-form {
   display: grid;
   gap: 14px;
@@ -664,6 +747,128 @@ a {
 }
 .content-editor-form textarea {
   resize: vertical;
+}
+
+.teacher-modal-card {
+  width: min(720px, calc(100vw - 32px));
+  padding: 22px 22px 18px;
+  border: 1px solid #d7deea;
+  border-radius: 22px;
+  background: linear-gradient(180deg, #ffffff 0%, #f4f8fe 100%);
+  box-shadow: 0 18px 42px rgba(17, 42, 74, 0.16);
+}
+
+.teacher-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 18px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid #e0e7f0;
+}
+
+.teacher-modal-header h2 {
+  margin: 0;
+  color: #1d2a38;
+  font-size: clamp(2rem, 3vw, 2.9rem);
+  line-height: 1.1;
+  letter-spacing: -0.04em;
+  font-weight: 700;
+}
+
+.teacher-content-editor-form {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+}
+
+.teacher-form-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px 14px;
+}
+
+.field-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  color: #212b36;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.field-group span {
+  font-size: 0.95rem;
+  font-weight: 600;
+}
+
+.field-group input,
+.field-group textarea,
+.teacher-form-grid select,
+.news-form-grid input,
+.news-form-grid select,
+.news-form-grid textarea {
+  min-height: 46px;
+  padding: 10px 12px;
+  border: 1px solid #d8dde5;
+  border-radius: 8px;
+  background: #f8fafc;
+  font-size: 0.98rem;
+}
+
+.field-group textarea {
+  min-height: 100px;
+  resize: vertical;
+}
+
+.teacher-form-grid .image-upload-field {
+  grid-column: 1 / -1;
+  min-height: 54px;
+  padding: 10px 12px;
+  border: 1px dashed #bfd5ee;
+  border-radius: 8px;
+  background: #f8fbff;
+  font-size: 0.96rem;
+}
+
+.teacher-content-editor-form .content-editor-actions {
+  justify-content: space-between;
+  margin-top: 12px;
+  gap: 12px;
+}
+
+.teacher-content-editor-form .content-editor-actions button,
+.news-content-editor-form .content-editor-actions button {
+  flex: 1;
+  min-height: 54px;
+  padding: 10px 16px;
+  border: 1px solid rgba(17, 24, 39, 0.18);
+  border-radius: 10px;
+  font-size: 1rem;
+  font-weight: 700;
+}
+
+.teacher-content-editor-form .primary-action,
+.news-content-editor-form .primary-action {
+  border: 1px solid #1d6fd2;
+  background: linear-gradient(180deg, #2f9bf2 0%, #1b7fe3 100%);
+  box-shadow: 0 8px 18px rgba(31, 128, 227, 0.18);
+}
+
+.teacher-content-editor-form .secondary-action,
+.news-content-editor-form .secondary-action {
+  border: 1px solid rgba(17, 24, 39, 0.14);
+  background: #dfe6ee;
+  color: #1a2430;
+}
+
+.close-button {
+  border: 0;
+  background: transparent;
+  color: #4b5563;
+  font-size: 3rem;
+  line-height: 1;
+  cursor: pointer;
 }
 
 .image-upload-field {
@@ -2542,6 +2747,24 @@ a {
   margin: 0;
   padding: 0;
   list-style: none;
+}
+
+.event-export-button {
+  display: inline-flex;
+  align-items: center;
+  margin: 0 0 16px;
+  border: 0;
+  border-radius: 8px;
+  padding: 10px 16px;
+  background: #0a7d45;
+  color: #fff;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.event-export-button:hover,
+.event-export-button:focus-visible {
+  background: #086537;
 }
 
 .event-attendee-list li {

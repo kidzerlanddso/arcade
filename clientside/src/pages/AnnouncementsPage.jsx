@@ -63,21 +63,28 @@ function AnnouncementsPage() {
 
   return (
     <main className="content-page announcements-page">
-      {isAdmin && <div className="admin-content-toolbar"><button type="button" className="primary-action" onClick={() => { setForm(emptyNews); setEditingId(null); setShowForm((current) => !current); }}>{showForm ? "Close editor" : "Add news"}</button></div>}
+      {isAdmin && <div className="admin-content-toolbar"><button type="button" className="primary-action add-news-button" onClick={() => { setForm(emptyNews); setEditingId(null); setShowForm(true); }}>Add news</button></div>}
 
       {isAdmin && showForm && (
-        <form className="content-editor-form" onSubmit={handleSubmit}>
-          <h2>{editingId === null ? "Add news item" : "Edit news item"}</h2>
-          <div className="content-editor-fields">
-            <input name="issue" value={form.issue} onChange={handleFormChange} placeholder="Issue, e.g. Winter 2026" required />
-            <input name="title" value={form.title} onChange={handleFormChange} placeholder="News title" required />
-            <input name="date" type="date" value={form.date} onChange={handleFormChange} />
-            <input name="image" value={form.image} onChange={handleFormChange} placeholder="Image URL (optional)" />
+        <div className="modal-overlay" onClick={() => setShowForm(false)}>
+          <div className="news-modal-card modal-card" role="dialog" aria-modal="true" aria-labelledby="news-form-title" onClick={(event) => event.stopPropagation()}>
+            <div className="news-modal-header modal-header">
+              <h2 id="news-form-title">{editingId === null ? "Add news item" : "Edit news item"}</h2>
+              <button type="button" className="close-button" aria-label="Close news form" onClick={() => setShowForm(false)}>×</button>
+            </div>
+            <form className="news-content-editor-form content-editor-form" onSubmit={handleSubmit}>
+              <div className="news-form-grid content-editor-fields">
+                <label className="field-group"><span>Issue</span><input name="issue" value={form.issue} onChange={handleFormChange} placeholder="Issue, e.g. Winter 2026" required /></label>
+                <label className="field-group"><span>News title</span><input name="title" value={form.title} onChange={handleFormChange} placeholder="News title" required /></label>
+                <label className="field-group"><span>Date</span><input name="date" type="date" value={form.date} onChange={handleFormChange} /></label>
+                <label className="field-group"><span>Image URL</span><input name="image" value={form.image} onChange={handleFormChange} placeholder="Image URL (optional)" /></label>
+              </div>
+              <label className="field-group full-width"><span>Short summary</span><textarea name="body" value={form.body} onChange={handleFormChange} placeholder="Short summary" rows="3" required /></label>
+              <label className="field-group full-width"><span>Full article text</span><textarea name="fullBody" value={form.fullBody} onChange={handleFormChange} placeholder="Full article text" rows="5" /></label>
+              <div className="content-editor-actions"><button className="primary-action" type="submit">Save news</button><button className="secondary-action" type="button" onClick={() => setShowForm(false)}>Cancel</button></div>
+            </form>
           </div>
-          <textarea name="body" value={form.body} onChange={handleFormChange} placeholder="Short summary" rows="3" required />
-          <textarea name="fullBody" value={form.fullBody} onChange={handleFormChange} placeholder="Full article text" rows="5" />
-          <div className="content-editor-actions"><button className="primary-action" type="submit">Save news</button><button className="secondary-action" type="button" onClick={() => setShowForm(false)}>Cancel</button></div>
-        </form>
+        </div>
       )}
 
       {errorMessage && <p className="events-error" role="alert">{errorMessage}</p>}

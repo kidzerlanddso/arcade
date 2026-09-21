@@ -116,7 +116,7 @@ export const formatEventTime = (value) => {
   if (!value) return "Time to be confirmed";
 
   const timeValue = String(value).trim();
-  const match = timeValue.match(/^(\d{1,2}):(\d{2})(?:\s*([AP]M))?$/i);
+  const match = timeValue.match(/^(\d{1,2}):(\d{2})(?::\d{2})?(?:\s*([AP]M))?$/i);
   if (!match) return "Time to be confirmed";
 
   let hours = Number(match[1]);

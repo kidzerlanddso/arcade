@@ -3,7 +3,7 @@ import api from "../api/axios";
 import schoolBackground from "../assets/school_bg.webp";
 
 const getAdminStatus = () => localStorage.getItem("isAdmin") === "true";
-const emptyTeacher = { team: "leadership", department: "", name: "", role: "", focus: "", email: "", phone: "", image: "" };
+const emptyTeacher = { team: "pastoral", department: "", name: "", role: "", focus: "", email: "", phone: "", image: "" };
 const departmentNames = ["The Arts", "Business Studies", "English", "Languages", "Mathematics", "Pasifika", "PE & Health", "Science", "Social Sciences", "Te Reo Māori", "Technology", "Careers", "Learning Support", "Extracurricular"];
 
 function TeacherCard({ teacher, isAdmin, onEdit, onDelete }) {
@@ -23,7 +23,6 @@ function TeacherCard({ teacher, isAdmin, onEdit, onDelete }) {
 function TeacherProfilesPage() {
   const isAdmin = getAdminStatus();
   const [teachers, setTeachers] = useState([]);
-  const [selectedDepartment, setSelectedDepartment] = useState("Extracurricular");
   const [form, setForm] = useState(emptyTeacher);
   const [imageFile, setImageFile] = useState(null);
   const [editingId, setEditingId] = useState(null);
@@ -36,9 +35,7 @@ function TeacherProfilesPage() {
       .catch(() => setErrorMessage("Unable to load teacher profiles."));
   }, []);
 
-  const leadership = teachers.filter((teacher) => teacher.team === "leadership");
-  const pastoral = teachers.filter((teacher) => teacher.team === "pastoral");
-  const departmentContacts = teachers.filter((teacher) => teacher.team === "department" && teacher.department === selectedDepartment);
+  const allTeachers = [...teachers].sort((a, b) => a.name.localeCompare(b.name));
   const handleFormChange = (event) => setForm((current) => ({ ...current, [event.target.name]: event.target.value }));
 
   const handleSubmit = async (event) => {
@@ -79,28 +76,38 @@ function TeacherProfilesPage() {
       <div className="teacher-banner" style={{ backgroundImage: `url(${schoolBackground})` }} />
       <section className="teacher-directory">
         <div className="teacher-page-heading"><p>Rototuna community</p><h1>Teacher Profiles</h1></div>
-        {isAdmin && <div className="admin-content-toolbar"><button type="button" className="primary-action" onClick={() => { setForm(emptyTeacher); setImageFile(null); setEditingId(null); setShowForm((current) => !current); }}>{showForm ? "Close editor" : "Add teacher"}</button></div>}
+        {isAdmin && <div className="admin-content-toolbar"><button type="button" className="primary-action" onClick={() => { setForm(emptyTeacher); setImageFile(null); setEditingId(null); setShowForm(true); }}>Add teacher</button></div>}
         {isAdmin && showForm && (
-          <form className="content-editor-form" onSubmit={handleSubmit}>
-            <h2>{editingId === null ? "Add teacher profile" : "Edit teacher profile"}</h2>
-            <div className="content-editor-fields">
-              <select name="team" value={form.team} onChange={handleFormChange}><option value="leadership">Senior leadership</option><option value="pastoral">Pastoral</option><option value="department">Department</option></select>
-              {form.team === "department" && <select name="department" value={form.department} onChange={handleFormChange}><option value="">Select department</option>{departmentNames.map((department) => <option key={department} value={department}>{department}</option>)}</select>}
-              <input name="name" value={form.name} onChange={handleFormChange} placeholder="Name" required />
-              <input name="role" value={form.role} onChange={handleFormChange} placeholder="Role" required />
-              <input name="focus" value={form.focus} onChange={handleFormChange} placeholder="Focus or responsibility" />
-              <input name="email" type="email" value={form.email} onChange={handleFormChange} placeholder="Email" required />
-              <input name="phone" value={form.phone} onChange={handleFormChange} placeholder="Phone" />
-              <label className="image-upload-field">Upload portrait<input type="file" accept="image/*" onChange={(event) => setImageFile(event.target.files?.[0] || null)} /></label>
+          <div className="modal-overlay" onClick={() => setShowForm(false)}>
+            <div className="teacher-modal-card modal-card" role="dialog" aria-modal="true" aria-labelledby="teacher-form-title" onClick={(event) => event.stopPropagation()}>
+              <div className="teacher-modal-header modal-header">
+                <h2 id="teacher-form-title">{editingId === null ? "Add teacher profile" : "Edit teacher profile"}</h2>
+                <button type="button" className="close-button" aria-label="Close teacher form" onClick={() => setShowForm(false)}>×</button>
+              </div>
+              <form className="teacher-content-editor-form content-editor-form" onSubmit={handleSubmit}>
+                <div className="teacher-form-grid content-editor-fields">
+                  <label className="field-group"><span>Name</span><input name="name" value={form.name} onChange={handleFormChange} placeholder="Name" required /></label>
+                  <label className="field-group"><span>Role</span><input name="role" value={form.role} onChange={handleFormChange} placeholder="Role" required /></label>
+                  <label className="field-group"><span>Email</span><input name="email" type="email" value={form.email} onChange={handleFormChange} placeholder="Email" required /></label>
+                  <label className="field-group"><span>Phone</span><input name="phone" value={form.phone} onChange={handleFormChange} placeholder="Phone" /></label>
+                  <label className="image-upload-field field-group"><span>Upload portrait</span><input type="file" accept="image/*" onChange={(event) => setImageFile(event.target.files?.[0] || null)} /></label>
+                </div>
+                <div className="content-editor-actions"><button className="primary-action" type="submit">Save teacher</button><button className="secondary-action" type="button" onClick={() => setShowForm(false)}>Cancel</button></div>
+              </form>
             </div>
-            <div className="content-editor-actions"><button className="primary-action" type="submit">Save teacher</button><button className="secondary-action" type="button" onClick={() => setShowForm(false)}>Cancel</button></div>
-          </form>
+          </div>
         )}
         {errorMessage && <p className="events-error" role="alert">{errorMessage}</p>}
 
-        <section aria-labelledby="senior-leadership-heading"><h2 id="senior-leadership-heading" className="teacher-section-title">Senior Leadership Team</h2><div className="teacher-grid">{leadership.map((teacher) => <TeacherCard key={teacher.id} teacher={teacher} isAdmin={isAdmin} onEdit={editTeacher} onDelete={deleteTeacher} />)}</div>{!leadership.length && <p className="empty-content-state">No leadership profiles have been added yet.</p>}</section>
-        <section aria-labelledby="pastoral-team-heading" className="teacher-team-section"><h2 id="pastoral-team-heading" className="teacher-section-title">Pastoral Team</h2><div className="teacher-grid teacher-grid--pastoral">{pastoral.map((teacher) => <TeacherCard key={teacher.id} teacher={teacher} isAdmin={isAdmin} onEdit={editTeacher} onDelete={deleteTeacher} />)}</div>{!pastoral.length && <p className="empty-content-state">No pastoral profiles have been added yet.</p>}</section>
-        <section className="department-section" aria-labelledby="departments-heading"><h2 id="departments-heading" className="teacher-section-title">Departments</h2><div className="department-directory"><nav className="department-menu" aria-label="Departments">{departmentNames.map((department) => <button type="button" key={department} className={selectedDepartment === department ? "is-selected" : ""} onClick={() => setSelectedDepartment(department)}>{department}</button>)}</nav><div className="department-details"><h3>{selectedDepartment}</h3><div className="department-contact-grid">{departmentContacts.map((teacher) => <TeacherCard key={teacher.id} teacher={teacher} isAdmin={isAdmin} onEdit={editTeacher} onDelete={deleteTeacher} />)}{!departmentContacts.length && <p>No contacts have been added for this department yet.</p>}</div></div></div></section>
+        <section className="teacher-team-section">
+          <h2 className="teacher-section-title">All Teachers</h2>
+          <div className="teacher-grid teacher-grid--all">
+            {allTeachers.map((teacher) => (
+              <TeacherCard key={teacher.id} teacher={teacher} isAdmin={isAdmin} onEdit={editTeacher} onDelete={deleteTeacher} />
+            ))}
+          </div>
+          {!allTeachers.length && <p className="empty-content-state">No teacher profiles have been added yet.</p>}
+        </section>
       </section>
     </main>
   );
