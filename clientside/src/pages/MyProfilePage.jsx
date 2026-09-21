@@ -122,6 +122,47 @@ const [showMultiExpertiseDropdown, setShowMultiExpertiseDropdown] =
             .split(",")
             .map((item) => item.trim())
             .filter((item) => mentorshipDays.includes(item));
+  const { id: viewProfileId } = useParams();
+  const isViewingOther = readOnly && Boolean(viewProfileId);
+  const navigate = useNavigate();
+  const [profile, setProfile] = useState(null);
+  const isAdmin = getAdminFromToken();
+  const [loading, setLoading] = useState(true);
+  const [editing, setEditing] = useState(false);
+  const [showIntroModal, setShowIntroModal] = useState(false);
+  const [bio, setBio] = useState("");
+  const [linkedinUrl, setLinkedinUrl] = useState("");
+  const [enableEmail, setEnableEmail] = useState("");
+  const [mentorshipAvailable, setMentorshipAvailable] = useState(false);
+  const [expertiseSharingTypes, setExpertiseSharingTypes] = useState([]);
+  const [showExpertiseSharingDropdown, setShowExpertiseSharingDropdown] =
+    useState(false);
+  const expertiseSharingOptions = [
+    "As a guest speaker",
+    "As a mentor",
+    "Offering work experience",
+    "As a tutor",
+  ];
+  const [expertise, setExpertise] = useState("");
+  const [expertiseId, setExpertiseId] = useState("");
+  const [subcategoryId, setSubcategoryId] = useState("");
+  const [expertiseOptions, setExpertiseOptions] = useState([]);
+  const [subcategoryOptions, setSubcategoryOptions] = useState([]);
+  const [mentorshipAvailability, setMentorshipAvailability] = useState("");
+  const mentorshipDays = [
+    "Monday",
+    "Tuesday",
+    "Wednesday",
+    "Thursday",
+    "Friday",
+    "Saturday",
+    "Sunday",
+  ];
+  const handleMentorshipDayChange = (day) => {
+    const selectedDays = mentorshipAvailability
+      .split(",")
+      .map((item) => item.trim())
+      .filter((item) => mentorshipDays.includes(item));
 
     if (selectedDays.includes(day)) {
       setMentorshipAvailability(
@@ -245,6 +286,9 @@ const [showMultiExpertiseDropdown, setShowMultiExpertiseDropdown] =
   const isCurrentProfileConnected =
     Boolean(profile?.user_id) && isProfileConnected(profile);
 
+  const canEditProfile = isAdmin || isCurrentUserProfile;
+  const canAccess = canEditProfile;
+
   const shouldShowProfile =
     isCurrentUserProfile || isCurrentProfileConnected || isAdmin;
 
@@ -252,15 +296,13 @@ const [showMultiExpertiseDropdown, setShowMultiExpertiseDropdown] =
     setProfile(currentProfile || null);
     setBio(currentProfile?.bio || "");
     setLinkedinUrl(currentProfile?.linkedin_url || "");
-    setMentorshipAvailable(
-        currentProfile?.mentorship_available ?? false,
-    );
+    setMentorshipAvailable(currentProfile?.mentorship_available ?? false);
     setExpertiseSharingTypes(
-  Array.isArray(currentProfile?.expertise_sharing_types)
-    ? currentProfile.expertise_sharing_types
-    : []
-);
-setShowExpertiseSharingDropdown(false);
+      Array.isArray(currentProfile?.expertise_sharing_types)
+        ? currentProfile.expertise_sharing_types
+        : [],
+    );
+    setShowExpertiseSharingDropdown(false);
     setExpertise(currentProfile?.expertise || "");
 
     setExpertiseId(
@@ -548,13 +590,13 @@ setSelectedSubcategoryIds(savedSubcategoryIds);
         bio: bio,
         linkedin_url: linkedinUrl,
         mentorship_available: mentorshipAvailable,
-    expertise_id:
-  mentorshipAvailable && expertiseId ? [Number(expertiseId)] : [],
-    subcategory_id:
-  mentorshipAvailable && subcategoryId ? [Number(subcategoryId)] : [],
-mentorship_availability: mentorshipAvailable
-  ? mentorshipAvailability
-  : "",
+        expertise_id:
+          mentorshipAvailable && expertiseId ? [Number(expertiseId)] : [],
+        subcategory_id:
+          mentorshipAvailable && subcategoryId ? [Number(subcategoryId)] : [],
+        mentorship_availability: mentorshipAvailable
+          ? mentorshipAvailability
+          : "",
         profile_image_url: imageUrl,
         current_city: currentCity,
         current_country: currentCountry,
@@ -615,19 +657,19 @@ mentorship_availability: mentorshipAvailable
   ? selectedSubcategoryIds.map(Number)
   : [],
 
-expertise: mentorshipAvailable ? expertise : "",
+        expertise: mentorshipAvailable ? expertise : "",
 
-mentorship_availability: mentorshipAvailable
-  ? mentorshipAvailability
-  : "",
+        mentorship_availability: mentorshipAvailable
+          ? mentorshipAvailability
+          : "",
       }));
-if (!mentorshipAvailable) {
-  setExpertiseSharingTypes([]);
-  setExpertiseId("");
-  setSubcategoryId("");
-  setExpertise("");
-  setMentorshipAvailability("");
-}
+      if (!mentorshipAvailable) {
+        setExpertiseSharingTypes([]);
+        setExpertiseId("");
+        setSubcategoryId("");
+        setExpertise("");
+        setMentorshipAvailability("");
+      }
       setShowMentorshipModal(false);
     } catch (error) {
       console.error("Error saving Mentorship:", error);
@@ -638,7 +680,7 @@ if (!mentorshipAvailable) {
 
     try {
       const response = await api.post("/employment", {
-        user_id: payload.userId,
+        user_id: isAdmin && profile?.user_id ? profile.user_id : payload.userId,
         company: company,
         job_title: jobTitle,
         start_date: startDate,
@@ -724,7 +766,8 @@ if (!mentorshipAvailable) {
         );
       } else {
         response = await api.post("/education", {
-          user_id: payload.userId,
+          user_id:
+            isAdmin && profile?.user_id ? profile.user_id : payload.userId,
           institution: institution,
           qualification: qualification,
           field_of_study: fieldOfStudy,
@@ -923,9 +966,9 @@ if (!mentorshipAvailable) {
             <div
               className="linkedin-avatar"
               onClick={
-                isViewingOther ? undefined : () => setShowPhotoModal(true)
+                canEditProfile ? () => setShowPhotoModal(true) : undefined
               }
-              style={isViewingOther ? { cursor: "default" } : undefined}
+              style={!canEditProfile ? { cursor: "default" } : undefined}
             >
               {profile.profile_image_url ? (
                 <img
@@ -938,7 +981,7 @@ if (!mentorshipAvailable) {
               )}
             </div>
 
-            {!isViewingOther && (
+            {canEditProfile && (
               <input
                 id="profileImageInput"
                 type="file"
@@ -948,7 +991,7 @@ if (!mentorshipAvailable) {
               />
             )}
 
-            {!isViewingOther && showPhotoModal && (
+            {canEditProfile && showPhotoModal && (
               <div className="photo-modal-overlay">
                 <div className="photo-modal">
                   <button
@@ -1130,7 +1173,7 @@ if (!mentorshipAvailable) {
             )}
 
             <div className="linkedin-profile-meta">
-              {editing && !isViewingOther ? (
+              {editing && canEditProfile ? (
                 <>
                   <input
                     type="text"
@@ -1159,7 +1202,7 @@ if (!mentorshipAvailable) {
             </div>
 
             <div className="profile-header-actions">
-              {isViewingOther ? (
+              {isViewingOther && !canEditProfile ? (
                 <Link
                   to={isAdmin ? "/profile" : "/profile/me"}
                   className="profile-header-button"
@@ -1188,7 +1231,7 @@ if (!mentorshipAvailable) {
                     </button>
                   )}
 
-                  {editing && !isViewingOther ? (
+                  {editing && canEditProfile ? (
                     <>
                       <button onClick={handleSave}>Save</button>
 
@@ -1236,12 +1279,12 @@ if (!mentorshipAvailable) {
               <div
                 className="linkedin-detail-row"
                 style={{
-                  display: editing && !isViewingOther ? "flex" : "none",
+                  display: editing && canEditProfile ? "flex" : "none",
                 }}
               >
                 <span className="linkedin-label">Location</span>
 
-                {editing && !isViewingOther ? (
+                {editing && canEditProfile ? (
                   <div className="location-edit-fields">
                     <input
                       type="text"
@@ -1276,7 +1319,7 @@ if (!mentorshipAvailable) {
               <div className="linkedin-detail-row">
                 <span className="linkedin-label">Email</span>
 
-                {editing && !isViewingOther ? (
+                {editing && canEditProfile ? (
                   <input
                     type="email"
                     value={email}
@@ -1291,7 +1334,7 @@ if (!mentorshipAvailable) {
               <div className="linkedin-detail-row">
                 <span className="linkedin-label">Student ID</span>
 
-                {editing && !isViewingOther ? (
+                {editing && canEditProfile ? (
                   <input
                     type="text"
                     value={studentId}
@@ -1306,7 +1349,7 @@ if (!mentorshipAvailable) {
               <div className="linkedin-detail-row">
                 <span className="linkedin-label">LinkedIn</span>
 
-                {editing && !isViewingOther ? (
+                {editing && canEditProfile ? (
                   <input
                     type="url"
                     value={linkedinUrl}
@@ -1337,7 +1380,7 @@ if (!mentorshipAvailable) {
           <div className="profile-section">
             <div className="profile-section-header">
               <h3>About</h3>
-              {!isViewingOther && (
+              {canEditProfile && (
                 <button
                   type="button"
                   className="section-edit-button"
@@ -1361,7 +1404,7 @@ if (!mentorshipAvailable) {
               )}
             </div>
 
-            {editing && !isViewingOther ? (
+            {editing && canEditProfile ? (
               <textarea
                 className="about-modal-textarea"
                 value={bio}
@@ -1373,7 +1416,7 @@ if (!mentorshipAvailable) {
             )}
           </div>
         )}
-        {showAboutModal && !isViewingOther && (
+        {showAboutModal && canEditProfile && (
           <div className="about-modal-overlay">
             <div className="about-modal">
               <h2>Edit about</h2>
@@ -1405,7 +1448,7 @@ if (!mentorshipAvailable) {
           <div className="profile-section">
             <div className="profile-section-header">
               <h3>Mentorship</h3>
-              {!isViewingOther && (
+              {canEditProfile && (
                 <button
                   type="button"
                   className="section-edit-button"
@@ -1782,9 +1825,9 @@ boxSizing: "border-box",
                           )}
                         </div>
                       </>
-                )}
+                    )}
                   </div>
-                
+
                   <div className="intro-modal-footer">
                     <button
                       type="button"
@@ -1878,7 +1921,7 @@ boxSizing: "border-box",
             <h3>Education</h3>
 
             <div className="education-header-actions">
-              {!isViewingOther && (
+              {canEditProfile && (
                 <button
                   type="button"
                   className="linkedin-add-button"
@@ -1929,7 +1972,7 @@ boxSizing: "border-box",
               )}
             </div>
           </div>
-          {!isViewingOther && showEducationManager && (
+          {canEditProfile && showEducationManager && (
             <div className="intro-modal-overlay">
               <div className="intro-modal">
                 <div className="intro-modal-header">
@@ -2020,7 +2063,7 @@ boxSizing: "border-box",
             </div>
           )}
 
-          {!isViewingOther && showEducationForm && (
+          {canEditProfile && showEducationForm && (
             <div className="intro-modal-overlay">
               <div className="intro-modal">
                 <div className="intro-modal-header">
@@ -2122,7 +2165,7 @@ boxSizing: "border-box",
               <h3>Experience</h3>
 
               <div className="profile-section-actions experience-section-actions">
-                {!isViewingOther && (
+                {canEditProfile && (
                   <button
                     type="button"
                     className="linkedin-add-button"
@@ -2362,7 +2405,7 @@ boxSizing: "border-box",
           </div>
         )}
 
-        {showIntroModal && !isViewingOther && (
+        {showIntroModal && canEditProfile && (
           <div className="intro-modal-overlay">
             <div className="intro-modal">
               <div className="intro-modal-header">

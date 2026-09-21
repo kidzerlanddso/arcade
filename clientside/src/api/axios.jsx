@@ -71,7 +71,8 @@ api.interceptors.request.use(async (config) => {
   const isAuthRequest =
     requestUrl.includes("/auth/login") ||
     requestUrl.includes("/auth/refresh") ||
-    requestUrl.includes("/auth/register");
+    requestUrl.includes("/auth/register") ||
+    requestUrl.includes("/auth/google");
 
   let token = memoryToken || getStoredToken();
   if (token) {
@@ -105,7 +106,8 @@ api.interceptors.response.use(
     const isAuthRequest =
       requestUrl.includes("/auth/login") ||
       requestUrl.includes("/auth/refresh") ||
-      requestUrl.includes("/auth/register");
+      requestUrl.includes("/auth/register") ||
+      requestUrl.includes("/auth/google");
 
     if (error.response?.status === 401 && !originalRequest._retry && !isAuthRequest) {
       originalRequest._retry = true;

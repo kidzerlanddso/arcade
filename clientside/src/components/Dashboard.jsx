@@ -34,11 +34,22 @@ const getAdminFromToken = () => {
   return storedAdmin === "true" || storedAdmin === "1";
 };
 
+const DASHBOARD_INTRO_DISMISSED_KEY = "dashboard-intro-dismissed";
+
 function Dashboard() {
   const [selectedEvent, setSelectedEvent] = useState(null);
   const [events, setEvents] = useState([]);
-  const [showIntroModal, setShowIntroModal] = useState(true);
+  const [showIntroModal, setShowIntroModal] = useState(
+    () => localStorage.getItem(DASHBOARD_INTRO_DISMISSED_KEY) !== "true",
+  );
   const isAdmin = getAdminFromToken();
+
+  const dismissIntroModal = (rememberChoice = false) => {
+    if (rememberChoice) {
+      localStorage.setItem(DASHBOARD_INTRO_DISMISSED_KEY, "true");
+    }
+    setShowIntroModal(false);
+  };
 
   useEffect(() => {
     const fetchPendingUsers = async () => {
@@ -187,23 +198,29 @@ function Dashboard() {
             zIndex: 2000,
             padding: "1rem",
           }}
-          onClick={() => setShowIntroModal(false)}
+          onClick={() => dismissIntroModal()}
         >
           <div
             onClick={(event) => event.stopPropagation()}
             style={{
-              width: "min(700px, 100%)",
+              width: "85rem",
+              height: "40rem",
               background: "#fff",
               borderRadius: "18px",
               boxShadow: "0 20px 50px rgba(0,0,0,0.25)",
               padding: "2rem 2rem 1.5rem",
               position: "relative",
+              justifyContent: "center",
+              alignItems: "center",
+              display: "flex" /* Added: Enables flexbox layout */,
+              flexDirection: "column",
+              textAlign: "center",
             }}
           >
             <button
               type="button"
               aria-label="Close welcome message"
-              onClick={() => setShowIntroModal(false)}
+              onClick={() => dismissIntroModal()}
               style={{
                 position: "absolute",
                 top: "1rem",
@@ -252,7 +269,25 @@ function Dashboard() {
             >
               <button
                 type="button"
-                onClick={() => setShowIntroModal(false)}
+                onClick={() => dismissIntroModal(true)}
+                style={{
+                  padding: 0,
+                  border: "none",
+                  background: "transparent",
+                  color: "#0a66c2",
+                  cursor: "pointer",
+                  fontSize: "0.9rem",
+                  marginRight: "auto",
+                  position: "absolute",
+                  bottom: "2.5rem",
+                  left: "3rem",
+                }}
+              >
+                Don&apos;t show me again
+              </button>{" "}
+              <button
+                type="button"
+                onClick={() => dismissIntroModal()}
                 style={{
                   background: "#0a66c2",
                   color: "#fff",
@@ -262,6 +297,9 @@ function Dashboard() {
                   fontSize: "1rem",
                   fontWeight: 600,
                   cursor: "pointer",
+                  position: "absolute",
+                  bottom: "2.5rem",
+                  right: "2rem",
                 }}
               >
                 Continue

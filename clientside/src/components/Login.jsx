@@ -1,8 +1,9 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import api, { setAccessToken } from "../api/axios";
+import GoogleSignInButton from "./GoogleSignInButton";
 
-function Login() {
+function Login({ onGoogleNeedsRegistration }) {
   const navigate = useNavigate();
 
   const [formData, setFormData] = useState({
@@ -114,6 +115,23 @@ function Login() {
           {isSubmitting ? "Signing In..." : "Sign In"}
         </button>
       </form>
+
+      <div className="auth-divider">
+        <span>or</span>
+      </div>
+
+      <GoogleSignInButton
+        onNeedsRegistration={onGoogleNeedsRegistration}
+        onLoginSuccess={() => {
+          setStatus({
+            type: "success",
+            message: "Login successful! Redirecting...",
+          });
+          window.setTimeout(() => {
+            navigate("/dashboard", { replace: true });
+          }, 800);
+        }}
+      />
     </div>
   );
 }

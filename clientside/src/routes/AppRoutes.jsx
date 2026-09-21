@@ -1,5 +1,5 @@
 import { Navigate, Route, Routes } from "react-router-dom";
-
+import DonationsPage from "../pages/DonationsPage";
 import ProtectedRoute from "../components/ProtectedRoute";
 import AuthPage from "../pages/AuthPage";
 import ProfilePage from "../pages/profilePage";
@@ -7,7 +7,7 @@ import MyProfilePage from "../pages/MyProfilePage";
 import Dashboard from "../components/Dashboard";
 import MessageAlumniPage from "../pages/MessageAlumniPage";
 import EventsPage from "../pages/EventsPage";
-// import About from "../pages/about";
+import About from "../pages/about";
 import EventDetailsPage from "../pages/EventDetailsPage";
 import DynamicData from "../components/DynamicData";
 import AdminList from "../components/adminlist";
@@ -15,6 +15,7 @@ import AdminList from "../components/adminlist";
 import NewProfile from "../components/NewProfile";
 import MembershipRequest from "../components/membershiprequest";
 import AlumniProfilePage from "../pages/AlumniProfilePage";
+import StatsPage from "../pages/StatsPage";
 
 function AppRoutes() {
   return (
@@ -37,6 +38,14 @@ function AppRoutes() {
         }
       />
       <Route
+        path="/donations"
+        element={
+          <ProtectedRoute>
+            <DonationsPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
         path="/events"
         element={
           <ProtectedRoute>
@@ -44,14 +53,14 @@ function AppRoutes() {
           </ProtectedRoute>
         }
       />
-      {/* <Route
+      <Route
         path="/about"
         element={
           <ProtectedRoute>
             <About />
           </ProtectedRoute>
         }
-      /> */}
+      />
       <Route
         path="/events/:eventId"
         element={
@@ -73,6 +82,14 @@ function AppRoutes() {
         element={
           <ProtectedRoute>
             <DynamicData />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/stats"
+        element={
+          <ProtectedRoute>
+            <StatsPage />
           </ProtectedRoute>
         }
       />
