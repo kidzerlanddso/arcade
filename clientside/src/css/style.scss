@@ -4891,6 +4891,24 @@ input:checked + .slider::before {
     opacity: 0.12;
   }
 }
+.mentorship-modal .mentorship-field-label,
+.mentorship-modal .mentorship-field-help,
+.mentorship-modal .mentorship-availability-select,
+.mentorship-modal .mentorship-expertise-select,
+.mentorship-modal .mentorship-days-dropdown button {
+  font-size: 16px;
+}
+.mentorship-modal .mentorship-expertise-select,
+.mentorship-modal .mentorship-availability-select {
+  width: 100%;
+  min-height: 56px;
+  height: 56px;
+  padding: 0 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  box-sizing: border-box;
+}
 
 .donations-page {
   max-width: 720px;
