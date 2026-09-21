@@ -1,6 +1,13 @@
 const { Resend } = require("resend");
 
-const resend = new Resend("re_N9JtaMBF_Dib35zQvqQExL75vPTGaY6rQ");
+let resendClient = null;
+
+const getResendClient = () => {
+  if (!resendClient && process.env.RESEND_API_KEY) {
+    resendClient = new Resend(process.env.RESEND_API_KEY);
+  }
+  return resendClient;
+};
 
 const maskEmail = (email) => {
   const [name, domain] = String(email).split("@");
@@ -17,6 +24,7 @@ const escapeHtml = (value) =>
     .replaceAll("'", "&#039;");
 
 const sendMembershipRequestEmail = async ({ profile, pathway }) => {
+  const resend = getResendClient();
   if (!resend) {
     throw new Error("RESEND_API_KEY is not configured.");
   }
@@ -66,7 +74,7 @@ const sendMembershipRequestEmail = async ({ profile, pathway }) => {
   return data;
 };
 
-const isMembershipEmailConfigured = () => Boolean(resend);
+const isMembershipEmailConfigured = () => Boolean(process.env.RESEND_API_KEY);
 
 module.exports = {
   sendMembershipRequestEmail,

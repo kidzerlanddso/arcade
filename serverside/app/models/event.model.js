@@ -18,7 +18,7 @@ Event.findAll = (result) => {
          COUNT(*) FILTER (WHERE status = 'pending') AS pending,
          COUNT(*) FILTER (WHERE status = 'confirmed') AS confirmed,
          COUNT(*) FILTER (WHERE status = 'cancelled') AS cancelled,
-         COUNT(*) FILTER (WHERE attended = TRUE) AS attended
+         COUNT(*) FILTER (WHERE status = 'attending') AS attended
        FROM event_registrations
        WHERE event_id = events.id
      ) registration_counts ON TRUE

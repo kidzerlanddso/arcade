@@ -4,7 +4,7 @@ import EventDetailsModal from "../components/EventDetailsModal";
 import api from "../api/axios";
 import {
   formatEventDate,
-  formatEventTime,
+  formatEventTimeRange,
   toDateInputValue,
   toTimeInputValue,
 } from "../data/events";
@@ -27,6 +27,7 @@ function EventsPage() {
   const [isMonthPickerOpen, setIsMonthPickerOpen] = useState(false);
   const [isCalendarViewMenuOpen, setIsCalendarViewMenuOpen] = useState(false);
   const [registeringEventId, setRegisteringEventId] = useState(null);
+  const [imageFile, setImageFile] = useState(null);
   const imageInputRef = useRef(null);
   const [newEvent, setNewEvent] = useState({
     title: "",
@@ -57,42 +58,32 @@ function EventsPage() {
     setNewEvent((current) => ({ ...current, [name]: value }));
   };
 
-  const handleAddEvent = (event) => {
+  const handleAddEvent = async (event) => {
     event.preventDefault();
-    const request =
-      editingEventId === null
-        ? api.post("/events", newEvent)
-        : api.patch(`/events/${editingEventId}`, newEvent);
+    try {
+      const response = editingEventId === null
+        ? await api.post("/events", newEvent)
+        : await api.patch(`/events/${editingEventId}`, newEvent);
+      let savedEvent = response.data;
 
-    request
-      .then((response) => {
-        setEvents((currentEvents) =>
-          editingEventId === null
-            ? [...currentEvents, response.data]
-            : currentEvents.map((currentEvent) =>
-                currentEvent.id === editingEventId
-                  ? response.data
-                  : currentEvent,
-              ),
-        );
-        setErrorMessage("");
-      })
-      .catch((error) =>
-        setErrorMessage(
-          error.response?.data?.message || "Unable to save event.",
-        ),
-      );
-    setNewEvent({
-      ...newEvent,
-      title: "",
-      date: "",
-      startTime: "",
-      endTime: "",
-      location: "",
-      description: "",
-    });
-    setShowAddEvent(false);
-    setEditingEventId(null);
+      if (imageFile) {
+        const imageData = new FormData();
+        imageData.append("eventImage", imageFile);
+        const imageResponse = await api.post(`/events/${savedEvent.id}/image`, imageData);
+        savedEvent = imageResponse.data;
+      }
+
+      setEvents((currentEvents) => editingEventId === null
+        ? [...currentEvents, savedEvent]
+        : currentEvents.map((currentEvent) => currentEvent.id === editingEventId ? savedEvent : currentEvent));
+      setNewEvent({ ...newEvent, title: "", date: "", startTime: "", endTime: "", location: "", description: "" });
+      setImageFile(null);
+      setShowAddEvent(false);
+      setEditingEventId(null);
+      setErrorMessage("");
+    } catch (error) {
+      setErrorMessage(error.response?.data?.message || "Unable to save event.");
+    }
   };
 
   const handleEditEvent = (event, clickEvent) => {
@@ -104,6 +95,7 @@ function EventsPage() {
       startTime: toTimeInputValue(event.startTime),
       endTime: toTimeInputValue(event.endTime),
     });
+    setImageFile(null);
     setEditingEventId(event.id);
     setShowAddEvent(true);
   };
@@ -348,21 +340,13 @@ function EventsPage() {
               <div className="event-image-field">
                 <input
                   ref={imageInputRef}
-                  name="image"
-                  type="url"
-                  value={newEvent.image}
-                  onChange={handleNewEventChange}
-                  placeholder="Photo URL"
+                  name="eventImage"
+                  type="file"
+                  accept="image/jpeg,.jpg,.jpeg"
+                  onChange={(event) =>
+                    setImageFile(event.target.files?.[0] || null)
+                  }
                 />
-                <button
-                  className="event-image-edit-button"
-                  type="button"
-                  aria-label="Edit event image URL"
-                  title="Edit event image URL"
-                  onClick={() => imageInputRef.current?.focus()}
-                >
-                  ✎
-                </button>
               </div>
             </div>
             <textarea
@@ -568,8 +552,7 @@ function EventsPage() {
                 </Link>
                 <strong>
                   {formatEventDate(event.date)} ·{" "}
-                  {formatEventTime(event.startTime)} -{" "}
-                  {formatEventTime(event.endTime)}
+                  {formatEventTimeRange(event.startTime, event.endTime)}
                 </strong>
                 <span>{event.location}</span>
               </div>
