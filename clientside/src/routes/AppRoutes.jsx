@@ -15,6 +15,8 @@ import AdminList from "../components/adminlist";
 import NewProfile from "../components/NewProfile";
 import MembershipRequest from "../components/membershiprequest";
 import AlumniProfilePage from "../pages/AlumniProfilePage";
+import AnnouncementsPage from "../pages/AnnouncementsPage";
+import TeacherProfilesPage from "../pages/TeacherProfilesPage";
 import StatsPage from "../pages/StatsPage";
 
 function AppRoutes() {
@@ -58,6 +60,22 @@ function AppRoutes() {
         element={
           <ProtectedRoute>
             <About />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/announcements"
+        element={
+          <ProtectedRoute>
+            <AnnouncementsPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/teachers"
+        element={
+          <ProtectedRoute>
+            <TeacherProfilesPage />
           </ProtectedRoute>
         }
       />
@@ -133,7 +151,7 @@ function AppRoutes() {
           </ProtectedRoute>
         }
       />
-      <Route path="*" element={<Navigate to="/login" replace />} />{" "}
+      <Route path="*" element={<Navigate to="/login" replace />} />
     </Routes>
   );
 }

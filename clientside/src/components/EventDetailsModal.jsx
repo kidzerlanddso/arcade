@@ -1,4 +1,4 @@
-import { formatEventDate, formatEventTime } from "../data/events";
+import { formatEventDate, formatEventTimeRange } from "../data/events";
 
 function EventDetailsModal({ event, onClose }) {
   if (!event) return null;
@@ -34,7 +34,7 @@ function EventDetailsModal({ event, onClose }) {
             </div>
             <div>
               <dt>Time</dt>
-              <dd>{formatEventTime(event.startTime)} - {formatEventTime(event.endTime)} NZST</dd>
+              <dd>{formatEventTimeRange(event.startTime, event.endTime)} NZST</dd>
             </div>
             <div>
               <dt>Location</dt>

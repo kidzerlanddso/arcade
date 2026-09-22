@@ -116,7 +116,7 @@ export const formatEventTime = (value) => {
   if (!value) return "Time to be confirmed";
 
   const timeValue = String(value).trim();
-  const match = timeValue.match(/^(\d{1,2}):(\d{2})(?:\s*([AP]M))?$/i);
+  const match = timeValue.match(/^(\d{1,2}):(\d{2})(?::\d{2})?(?:\s*([AP]M))?$/i);
   if (!match) return "Time to be confirmed";
 
   let hours = Number(match[1]);
@@ -128,6 +128,12 @@ export const formatEventTime = (value) => {
 
   const period = hours >= 12 ? "PM" : "AM";
   return `${hours % 12 || 12}:${String(minutes).padStart(2, "0")} ${period}`;
+};
+
+export const formatEventTimeRange = (startTime, endTime) => {
+  if (!startTime || !endTime) return "Time to be confirmed";
+
+  return `${formatEventTime(startTime)} - ${formatEventTime(endTime)}`;
 };
 
 export const getEvents = () => {

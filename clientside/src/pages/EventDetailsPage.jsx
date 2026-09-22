@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import api from "../api/axios";
-import { formatEventDate, formatEventTime } from "../data/events";
+import { formatEventDate, formatEventTimeRange } from "../data/events";
 
 function getAdminStatus() {
   const token = localStorage.getItem("token");
@@ -119,6 +119,33 @@ function EventDetailsPage() {
     }
   };
 
+  const handleExportAttendees = async () => {
+    try {
+      const response = await api.get(`/events/${event.id}/attendees/export`, { responseType: "blob" });
+      const downloadUrl = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement("a");
+      link.href = downloadUrl;
+      link.download = `event-${event.id}-registrations.csv`;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(downloadUrl);
+    } catch (error) {
+      let message = "Unable to export registrations.";
+      const errorData = error.response?.data;
+      if (errorData instanceof Blob) {
+        try {
+          message = JSON.parse(await errorData.text())?.message || message;
+        } catch {
+          // response body was not JSON, keep the default message
+        }
+      } else if (errorData?.message) {
+        message = errorData.message;
+      }
+      setJoinError(message);
+    }
+  };
+
   return (
     <main className="event-details-page">
       <Link className="event-details-back" to="/events">Back to events</Link>
@@ -139,7 +166,7 @@ function EventDetailsPage() {
           <h1>{event.title}</h1>
           <p className="event-details-rating">★★★★★ <span>Community event</span></p>
           <p className="event-details-meta">⌖ {event.location}</p>
-          <p className="event-details-meta">◷ {formatEventDate(event.date)} · {formatEventTime(event.startTime)} - {formatEventTime(event.endTime)}</p>
+          <p className="event-details-meta">◷ {formatEventDate(event.date)} · {formatEventTimeRange(event.startTime, event.endTime)}</p>
           <div className="event-details-share"><span>Share</span><button type="button" onClick={handleCopyLink}>{copyStatus}</button></div>
         </div>
       </section>
@@ -169,7 +196,7 @@ function EventDetailsPage() {
           <h2>Details</h2>
           <dl className="event-details-facts">
             <div><dt>Date</dt><dd>{formatEventDate(event.date)}</dd></div>
-            <div><dt>Time</dt><dd>{formatEventTime(event.startTime)} - {formatEventTime(event.endTime)}</dd></div>
+            <div><dt>Time</dt><dd>{formatEventTimeRange(event.startTime, event.endTime)}</dd></div>
             <div><dt>Location</dt><dd>{event.location}</dd></div>
           </dl>
           <section id="discussion" className="event-details-section">
@@ -179,6 +206,11 @@ function EventDetailsPage() {
           {isAdmin && (
             <section className="event-details-section" aria-label="Event attendees">
               <h2>Joined attendees ({attendees.length})</h2>
+              {attendees.length > 0 && (
+                <button type="button" className="event-export-button" onClick={handleExportAttendees}>
+                  Export registrations (Excel)
+                </button>
+              )}
               {attendees.length === 0 ? <p>No users have joined this event.</p> : (
                 <ul className="event-attendee-list">
                   {attendees.map((attendee) => (

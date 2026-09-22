@@ -8,6 +8,7 @@ module.exports = (app) => {
   app.get("/events/:id/join-status", verifyToken, events.joinStatus);
   app.post("/events/:id/join", verifyToken, events.join);
   app.get("/events/:id/attendees", verifyToken, verifyAdmin, events.attendees);
+  app.get("/events/:id/attendees/export", verifyToken, verifyAdmin, events.exportAttendees);
   app.post("/events/:id/image", verifyToken, verifyAdmin, upload.single("eventImage"), events.uploadImage);
   app.patch("/events/registrations/:registrationId", verifyToken, verifyAdmin, events.updateRegistration);
   app.post("/events", verifyToken, verifyAdmin, events.create);

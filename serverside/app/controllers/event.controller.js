@@ -153,3 +153,36 @@ exports.allAttendees = (req, res) => {
     res.send(data);
   });
 };
+
+const escapeCsvValue = (value) => {
+  const text = String(value ?? "");
+  return /[",\n]/.test(text) ? `"${text.replace(/"/g, '""')}"` : text;
+};
+
+const toCsv = (rows, columns) => {
+  const header = columns.map((column) => escapeCsvValue(column.label)).join(",");
+  const lines = rows.map((row) => columns.map((column) => escapeCsvValue(column.value(row))).join(","));
+  return [header, ...lines].join("\r\n");
+};
+
+const attendeeColumns = [
+  { label: "Name", value: (attendee) => [attendee.firstname, attendee.lastname].filter(Boolean).join(" ") || attendee.username },
+  { label: "Email", value: (attendee) => attendee.email || attendee.username },
+  { label: "Status", value: (attendee) => attendee.status },
+  { label: "Attended", value: (attendee) => (attendee.attended ? "Yes" : "No") },
+  { label: "Joined At", value: (attendee) => (attendee.joinedAt ? new Date(attendee.joinedAt).toLocaleString() : "") },
+];
+
+exports.exportAttendees = (req, res) => {
+  Event.getAttendees(req.params.id, (err, data) => {
+    if (err) {
+      res.status(500).send({ message: err.message || "Unable to load event attendees." });
+      return;
+    }
+
+    const csv = toCsv(data || [], attendeeColumns);
+    res.setHeader("Content-Type", "text/csv; charset=utf-8");
+    res.setHeader("Content-Disposition", `attachment; filename="event-${req.params.id}-registrations.csv"`);
+    res.send(`\uFEFF${csv}`);
+  });
+};
