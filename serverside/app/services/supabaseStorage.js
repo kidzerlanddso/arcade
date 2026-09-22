@@ -24,7 +24,7 @@ function getSupabaseClient() {
   return supabaseClient;
 }
 
-async function uploadProfileImage(filePath, buffer, contentType) {
+async function uploadToBucket(bucket, filePath, buffer, contentType) {
   if (!config.secretKey) {
     const uploadDir = path.join(__dirname, "..", "..", "uploads");
     const targetPath = path.join(uploadDir, filePath.replace(/\//g, path.sep));
@@ -38,7 +38,7 @@ async function uploadProfileImage(filePath, buffer, contentType) {
 
   const supabase = getSupabaseClient();
 
-  const { error } = await supabase.storage.from(config.bucket).upload(filePath, buffer, {
+  const { error } = await supabase.storage.from(bucket).upload(filePath, buffer, {
     contentType,
     upsert: true,
     cacheControl: "3600",
@@ -48,10 +48,17 @@ async function uploadProfileImage(filePath, buffer, contentType) {
     throw error;
   }
 
-  const { data } = supabase.storage.from(config.bucket).getPublicUrl(filePath);
+  const { data } = supabase.storage.from(bucket).getPublicUrl(filePath);
   return data.publicUrl;
 }
 
+const uploadProfileImage = (filePath, buffer, contentType) =>
+  uploadToBucket(config.bucket, filePath, buffer, contentType);
+
+const uploadTeacherAvatar = (filePath, buffer, contentType) =>
+  uploadToBucket(config.teacherAvatarBucket, filePath, buffer, contentType);
+
 module.exports = {
   uploadProfileImage,
+  uploadTeacherAvatar,
 };
