@@ -1,6 +1,6 @@
 const Content = require("../models/content.model");
 const sharp = require("sharp");
-const { uploadProfileImage: uploadToStorage } = require("../services/supabaseStorage");
+const { uploadTeacherAvatar } = require("../services/supabaseStorage");
 
 const validateNews = (body) => body?.issue && body?.title && body?.body;
 const validateTeacher = (body) => body?.team && body?.name && body?.role && body?.email;
@@ -47,7 +47,7 @@ exports.uploadTeacherImage = async (req, res) => {
       .webp({ quality: 80 })
       .toBuffer();
     const imagePath = `teachers/teacher-${req.params.id}-${Date.now()}.webp`;
-    const imageUrl = await uploadToStorage(imagePath, compressedBuffer, "image/webp");
+    const imageUrl = await uploadTeacherAvatar(imagePath, compressedBuffer, "image/webp");
 
     Content.updateTeacherImage(req.params.id, imageUrl, (error, data) => {
       if (error?.kind === "not_found") return res.status(404).send({ message: "Teacher profile not found." });
