@@ -2968,22 +2968,23 @@ a {
 .events-tabs {
   display: flex;
   margin: -28px -24px 22px;
-  background: #dceffd;
+  background: transparent;
 }
 
 .events-tab {
   border: 0;
   padding: 13px 24px;
   background: transparent;
-  color: #1e4f73;
+  color: #1a1d2d;
   font-weight: 800;
   text-decoration: none;
   cursor: pointer;
 }
 
 .events-tab-active {
-  background: #76bced;
-  color: #123b59;
+  background: transparent;
+  color: #1a1d2d;
+  box-shadow: inset 0 -3px 0 #1a1d2d;
 }
 
 .events-reference-actions {
