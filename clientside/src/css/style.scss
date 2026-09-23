@@ -309,8 +309,15 @@ a {
 }
 
 .teacher-card {
+  display: flex;
+  flex-direction: column;
   min-width: 0;
   text-align: center;
+}
+
+.teacher-card .admin-card-actions {
+  margin-top: auto;
+  padding-top: 14px;
 }
 
 .teacher-avatar {
