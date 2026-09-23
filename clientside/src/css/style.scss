@@ -304,7 +304,7 @@ a {
 
 .teacher-grid {
   display: grid;
-  grid-template-columns: repeat(6, minmax(0, 1fr));
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 22px;
 }
 
@@ -334,9 +334,10 @@ a {
 .teacher-focus {
   margin: 0;
   color: #7d0736;
-  font-weight: 700;
+  font-weight: 600;
   line-height: 1.25;
   text-transform: uppercase;
+  font-family: $primary-font-family;
 }
 
 .teacher-focus {
@@ -575,7 +576,9 @@ a {
   background: #fff;
   box-shadow: 0 7px 18px rgba(15, 23, 42, 0.14);
   cursor: pointer;
-  transition: transform 0.15s ease, box-shadow 0.15s ease;
+  transition:
+    transform 0.15s ease,
+    box-shadow 0.15s ease;
 }
 
 .announcement-card:hover,
@@ -610,7 +613,6 @@ a {
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 4;
 }
-
 
 .announcement-modal-card {
   width: min(640px, calc(100vw - 32px));
@@ -2609,7 +2611,18 @@ a {
   align-items: center;
   justify-content: space-between;
   gap: 20px;
-  margin-bottom: 20px;
+  margin-bottom: 24px;
+  padding: 0 4px;
+}
+
+.events-title {
+  margin: 0;
+  font-size: clamp(2.2rem, 2.2vw, 3.2rem);
+  line-height: 1.05;
+  letter-spacing: -0.06em;
+  font-weight: 800;
+  color: #1a1d2d;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
 }
 
 .events-topbar-actions {
@@ -2667,123 +2680,6 @@ a {
   letter-spacing: -0.06em;
   font-weight: 800;
   color: #1a1d2d;
-}
-
-.events-carousel {
-  position: relative;
-  width: min(100%, 1100px);
-  margin: 0 auto 32px;
-}
-
-.events-carousel-slide {
-  min-height: clamp(380px, 48vw, 560px);
-  border-radius: 28px;
-  background-size: cover;
-  background-position: center;
-  box-shadow: 0 12px 28px rgba(27, 30, 43, 0.14);
-  cursor: pointer;
-  display: flex;
-  align-items: flex-end;
-  overflow: hidden;
-  outline: none;
-}
-
-.events-carousel-slide:hover,
-.events-carousel-slide:focus-visible {
-  box-shadow: 0 16px 32px rgba(27, 30, 43, 0.18);
-}
-
-.events-carousel-copy {
-  width: min(100%, 640px);
-  padding: clamp(1.25rem, 3vw, 2.25rem);
-  color: #fff;
-}
-
-.events-carousel-label {
-  margin: 0 0 0.5rem;
-  font-size: 0.82rem;
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  opacity: 0.9;
-}
-
-.events-carousel-copy h2 {
-  margin: 0 0 0.65rem;
-  font-size: clamp(1.5rem, 2.4vw, 2.4rem);
-  line-height: 1.15;
-  font-weight: 800;
-}
-
-.events-carousel-copy p {
-  margin: 0;
-  font-size: 1rem;
-  line-height: 1.5;
-  opacity: 0.95;
-}
-
-.events-carousel-location {
-  margin-top: 0.35rem !important;
-  opacity: 0.85 !important;
-}
-
-.events-carousel-nav {
-  position: absolute;
-  top: 50%;
-  z-index: 2;
-  transform: translateY(-50%);
-  width: 42px;
-  height: 42px;
-  border: none;
-  border-radius: 999px;
-  background: rgba(255, 255, 255, 0.92);
-  color: #1a1d2d;
-  font-size: 1.8rem;
-  line-height: 1;
-  cursor: pointer;
-  box-shadow: 0 6px 16px rgba(15, 23, 42, 0.18);
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.events-carousel-nav:hover,
-.events-carousel-nav:focus-visible {
-  background: #fff;
-  outline: none;
-}
-
-.events-carousel-nav--prev {
-  left: 14px;
-}
-
-.events-carousel-nav--next {
-  right: 14px;
-}
-
-.events-carousel-dots {
-  position: absolute;
-  left: 50%;
-  bottom: 16px;
-  transform: translateX(-50%);
-  display: flex;
-  gap: 8px;
-  z-index: 2;
-}
-
-.events-carousel-dot {
-  width: 9px;
-  height: 9px;
-  padding: 0;
-  border: none;
-  border-radius: 999px;
-  background: rgba(255, 255, 255, 0.55);
-  cursor: pointer;
-}
-
-.events-carousel-dot.is-active {
-  width: 22px;
-  background: #fff;
 }
 
 .see-all-link {
@@ -2882,13 +2778,7 @@ a {
 }
 
 .social-link-logo--instagram {
-  background: linear-gradient(
-    45deg,
-    #f58529,
-    #dd2a7b,
-    #8134af,
-    #515bd4
-  );
+  background: linear-gradient(45deg, #f58529, #dd2a7b, #8134af, #515bd4);
 }
 
 .event-badge {
@@ -2963,6 +2853,7 @@ a {
   margin: 0;
   padding: 28px 24px 56px;
   background: #fff;
+  font-family: $primary-font-family;
 }
 
 .events-tabs {
@@ -3288,8 +3179,9 @@ a {
   margin: 0 0 8px;
   color: #1a1d2d;
   font-size: clamp(2rem, 4vw, 3.4rem);
-  font-weight: 800;
+  //font-weight: 800;
   letter-spacing: -0.06em;
+  font-family: $primary-font-family;
 }
 
 .events-page-header h1 span {
@@ -3337,6 +3229,7 @@ a {
 .dashboard-announcements {
   width: min(100%, 1100px);
   margin: 28px auto 36px;
+  margin: 8rem auto;
 }
 
 .dashboard-announcements .announcement-list {
@@ -3346,6 +3239,7 @@ a {
 .dashboard-teacher-team {
   width: min(100%, 1100px);
   margin: 8px auto 36px;
+  margin: 8rem auto;
 }
 
 .dashboard-teacher-team-header {
@@ -3654,6 +3548,10 @@ a {
 
 .event-list-name strong {
   margin-top: 8px;
+}
+.event-list-name a {
+  color: $rhs-light-blue;
+  text-decoration: none;
 }
 
 .event-tags span {
@@ -4484,28 +4382,6 @@ a {
 
   .dashboard-shell {
     width: 100%;
-  }
-
-  .events-carousel-nav {
-    width: 36px;
-    height: 36px;
-    font-size: 1.5rem;
-  }
-
-  .events-carousel-nav--prev {
-    left: 8px;
-  }
-
-  .events-carousel-nav--next {
-    right: 8px;
-  }
-
-  .events-carousel {
-    width: min(100%, 1100px);
-  }
-
-  .events-carousel-slide {
-    min-height: 320px;
   }
 
   .events-page-shell {
@@ -6555,12 +6431,143 @@ input:checked + .slider::before {
   }
 }
 
+.events-carousel {
+  position: relative;
+  width: min(100%, 1100px);
+  margin: 0 auto 32px;
+}
+
+.events-carousel-slide {
+  min-height: clamp(380px, 48vw, 560px);
+  border-radius: 28px;
+  background-size: cover;
+  background-position: center;
+  box-shadow: 0 12px 28px rgba(27, 30, 43, 0.14);
+  cursor: pointer;
+  display: flex;
+  align-items: flex-end;
+  overflow: hidden;
+  outline: none;
+}
+
+.events-carousel-slide:hover,
+.events-carousel-slide:focus-visible {
+  box-shadow: 0 16px 32px rgba(27, 30, 43, 0.18);
+}
+
+.events-carousel-copy {
+  width: min(100%, 640px);
+  padding: clamp(1.25rem, 3vw, 2.25rem);
+  color: #fff;
+}
+
+.events-carousel-label {
+  margin: 0 0 0.5rem;
+  font-size: 0.82rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  opacity: 0.9;
+}
+
+.events-carousel-copy h2 {
+  margin: 0 0 0.65rem;
+  font-size: clamp(1.5rem, 2.4vw, 2.4rem);
+  line-height: 1.15;
+  font-weight: 800;
+}
+
+.events-carousel-copy p {
+  margin: 0;
+  font-size: 1rem;
+  line-height: 1.5;
+  opacity: 0.95;
+}
+
+.events-carousel-location {
+  margin-top: 0.35rem !important;
+  opacity: 0.85 !important;
+}
+
+.events-carousel-nav {
+  position: absolute;
+  top: 50%;
+  z-index: 2;
+  transform: translateY(-50%);
+  width: 42px;
+  height: 42px;
+  border: none;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.92);
+  color: #1a1d2d;
+  font-size: 1.8rem;
+  line-height: 1;
+  cursor: pointer;
+  box-shadow: 0 6px 16px rgba(15, 23, 42, 0.18);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.events-carousel-nav:hover,
+.events-carousel-nav:focus-visible {
+  background: #fff;
+  outline: none;
+}
+
+.events-carousel-nav--prev {
+  left: 14px;
+}
+
+.events-carousel-nav--next {
+  right: 14px;
+}
+
+.events-carousel-dots {
+  position: absolute;
+  left: 50%;
+  bottom: 16px;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 8px;
+  z-index: 2;
+}
+
+.events-carousel-dot {
+  width: 9px;
+  height: 9px;
+  padding: 0;
+  border: none;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.55);
+  cursor: pointer;
+}
+
+.events-carousel-dot.is-active {
+  width: 22px;
+  background: #fff;
+}
+
 // Force one uniform font size across body text only. Headings (h1–h6)
 // are excluded so title styles like .events-title keep their designed sizes.
 // Icon-glyph buttons (×, ‹ › chevrons) are excluded below.
-p, span, a, li, label, dt, dd, td, th, caption,
-input, textarea, select, button,
-strong, em, small {
+p,
+span,
+a,
+li,
+label,
+dt,
+dd,
+td,
+th,
+caption,
+input,
+textarea,
+select,
+button,
+strong,
+em,
+small {
   font-size: 16px !important;
 }
 

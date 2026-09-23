@@ -61,22 +61,38 @@ function EventsPage() {
   const handleAddEvent = async (event) => {
     event.preventDefault();
     try {
-      const response = editingEventId === null
-        ? await api.post("/events", newEvent)
-        : await api.patch(`/events/${editingEventId}`, newEvent);
+      const response =
+        editingEventId === null
+          ? await api.post("/events", newEvent)
+          : await api.patch(`/events/${editingEventId}`, newEvent);
       let savedEvent = response.data;
 
       if (imageFile) {
         const imageData = new FormData();
         imageData.append("eventImage", imageFile);
-        const imageResponse = await api.post(`/events/${savedEvent.id}/image`, imageData);
+        const imageResponse = await api.post(
+          `/events/${savedEvent.id}/image`,
+          imageData,
+        );
         savedEvent = imageResponse.data;
       }
 
-      setEvents((currentEvents) => editingEventId === null
-        ? [...currentEvents, savedEvent]
-        : currentEvents.map((currentEvent) => currentEvent.id === editingEventId ? savedEvent : currentEvent));
-      setNewEvent({ ...newEvent, title: "", date: "", startTime: "", endTime: "", location: "", description: "" });
+      setEvents((currentEvents) =>
+        editingEventId === null
+          ? [...currentEvents, savedEvent]
+          : currentEvents.map((currentEvent) =>
+              currentEvent.id === editingEventId ? savedEvent : currentEvent,
+            ),
+      );
+      setNewEvent({
+        ...newEvent,
+        title: "",
+        date: "",
+        startTime: "",
+        endTime: "",
+        location: "",
+        description: "",
+      });
       setImageFile(null);
       setShowAddEvent(false);
       setEditingEventId(null);
@@ -220,9 +236,7 @@ function EventsPage() {
 
       <div className="events-page-header">
         <div>
-          <h1>
-            Events list <span>— All, {events.length} events</span>
-          </h1>
+          <h1>Events Management</h1>
         </div>
         <div className="events-header-actions">
           <span className="events-count">{events.length} events</span>
@@ -527,12 +541,8 @@ function EventsPage() {
       ) : (
         <div className="events-list" role="table" aria-label="Events list">
           <div className="events-list-header" role="row">
-            <span>
-              Event name
-              <br />
-              Date, time, location
-            </span>
-            <span>Registration</span>
+            <span>Event Details</span>
+
             <span>Registrations</span>
             <span></span>
           </div>
@@ -555,9 +565,6 @@ function EventsPage() {
                   {formatEventTimeRange(event.startTime, event.endTime)}
                 </strong>
                 <span>{event.location}</span>
-              </div>
-              <div>
-                <strong>Enabled</strong>
               </div>
               <div>
                 <strong>

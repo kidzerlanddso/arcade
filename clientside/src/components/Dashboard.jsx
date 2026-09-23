@@ -44,7 +44,8 @@ function Dashboard() {
   const [events, setEvents] = useState([]);
   const [carouselIndex, setCarouselIndex] = useState(0);
   const [featuredTeachers, setFeaturedTeachers] = useState([]);
-  const [featuredTeachersStatus, setFeaturedTeachersStatus] = useState("loading");
+  const [featuredTeachersStatus, setFeaturedTeachersStatus] =
+    useState("loading");
   const [announcements, setAnnouncements] = useState([]);
   const [announcementsStatus, setAnnouncementsStatus] = useState("loading");
   const [openAnnouncement, setOpenAnnouncement] = useState(null);
@@ -196,7 +197,9 @@ function Dashboard() {
       .get("/content/teachers")
       .then((response) => {
         const teachers = Array.isArray(response.data) ? response.data : [];
-        const featured = teachers.filter((teacher) => Boolean(teacher.featured));
+        const featured = teachers.filter((teacher) =>
+          Boolean(teacher.featured),
+        );
         setFeaturedTeachers(featured);
         setFeaturedTeachersStatus("ready");
       })
@@ -489,10 +492,7 @@ function Dashboard() {
                     }
                   }}
                 >
-                  <img
-                    src={announcement.image || schoolBackground}
-                    alt=""
-                  />
+                  <img src={announcement.image || schoolBackground} alt="" />
                   <div className="announcement-card-content">
                     <p className="announcement-date">
                       {announcement.date
@@ -520,7 +520,10 @@ function Dashboard() {
       )}
 
       {featuredTeachersStatus !== "loading" && (
-        <section className="teacher-team-section dashboard-teacher-team" aria-label="Featured teachers">
+        <section
+          className="teacher-team-section dashboard-teacher-team"
+          aria-label="Featured teachers"
+        >
           <div className="dashboard-teacher-team-header">
             <h2 className="dashboard-teacher-team-title">Featured Teachers</h2>
             <Link to="/teachers" className="dashboard-teacher-team-link">
