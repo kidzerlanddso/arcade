@@ -215,6 +215,9 @@ function ProtectedRoute({ children }) {
             <Link to="/donations" onClick={() => setMobileMenuOpen(false)}>
               Donate
             </Link>
+            <Link to="/events" onClick={() => setMobileMenuOpen(false)}>
+              Events
+            </Link>
             <Link to="/about" onClick={() => setMobileMenuOpen(false)}>
               About
             </Link>
