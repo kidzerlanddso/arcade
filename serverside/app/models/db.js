@@ -119,8 +119,10 @@ pool.ensureContentTables = function (callback) {
         OR team IN ('leadership', 'pastoral')
       )
     );
+    ALTER TABLE teacher_profiles ADD COLUMN IF NOT EXISTS featured BOOLEAN NOT NULL DEFAULT FALSE;
     CREATE INDEX IF NOT EXISTS teacher_profiles_team_idx ON teacher_profiles (team);
     CREATE INDEX IF NOT EXISTS teacher_profiles_department_idx ON teacher_profiles (department);
+    CREATE INDEX IF NOT EXISTS teacher_profiles_featured_idx ON teacher_profiles (featured);
 
     CREATE TABLE IF NOT EXISTS content_items (
       id BIGSERIAL PRIMARY KEY,
