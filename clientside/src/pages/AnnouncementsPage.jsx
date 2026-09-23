@@ -12,6 +12,7 @@ function AnnouncementsPage() {
   const [openAnnouncement, setOpenAnnouncement] = useState(null);
   const [showMoreNews, setShowMoreNews] = useState(false);
   const [form, setForm] = useState(emptyNews);
+  const [imageFile, setImageFile] = useState(null);
   const [editingId, setEditingId] = useState(null);
   const [showForm, setShowForm] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
@@ -35,8 +36,18 @@ function AnnouncementsPage() {
       const response = editingId === null
         ? await api.post("/content/news", form)
         : await api.patch(`/content/news/${editingId}`, form);
-      setNews((current) => editingId === null ? [response.data, ...current] : current.map((item) => item.id === editingId ? response.data : item));
+      let savedNews = response.data;
+
+      if (imageFile) {
+        const imageData = new FormData();
+        imageData.append("newsImage", imageFile);
+        const imageResponse = await api.post(`/content/news/${savedNews.id}/image`, imageData);
+        savedNews = imageResponse.data;
+      }
+
+      setNews((current) => editingId === null ? [savedNews, ...current] : current.map((item) => item.id === editingId ? savedNews : item));
       setForm(emptyNews);
+      setImageFile(null);
       setEditingId(null);
       setShowForm(false);
       setErrorMessage("");
@@ -47,6 +58,7 @@ function AnnouncementsPage() {
 
   const editNews = (item) => {
     setForm({ issue: item.issue || "", title: item.title || "", date: item.date?.slice(0, 10) || "", body: item.body || "", fullBody: item.fullBody || "", image: item.image || "" });
+    setImageFile(null);
     setEditingId(item.id);
     setShowForm(true);
   };
@@ -63,7 +75,7 @@ function AnnouncementsPage() {
 
   return (
     <main className="content-page announcements-page">
-      {isAdmin && <div className="admin-content-toolbar"><button type="button" className="primary-action add-news-button" onClick={() => { setForm(emptyNews); setEditingId(null); setShowForm(true); }}>Add news</button></div>}
+      {isAdmin && <div className="admin-content-toolbar"><button type="button" className="primary-action add-news-button" onClick={() => { setForm(emptyNews); setImageFile(null); setEditingId(null); setShowForm(true); }}>Add news</button></div>}
 
       {isAdmin && showForm && (
         <div className="modal-overlay" onClick={() => setShowForm(false)}>
@@ -77,7 +89,7 @@ function AnnouncementsPage() {
                 <label className="field-group"><span>Issue</span><input name="issue" value={form.issue} onChange={handleFormChange} placeholder="Issue, e.g. Winter 2026" required /></label>
                 <label className="field-group"><span>News title</span><input name="title" value={form.title} onChange={handleFormChange} placeholder="News title" required /></label>
                 <label className="field-group"><span>Date</span><input name="date" type="date" value={form.date} onChange={handleFormChange} /></label>
-                <label className="field-group"><span>Image URL</span><input name="image" value={form.image} onChange={handleFormChange} placeholder="Image URL (optional)" /></label>
+                <label className="image-upload-field field-group"><span>Upload photo</span><input type="file" accept="image/*" onChange={(event) => setImageFile(event.target.files?.[0] || null)} /></label>
               </div>
               <label className="field-group full-width"><span>Short summary</span><textarea name="body" value={form.body} onChange={handleFormChange} placeholder="Short summary" rows="3" required /></label>
               <label className="field-group full-width"><span>Full article text</span><textarea name="fullBody" value={form.fullBody} onChange={handleFormChange} placeholder="Full article text" rows="5" /></label>
@@ -101,22 +113,39 @@ function AnnouncementsPage() {
 
       <section className="announcement-list" aria-label={`${selectedIssue} articles`}>
         {visibleAnnouncements.map((announcement) => (
-          <article className="announcement-card" key={announcement.id}>
+          <article className="announcement-card" key={announcement.id} role="button" tabIndex="0" onClick={() => setOpenAnnouncement(announcement.id)} onKeyDown={(event) => { if (event.key === "Enter" || event.key === " ") { event.preventDefault(); setOpenAnnouncement(announcement.id); } }}>
             <img src={announcement.image || schoolBackground} alt="Rototuna school community" />
             <div className="announcement-card-content">
               <p className="announcement-date">{announcement.date ? new Date(announcement.date).toLocaleDateString("en-NZ", { dateStyle: "long" }) : "Rototuna News"}</p>
               <h2>{announcement.title}</h2>
               <p>{announcement.body}</p>
             </div>
-            <button type="button" className="announcement-read-button" onClick={() => setOpenAnnouncement(openAnnouncement === announcement.id ? null : announcement.id)} aria-expanded={openAnnouncement === announcement.id}>{openAnnouncement === announcement.id ? "Close article" : "Continue reading"}</button>
-            {openAnnouncement === announcement.id && <div className="announcement-expanded-copy"><p>{announcement.fullBody || announcement.body}</p><p>This story is part of the {selectedIssue} issue of Rototuna News.</p></div>}
-            {isAdmin && <div className="admin-card-actions"><button type="button" onClick={() => editNews(announcement)}>Edit</button><button type="button" onClick={() => deleteNews(announcement.id)}>Delete</button></div>}
+            {isAdmin && <div className="admin-card-actions" onClick={(event) => event.stopPropagation()}><button type="button" onClick={() => editNews(announcement)}>Edit</button><button type="button" onClick={() => deleteNews(announcement.id)}>Delete</button></div>}
           </article>
         ))}
         {!visibleAnnouncements.length && <p>No news has been added for this issue yet.</p>}
       </section>
 
       {announcementItems.length > 3 && <div className="more-news-actions"><button type="button" className="more-news-button" onClick={() => setShowMoreNews((current) => !current)}>{showMoreNews ? "Show less news" : "More news"}</button></div>}
+
+      {openAnnouncement !== null && (() => {
+        const announcement = news.find((item) => item.id === openAnnouncement);
+        if (!announcement) return null;
+        return (
+          <div className="modal-overlay" onClick={() => setOpenAnnouncement(null)}>
+            <div className="announcement-modal-card modal-card" role="dialog" aria-modal="true" aria-labelledby="announcement-modal-title" onClick={(event) => event.stopPropagation()}>
+              <div className="modal-header">
+                <h2 id="announcement-modal-title">{announcement.title}</h2>
+                <button type="button" className="close-button" aria-label="Close article" onClick={() => setOpenAnnouncement(null)}>×</button>
+              </div>
+              <img src={announcement.image || schoolBackground} alt="Rototuna school community" className="announcement-modal-image" />
+              <p className="announcement-date">{announcement.date ? new Date(announcement.date).toLocaleDateString("en-NZ", { dateStyle: "long" }) : "Rototuna News"}</p>
+              <p>{announcement.fullBody || announcement.body}</p>
+              <p>This story is part of the {announcement.issue} issue of Rototuna News.</p>
+            </div>
+          </div>
+        );
+      })()}
     </main>
   );
 }

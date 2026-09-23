@@ -1,5 +1,6 @@
 const KINDO_DONATION_URL =
-  import.meta.env.VITE_KINDO_DONATION_URL || "https://www.mykindo.co.nz/";
+  import.meta.env.VITE_KINDO_DONATION_URL ||
+  "https://shop.kindo.co.nz/app/community-shop/Rototuna%20High%20Schools";
 
 const impactProjects = [
   "Scholarships and student grants",

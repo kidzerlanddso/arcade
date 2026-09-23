@@ -25,12 +25,18 @@ function getSupabaseClient() {
 }
 
 async function uploadToBucket(bucket, filePath, buffer, contentType) {
+  // Sharp/Node 22 can hand back a Buffer backed by SharedArrayBuffer,
+  // which undici/fetch rejects during Supabase Storage uploads.
+  const uploadBuffer = Buffer.isBuffer(buffer)
+    ? Buffer.from(buffer)
+    : Buffer.from(buffer || []);
+
   if (!config.secretKey) {
     const uploadDir = path.join(__dirname, "..", "..", "uploads");
     const targetPath = path.join(uploadDir, filePath.replace(/\//g, path.sep));
 
     fs.mkdirSync(path.dirname(targetPath), { recursive: true });
-    fs.writeFileSync(targetPath, buffer);
+    fs.writeFileSync(targetPath, uploadBuffer);
 
     const baseUrl = process.env.APP_BASE_URL || "http://localhost:3001";
     return `${baseUrl}/uploads/${filePath.replace(/\\/g, "/")}`;
@@ -38,7 +44,7 @@ async function uploadToBucket(bucket, filePath, buffer, contentType) {
 
   const supabase = getSupabaseClient();
 
-  const { error } = await supabase.storage.from(bucket).upload(filePath, buffer, {
+  const { error } = await supabase.storage.from(bucket).upload(filePath, uploadBuffer, {
     contentType,
     upsert: true,
     cacheControl: "3600",

@@ -220,6 +220,9 @@ function ProtectedRoute({ children }) {
             <Link to="/donations" onClick={() => setMobileMenuOpen(false)}>
               Donate
             </Link>
+            <Link to="/dashboard" onClick={() => setMobileMenuOpen(false)}>
+              Dashboard
+            </Link>
             <Link to="/about" onClick={() => setMobileMenuOpen(false)}>
               About
             </Link>
@@ -230,6 +233,10 @@ function ProtectedRoute({ children }) {
 
             <Link to="/announcements" onClick={() => setMobileMenuOpen(false)}>
               News
+            </Link>
+
+            <Link to="/events" onClick={() => setMobileMenuOpen(false)}>
+              Events
             </Link>
 
             <Link to="/teachers" onClick={() => setMobileMenuOpen(false)}>

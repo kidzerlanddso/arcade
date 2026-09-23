@@ -19,7 +19,7 @@ function EventsPage() {
   const [showAddEvent, setShowAddEvent] = useState(false);
   const [editingEventId, setEditingEventId] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
-  const [eventFilter, setEventFilter] = useState("upcoming");
+  const [eventFilter, setEventFilter] = useState("all");
   const [isAdmin] = useState(getAdminStatus);
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
@@ -221,7 +221,7 @@ function EventsPage() {
       <div className="events-page-header">
         <div>
           <h1>
-            Events list <span>— Upcoming, {events.length} events</span>
+            Events list <span>— All, {events.length} events</span>
           </h1>
         </div>
         <div className="events-header-actions">

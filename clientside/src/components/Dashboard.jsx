@@ -2,6 +2,7 @@ import { Link } from "react-router-dom";
 import { useEffect, useState } from "react";
 import EventDetailsModal from "./EventDetailsModal";
 import api from "../api/axios";
+import schoolBackground from "../assets/school_bg.webp";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import {
@@ -9,6 +10,8 @@ import {
   formatEventDate,
   formatEventTime,
 } from "../data/events";
+
+const CAROUSEL_INTERVAL_MS = 5000;
 
 const getAdminFromToken = () => {
   const currentToken = localStorage.getItem("token");
@@ -39,10 +42,18 @@ const DASHBOARD_INTRO_DISMISSED_KEY = "dashboard-intro-dismissed";
 function Dashboard() {
   const [selectedEvent, setSelectedEvent] = useState(null);
   const [events, setEvents] = useState([]);
+  const [carouselIndex, setCarouselIndex] = useState(0);
+  const [featuredTeachers, setFeaturedTeachers] = useState([]);
+  const [featuredTeachersStatus, setFeaturedTeachersStatus] = useState("loading");
+  const [announcements, setAnnouncements] = useState([]);
+  const [announcementsStatus, setAnnouncementsStatus] = useState("loading");
+  const [openAnnouncement, setOpenAnnouncement] = useState(null);
   const [showIntroModal, setShowIntroModal] = useState(
     () => localStorage.getItem(DASHBOARD_INTRO_DISMISSED_KEY) !== "true",
   );
   const isAdmin = getAdminFromToken();
+  const carouselEvents = events.slice(0, 5);
+  const dashboardAnnouncements = announcements.slice(0, 3);
 
   const dismissIntroModal = (rememberChoice = false) => {
     if (rememberChoice) {
@@ -180,7 +191,60 @@ function Dashboard() {
         console.error("Unable to load dashboard events:", error);
         setEvents(getUpcomingEvents(defaultEvents));
       });
+
+    api
+      .get("/content/teachers")
+      .then((response) => {
+        const teachers = Array.isArray(response.data) ? response.data : [];
+        const featured = teachers.filter((teacher) => Boolean(teacher.featured));
+        setFeaturedTeachers(featured);
+        setFeaturedTeachersStatus("ready");
+      })
+      .catch((error) => {
+        console.error("Unable to load featured teachers:", error);
+        setFeaturedTeachers([]);
+        setFeaturedTeachersStatus("error");
+      });
+
+    api
+      .get("/content/news")
+      .then((response) => {
+        const news = Array.isArray(response.data) ? response.data : [];
+        setAnnouncements(news);
+        setAnnouncementsStatus("ready");
+      })
+      .catch((error) => {
+        console.error("Unable to load announcements:", error);
+        setAnnouncements([]);
+        setAnnouncementsStatus("error");
+      });
   }, [isAdmin]);
+
+  useEffect(() => {
+    setCarouselIndex(0);
+  }, [events]);
+
+  useEffect(() => {
+    if (carouselEvents.length <= 1) return undefined;
+
+    const timerId = window.setInterval(() => {
+      setCarouselIndex((current) => (current + 1) % carouselEvents.length);
+    }, CAROUSEL_INTERVAL_MS);
+
+    return () => window.clearInterval(timerId);
+  }, [carouselEvents.length]);
+
+  const goToCarouselSlide = (direction) => {
+    if (carouselEvents.length === 0) return;
+    setCarouselIndex((current) => {
+      const nextIndex = current + direction;
+      if (nextIndex < 0) return carouselEvents.length - 1;
+      if (nextIndex >= carouselEvents.length) return 0;
+      return nextIndex;
+    });
+  };
+
+  const activeCarouselEvent = carouselEvents[carouselIndex] || null;
 
   return (
     <div className="dashboard-shell">
@@ -316,56 +380,292 @@ function Dashboard() {
 
       <div className="events-topbar">
         <h1 className="events-title">What's On</h1>
-        {isAdmin && (
-          <Link
-            className="events-icon-link"
-            to="/events?view=calendar"
-            aria-label="Open events calendar"
-            title="Open events calendar"
-          >
-            Manage Events
-          </Link>
-        )}
       </div>
 
-      <div className="event-grid">
-        {events.length === 0 ? (
-          <p className="events-empty-state">
-            No upcoming events at the moment.
-          </p>
-        ) : (
-          events.slice(0, 5).map((event) => (
-            <article
-              className="event-card"
-              key={event.id}
-              role="button"
-              tabIndex="0"
-              onClick={() => window.location.assign(`/events/${event.id}`)}
-              onKeyDown={(keyEvent) => {
-                if (keyEvent.key === "Enter" || keyEvent.key === " ") {
-                  keyEvent.preventDefault();
-                  window.location.assign(`/events/${event.id}`);
-                }
-              }}
+      {activeCarouselEvent ? (
+        <section
+          className="events-carousel"
+          aria-roledescription="carousel"
+          aria-label="Featured upcoming events"
+        >
+          <button
+            type="button"
+            className="events-carousel-nav events-carousel-nav--prev"
+            aria-label="Previous event"
+            onClick={() => goToCarouselSlide(-1)}
+          >
+            ‹
+          </button>
+
+          <article
+            className="events-carousel-slide"
+            role="button"
+            tabIndex="0"
+            onClick={() =>
+              window.location.assign(`/events/${activeCarouselEvent.id}`)
+            }
+            onKeyDown={(keyEvent) => {
+              if (keyEvent.key === "Enter" || keyEvent.key === " ") {
+                keyEvent.preventDefault();
+                window.location.assign(`/events/${activeCarouselEvent.id}`);
+              }
+            }}
+            style={{
+              backgroundImage: `linear-gradient(90deg, rgba(12,18,28,0.72) 0%, rgba(12,18,28,0.35) 45%, rgba(12,18,28,0.15) 100%), url(${activeCarouselEvent.image})`,
+            }}
+          >
+            <div className="events-carousel-copy">
+              <p className="events-carousel-label">Featured event</p>
+              <h2>{activeCarouselEvent.title}</h2>
+              <p>
+                {formatEventDate(activeCarouselEvent.date)} ·{" "}
+                {formatEventTime(activeCarouselEvent.startTime)} -{" "}
+                {formatEventTime(activeCarouselEvent.endTime)}
+              </p>
+              <p className="events-carousel-location">
+                {activeCarouselEvent.location}
+              </p>
+            </div>
+          </article>
+
+          <button
+            type="button"
+            className="events-carousel-nav events-carousel-nav--next"
+            aria-label="Next event"
+            onClick={() => goToCarouselSlide(1)}
+          >
+            ›
+          </button>
+
+          {carouselEvents.length > 1 && (
+            <div className="events-carousel-dots" role="tablist">
+              {carouselEvents.map((event, index) => (
+                <button
+                  key={event.id}
+                  type="button"
+                  role="tab"
+                  aria-label={`Show ${event.title}`}
+                  aria-selected={index === carouselIndex}
+                  className={`events-carousel-dot${
+                    index === carouselIndex ? " is-active" : ""
+                  }`}
+                  onClick={() => setCarouselIndex(index)}
+                />
+              ))}
+            </div>
+          )}
+        </section>
+      ) : (
+        <p className="events-empty-state">
+          No upcoming events at the moment.{" "}
+          <Link to="/events">Browse all events</Link>
+        </p>
+      )}
+
+      {announcementsStatus !== "loading" && (
+        <section
+          className="dashboard-announcements"
+          aria-label="Latest announcements"
+        >
+          <div className="dashboard-teacher-team-header">
+            <h2 className="dashboard-teacher-team-title">Announcements</h2>
+            <Link to="/announcements" className="dashboard-teacher-team-link">
+              View all news
+            </Link>
+          </div>
+          {dashboardAnnouncements.length > 0 ? (
+            <div className="announcement-list">
+              {dashboardAnnouncements.map((announcement) => (
+                <article
+                  className="announcement-card"
+                  key={announcement.id}
+                  role="button"
+                  tabIndex="0"
+                  onClick={() => setOpenAnnouncement(announcement.id)}
+                  onKeyDown={(keyEvent) => {
+                    if (keyEvent.key === "Enter" || keyEvent.key === " ") {
+                      keyEvent.preventDefault();
+                      setOpenAnnouncement(announcement.id);
+                    }
+                  }}
+                >
+                  <img
+                    src={announcement.image || schoolBackground}
+                    alt=""
+                  />
+                  <div className="announcement-card-content">
+                    <p className="announcement-date">
+                      {announcement.date
+                        ? new Date(announcement.date).toLocaleDateString(
+                            "en-NZ",
+                            { dateStyle: "long" },
+                          )
+                        : "Rototuna News"}
+                    </p>
+                    <h2>{announcement.title}</h2>
+                    <p>{announcement.body}</p>
+                  </div>
+                </article>
+              ))}
+            </div>
+          ) : (
+            <p className="events-empty-state">
+              {announcementsStatus === "error"
+                ? "Unable to load announcements. Please refresh and try again."
+                : "No announcements yet."}{" "}
+              <Link to="/announcements">Open news</Link>
+            </p>
+          )}
+        </section>
+      )}
+
+      {featuredTeachersStatus !== "loading" && (
+        <section className="teacher-team-section dashboard-teacher-team" aria-label="Featured teachers">
+          <div className="dashboard-teacher-team-header">
+            <h2 className="dashboard-teacher-team-title">Featured Teachers</h2>
+            <Link to="/teachers" className="dashboard-teacher-team-link">
+              View all teachers
+            </Link>
+          </div>
+          {featuredTeachers.length > 0 ? (
+            <div className="teacher-grid teacher-grid--pastoral">
+              {featuredTeachers.map((teacher) => (
+                <article className="teacher-card" key={teacher.id}>
+                  <img
+                    src={teacher.image || schoolBackground}
+                    alt={`${teacher.name} profile`}
+                    className="teacher-avatar"
+                  />
+                  <p className="teacher-role">{teacher.role}</p>
+                  {teacher.focus && (
+                    <p className="teacher-focus">{teacher.focus}</p>
+                  )}
+                  <h3>{teacher.name}</h3>
+                </article>
+              ))}
+            </div>
+          ) : (
+            <p className="events-empty-state">
+              {featuredTeachersStatus === "error"
+                ? "Unable to load featured teachers. Please refresh and try again."
+                : "No featured teachers yet. Mark teachers as featured in Teacher Profiles."}{" "}
+              <Link to="/teachers">Open teacher profiles</Link>
+            </p>
+          )}
+        </section>
+      )}
+
+      <div className="social-links-row">
+        <a
+          className="social-link-card"
+          href="https://www.facebook.com/groups/1560283425033484/?ref=invite_via_link&invite_short_link_key=g%2F794SKD5BY%2FIboFwhr2"
+          target="_blank"
+          rel="noopener noreferrer"
+          aria-label="Join the Rototuna alumni Facebook group"
+        >
+          <div
+            className="social-link-visual"
+            style={{
+              backgroundImage: `linear-gradient(180deg, rgba(12,18,28,0.04), rgba(12,18,28,0.18)), url(/Facebook_group.png)`,
+            }}
+          >
+            <span
+              className="social-link-logo social-link-logo--facebook"
+              aria-hidden="true"
+            >
+              <i className="fa-brands fa-facebook-f" />
+            </span>
+          </div>
+          <div className="event-copy">
+            <h3>Join our Facebook Group</h3>
+            <p className="event-date">Stay connected with alumni</p>
+            <p className="event-location">
+              News, reunions, and community updates
+            </p>
+          </div>
+        </a>
+
+        <a
+          className="social-link-card"
+          href="https://www.instagram.com/rototuna.senior.high?stkn=MTU5M3Bva2Uybmxueg%3D%3D&utm_source=qr"
+          target="_blank"
+          rel="noopener noreferrer"
+          aria-label="Follow Rototuna Senior High on Instagram"
+        >
+          <div
+            className="social-link-visual"
+            style={{
+              backgroundImage: `linear-gradient(180deg, rgba(12,18,28,0.04), rgba(12,18,28,0.18)), url(/ins_rototunas.jpg)`,
+            }}
+          >
+            <span
+              className="social-link-logo social-link-logo--instagram"
+              aria-hidden="true"
+            >
+              <i className="fa-brands fa-instagram" />
+            </span>
+          </div>
+          <div className="event-copy">
+            <h3>Follow us on Instagram</h3>
+            <p className="event-date">@rototuna.senior.high</p>
+            <p className="event-location">
+              Photos, stories, and school highlights
+            </p>
+          </div>
+        </a>
+      </div>
+
+      {openAnnouncement !== null &&
+        (() => {
+          const announcement = announcements.find(
+            (item) => item.id === openAnnouncement,
+          );
+          if (!announcement) return null;
+          return (
+            <div
+              className="modal-overlay"
+              onClick={() => setOpenAnnouncement(null)}
             >
               <div
-                className="event-image"
-                style={{
-                  backgroundImage: `linear-gradient(180deg, rgba(12,18,28,0.04), rgba(12,18,28,0.12)), url(${event.image})`,
-                }}
-              ></div>
-              <div className="event-copy">
-                <h3>{event.title}</h3>
-                <p className="event-date">{formatEventDate(event.date)}</p>
-                <p className="event-location">
-                  {formatEventTime(event.startTime)} -{" "}
-                  {formatEventTime(event.endTime)} · {event.location}
+                className="announcement-modal-card modal-card"
+                role="dialog"
+                aria-modal="true"
+                aria-labelledby="dashboard-announcement-modal-title"
+                onClick={(event) => event.stopPropagation()}
+              >
+                <div className="modal-header">
+                  <h2 id="dashboard-announcement-modal-title">
+                    {announcement.title}
+                  </h2>
+                  <button
+                    type="button"
+                    className="close-button"
+                    aria-label="Close article"
+                    onClick={() => setOpenAnnouncement(null)}
+                  >
+                    ×
+                  </button>
+                </div>
+                <img
+                  src={announcement.image || schoolBackground}
+                  alt=""
+                  className="announcement-modal-image"
+                />
+                <p className="announcement-date">
+                  {announcement.date
+                    ? new Date(announcement.date).toLocaleDateString("en-NZ", {
+                        dateStyle: "long",
+                      })
+                    : "Rototuna News"}
                 </p>
+                <p>{announcement.fullBody || announcement.body}</p>
+                {announcement.issue && (
+                  <p>This story is part of the {announcement.issue} issue.</p>
+                )}
               </div>
-            </article>
-          ))
-        )}
-      </div>
+            </div>
+          );
+        })()}
 
       <EventDetailsModal
         event={selectedEvent}
