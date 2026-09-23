@@ -567,6 +567,15 @@ a {
   border-radius: 0 0 7px 7px;
   background: #fff;
   box-shadow: 0 7px 18px rgba(15, 23, 42, 0.14);
+  cursor: pointer;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.announcement-card:hover,
+.announcement-card:focus-visible {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 26px rgba(15, 23, 42, 0.2);
+  outline: none;
 }
 
 .announcement-card > img {
@@ -595,37 +604,30 @@ a {
   -webkit-line-clamp: 4;
 }
 
-.announcement-read-button {
-  margin: 0;
-  min-height: 80px;
-  padding: 14px 20px;
-  border: 0;
-  border-top: 1px solid rgba(255, 255, 255, 0.16);
-  background: $primary-blue;
-  color: #fff;
-  cursor: pointer;
-  font-size: 1.05rem;
-  font-style: italic;
-  font-weight: 700;
+
+.announcement-modal-card {
+  width: min(640px, calc(100vw - 32px));
+  max-height: calc(100vh - 64px);
+  overflow-y: auto;
 }
 
-.announcement-read-button:hover,
-.announcement-read-button:focus-visible {
-  background: #0859a8;
+.announcement-modal-image {
+  display: block;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  margin-bottom: 14px;
+  border-radius: 12px;
+  object-fit: cover;
 }
 
-.announcement-expanded-copy {
-  padding: 16px 24px 20px;
+.announcement-modal-card p {
+  margin: 0 0 12px;
   color: #5d6673;
   font-size: 0.95rem;
   line-height: 1.5;
 }
 
-.announcement-expanded-copy p {
-  margin: 0 0 12px;
-}
-
-.announcement-expanded-copy p:last-child {
+.announcement-modal-card p:last-child {
   margin-bottom: 0;
   color: #8190a5;
   font-size: 0.86rem;
@@ -698,6 +700,15 @@ a {
   border: 1px solid #e1d4cd;
   border-radius: 10px;
   background: #fffdfb;
+}
+
+.news-form-grid .image-upload-field {
+  min-height: 54px;
+  padding: 10px 12px;
+  border: 1px dashed #bfd5ee;
+  border-radius: 8px;
+  background: #f8fbff;
+  font-size: 0.96rem;
 }
 
 .news-form-grid .field-group,
@@ -820,6 +831,17 @@ a {
 .field-group textarea {
   min-height: 100px;
   resize: vertical;
+}
+
+.field-group--checkbox {
+  flex-direction: row;
+  align-items: center;
+  gap: 8px;
+}
+
+.field-group--checkbox input {
+  min-height: auto;
+  width: auto;
 }
 
 .teacher-form-grid .image-upload-field {
@@ -2501,7 +2523,7 @@ a {
 }
 
 .modal-card {
-  width: min(420px, 100%);
+  width: min(820px, 100%);
   background: #fff;
   border: 1px solid $soft-border;
   border-radius: 18px;
@@ -3095,6 +3117,33 @@ a {
   gap: 12px;
   flex-wrap: wrap;
   justify-content: flex-end;
+}
+
+.featured-teachers {
+  margin: 8px 0 28px;
+}
+
+.featured-teachers-title {
+  margin: 0 0 18px;
+  text-align: center;
+  font-size: clamp(1.2rem, 2vw, 1.5rem);
+  text-decoration: underline;
+  text-underline-offset: 6px;
+}
+
+.featured-teachers-grid {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 20px;
+}
+
+.featured-teacher-card {
+  width: 140px;
+}
+
+.featured-teacher-card .teacher-avatar {
+  width: min(100%, 140px);
 }
 
 .events-filter-bar {
@@ -6218,4 +6267,21 @@ input:checked + .slider::before {
   .donations-amount-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
+}
+
+// Force one uniform font size across all body text, overriding every
+// per-component size set earlier in this file. Icon-glyph buttons
+// (×, ‹ › chevrons) are excluded below so they don't shrink/grow with body text.
+h1, h2, h3, h4, h5, h6,
+p, span, a, li, label, dt, dd, td, th, caption,
+input, textarea, select, button,
+strong, em, small {
+  font-size: 16px !important;
+}
+
+.close-button,
+.calendar-nav-button,
+.calendar-month-arrow,
+.calendar-view-button span {
+  font-size: 2rem !important;
 }

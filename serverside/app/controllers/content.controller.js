@@ -1,6 +1,6 @@
 const Content = require("../models/content.model");
 const sharp = require("sharp");
-const { uploadTeacherAvatar } = require("../services/supabaseStorage");
+const { uploadTeacherAvatar, uploadProfileImage } = require("../services/supabaseStorage");
 
 const validateNews = (body) => body?.issue && body?.title && body?.body;
 const validateTeacher = (body) => body?.team && body?.name && body?.role && body?.email;
@@ -22,6 +22,27 @@ exports.updateNews = (req, res) => {
     if (!data) return res.status(404).send({ message: "News item not found." });
     res.send(data);
   });
+};
+
+exports.uploadNewsImage = async (req, res) => {
+  if (!req.file) return res.status(400).send({ message: "No image file uploaded." });
+
+  try {
+    const compressedBuffer = await sharp(req.file.buffer)
+      .resize(1200, 675, { fit: "cover" })
+      .webp({ quality: 80 })
+      .toBuffer();
+    const imagePath = `news/news-${req.params.id}-${Date.now()}.webp`;
+    const imageUrl = await uploadProfileImage(imagePath, compressedBuffer, "image/webp");
+
+    Content.updateNewsImage(req.params.id, imageUrl, (error, data) => {
+      if (error?.kind === "not_found") return res.status(404).send({ message: "News item not found." });
+      if (error) return sendError(res, error, "Unable to save news image.");
+      res.send(data);
+    });
+  } catch (error) {
+    res.status(500).send({ message: error.message || "Unable to process news image." });
+  }
 };
 
 exports.createTeacher = (req, res) => {

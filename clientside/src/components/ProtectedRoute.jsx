@@ -232,6 +232,10 @@ function ProtectedRoute({ children }) {
               News
             </Link>
 
+            <Link to="/events" onClick={() => setMobileMenuOpen(false)}>
+              Events
+            </Link>
+
             <Link to="/teachers" onClick={() => setMobileMenuOpen(false)}>
               Teacher Profiles
             </Link>
