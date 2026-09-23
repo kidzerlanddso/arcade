@@ -380,26 +380,6 @@ function Dashboard() {
 
       <div className="events-topbar">
         <h1 className="events-title">What's On</h1>
-        <div className="events-topbar-actions">
-          <Link
-            className="events-icon-link"
-            to="/events"
-            aria-label="Open events page"
-            title="Open events page"
-          >
-            View Events
-          </Link>
-          {isAdmin && (
-            <Link
-              className="events-icon-link"
-              to="/events?view=calendar"
-              aria-label="Open events calendar"
-              title="Open events calendar"
-            >
-              Manage Events
-            </Link>
-          )}
-        </div>
       </div>
 
       {activeCarouselEvent ? (
