@@ -3,7 +3,7 @@ import api from "../api/axios";
 import schoolBackground from "../assets/school_bg.webp";
 
 const getAdminStatus = () => localStorage.getItem("isAdmin") === "true";
-const emptyTeacher = { team: "pastoral", department: "", name: "", role: "", focus: "", email: "", phone: "", image: "" };
+const emptyTeacher = { team: "pastoral", department: "", name: "", role: "", focus: "", email: "", phone: "", image: "", featured: false };
 const departmentNames = ["The Arts", "Business Studies", "English", "Languages", "Mathematics", "Pasifika", "PE & Health", "Science", "Social Sciences", "Te Reo Māori", "Technology", "Careers", "Learning Support", "Extracurricular"];
 
 function TeacherCard({ teacher, isAdmin, onEdit, onDelete }) {
@@ -36,7 +36,10 @@ function TeacherProfilesPage() {
   }, []);
 
   const allTeachers = [...teachers].sort((a, b) => a.name.localeCompare(b.name));
-  const handleFormChange = (event) => setForm((current) => ({ ...current, [event.target.name]: event.target.value }));
+  const handleFormChange = (event) => {
+    const { name, type, checked, value } = event.target;
+    setForm((current) => ({ ...current, [name]: type === "checkbox" ? checked : value }));
+  };
 
   const handleSubmit = async (event) => {
     event.preventDefault();
@@ -86,13 +89,14 @@ function TeacherProfilesPage() {
               </div>
               <form className="teacher-content-editor-form content-editor-form" onSubmit={handleSubmit}>
                 <div className="teacher-form-grid content-editor-fields">
-                  <label className="field-group"><span>Name</span><input name="name" value={form.name} onChange={handleFormChange} placeholder="Name" required /></label>
-                  <label className="field-group"><span>Role</span><input name="role" value={form.role} onChange={handleFormChange} placeholder="Role" required /></label>
-                  <label className="field-group"><span>Email</span><input name="email" type="email" value={form.email} onChange={handleFormChange} placeholder="Email" required /></label>
+                  <label className="field-group"><span>Name<span className="required-mark">*</span></span><input name="name" value={form.name} onChange={handleFormChange} placeholder="Name" required /></label>
+                  <label className="field-group"><span>Role<span className="required-mark">*</span></span><input name="role" value={form.role} onChange={handleFormChange} placeholder="Role" required /></label>
+                  <label className="field-group"><span>Email<span className="required-mark">*</span></span><input name="email" type="email" value={form.email} onChange={handleFormChange} placeholder="Email" required /></label>
                   <label className="field-group"><span>Phone</span><input name="phone" value={form.phone} onChange={handleFormChange} placeholder="Phone" /></label>
                   <label className="image-upload-field field-group"><span>Upload portrait</span><input type="file" accept="image/*" onChange={(event) => setImageFile(event.target.files?.[0] || null)} /></label>
+                  <label className="field-group field-group--checkbox"><input type="checkbox" name="featured" checked={form.featured} onChange={handleFormChange} /><span>Show on Events page</span></label>
                 </div>
-                <div className="content-editor-actions"><button className="primary-action" type="submit">Save teacher</button><button className="secondary-action" type="button" onClick={() => setShowForm(false)}>Cancel</button></div>
+                <div className="content-editor-actions content-editor-actions--stacked"><button className="primary-action register-button" type="submit">Save teacher</button><button className="text-link-button" type="button" onClick={() => setShowForm(false)}>Cancel</button></div>
               </form>
             </div>
           </div>
@@ -100,7 +104,6 @@ function TeacherProfilesPage() {
         {errorMessage && <p className="events-error" role="alert">{errorMessage}</p>}
 
         <section className="teacher-team-section">
-          <h2 className="teacher-section-title">All Teachers</h2>
           <div className="teacher-grid teacher-grid--all">
             {allTeachers.map((teacher) => (
               <TeacherCard key={teacher.id} teacher={teacher} isAdmin={isAdmin} onEdit={editTeacher} onDelete={deleteTeacher} />

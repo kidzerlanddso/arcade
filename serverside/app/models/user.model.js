@@ -193,7 +193,7 @@ User.getAdmins = function (result) {
 
 User.approveById = function (userId, result) {
   db.query(
-    "UPDATE users SET active = 1 WHERE id = $1 AND active = 2 RETURNING id, username, active",
+    "UPDATE users SET active = 1, approved_date = CURRENT_DATE WHERE id = $1 AND active = 2 RETURNING id, username, active, approved_date",
     [userId],
     function (err, res) {
       if (err) {
@@ -266,7 +266,7 @@ User.approveByIds = function (userIds, result) {
   }
 
   db.query(
-    "UPDATE users SET active = 1 WHERE id = ANY($1::int[]) AND active = 2 RETURNING id, username, active",
+    "UPDATE users SET active = 1, approved_date = CURRENT_DATE WHERE id = ANY($1::int[]) AND active = 2 RETURNING id, username, active, approved_date",
     [safeUserIds],
     function (err, res) {
       if (err) {

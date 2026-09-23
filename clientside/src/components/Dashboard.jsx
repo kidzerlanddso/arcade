@@ -2,6 +2,7 @@ import { Link } from "react-router-dom";
 import { useEffect, useState } from "react";
 import EventDetailsModal from "./EventDetailsModal";
 import api from "../api/axios";
+import schoolBackground from "../assets/school_bg.webp";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import {
@@ -42,6 +43,7 @@ function Dashboard() {
   const [selectedEvent, setSelectedEvent] = useState(null);
   const [events, setEvents] = useState([]);
   const [carouselIndex, setCarouselIndex] = useState(0);
+  const [featuredTeachers, setFeaturedTeachers] = useState([]);
   const [showIntroModal, setShowIntroModal] = useState(
     () => localStorage.getItem(DASHBOARD_INTRO_DISMISSED_KEY) !== "true",
   );
@@ -184,6 +186,11 @@ function Dashboard() {
         console.error("Unable to load dashboard events:", error);
         setEvents(getUpcomingEvents(defaultEvents));
       });
+
+    api
+      .get("/content/teachers")
+      .then((response) => setFeaturedTeachers(response.data.filter((teacher) => teacher.featured)))
+      .catch(() => setFeaturedTeachers([]));
   }, [isAdmin]);
 
   useEffect(() => {
@@ -266,6 +273,11 @@ function Dashboard() {
               ×
             </button>
 
+            <img
+              src="src/assets/RHS-logo-black.png"
+              alt="Logo"
+              className="app-logo"
+            />
             <h2
               style={{
                 margin: "0 0 1rem",
@@ -340,7 +352,7 @@ function Dashboard() {
       )}
 
       <div className="events-topbar">
-        <h1 className="events-title">Upcoming events</h1>
+        <h1 className="events-title">What's On</h1>
         <div className="events-topbar-actions">
           <Link
             className="events-icon-link"
@@ -502,6 +514,22 @@ function Dashboard() {
           </div>
         </a>
       </div>
+
+      {featuredTeachers.length > 0 && (
+        <section className="featured-teachers" aria-label="Featured teachers">
+          <h2 className="featured-teachers-title">Featured Teachers</h2>
+          <div className="featured-teachers-grid">
+            {featuredTeachers.map((teacher) => (
+              <article className="teacher-card featured-teacher-card" key={teacher.id}>
+                <img src={teacher.image || schoolBackground} alt={`${teacher.name} profile`} className="teacher-avatar" />
+                <p className="teacher-role">{teacher.role}</p>
+                {teacher.focus && <p className="teacher-focus">{teacher.focus}</p>}
+                <h3>{teacher.name}</h3>
+              </article>
+            ))}
+          </div>
+        </section>
+      )}
 
       <EventDetailsModal
         event={selectedEvent}

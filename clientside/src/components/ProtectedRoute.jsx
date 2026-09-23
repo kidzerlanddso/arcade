@@ -191,6 +191,11 @@ function ProtectedRoute({ children }) {
           >
             <img src={logo} alt="Logo" className="app-logo" />
           </Link>
+          <div>
+            <span className="brand-panel">
+              <h2>AlumniConnect</h2>
+            </span>{" "}
+          </div>
 
           <button
             type="button"
@@ -215,18 +220,25 @@ function ProtectedRoute({ children }) {
             <Link to="/donations" onClick={() => setMobileMenuOpen(false)}>
               Donate
             </Link>
-            <Link to="/events" onClick={() => setMobileMenuOpen(false)}>
-              Events
-            </Link>
             <Link to="/about" onClick={() => setMobileMenuOpen(false)}>
               About
             </Link>
 
-            <Link to="/profile" onClick={() => setMobileMenuOpen(false)}>Find an Alumni</Link>
+            <Link to="/profile" onClick={() => setMobileMenuOpen(false)}>
+              Find an Alumni
+            </Link>
 
-            <Link to="/announcements" onClick={() => setMobileMenuOpen(false)}>News</Link>
+            <Link to="/announcements" onClick={() => setMobileMenuOpen(false)}>
+              News
+            </Link>
 
-            <Link to="/teachers" onClick={() => setMobileMenuOpen(false)}>Teacher Profiles</Link>
+            <Link to="/events" onClick={() => setMobileMenuOpen(false)}>
+              Events
+            </Link>
+
+            <Link to="/teachers" onClick={() => setMobileMenuOpen(false)}>
+              Teacher Profiles
+            </Link>
             {isAdmin && (
               <div className="profile-menu" ref={adminMenuRef}>
                 <button
