@@ -22,6 +22,7 @@ Project.getAll = (result) => {
   db.query(
     `SELECT 
     p.*,
+    u.approved_date,
     u."enableEmail",
 
     COALESCE(

@@ -243,6 +243,11 @@ function Dashboard() {
               ×
             </button>
 
+            <img
+              src="src/assets/RHS-logo-black.png"
+              alt="Logo"
+              className="app-logo"
+            />
             <h2
               style={{
                 margin: "0 0 1rem",
@@ -317,7 +322,7 @@ function Dashboard() {
       )}
 
       <div className="events-topbar">
-        <h1 className="events-title">Upcoming events</h1>
+        <h1 className="events-title">What's On</h1>
         {isAdmin && (
           <Link
             className="events-icon-link"

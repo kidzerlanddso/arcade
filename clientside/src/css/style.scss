@@ -56,7 +56,7 @@ a {
 }
 
 .brand-panel {
-  padding: 40px 20px;
+  //padding: 40px 20px;
 }
 
 .brand-badge {
@@ -182,6 +182,7 @@ a {
   color: $dark-text;
   text-decoration: none;
   font-weight: 450;
+  font-family: $primary-font-family;
 }
 
 .app-header-nav a:hover {
@@ -1046,7 +1047,7 @@ a {
   padding: 6px;
   border: 1px solid $soft-border;
   border-radius: 10px;
-  background: #fff;
+  background: #ffffffd6;
   box-shadow: 0 12px 28px rgba(15, 23, 42, 0.16);
 }
 
@@ -1054,6 +1055,7 @@ a {
 .profile-menu-item {
   display: block;
   width: 100%;
+  white-space: nowrap;
   padding: 10px 12px;
   border: 0;
   border-radius: 7px;
@@ -1061,7 +1063,6 @@ a {
   color: $dark-text;
   cursor: pointer;
   font-size: 0.95rem;
-  font-weight: 600;
   text-align: left;
   text-decoration: none;
 }
@@ -1100,7 +1101,13 @@ a {
   margin: 20px 0 10px;
   font-size: clamp(2.4rem, 4vw, 4rem);
   letter-spacing: -0.06em;
-  color: #0a1938;
+  color: $primary-blue;
+}
+.brand-panel h2 {
+  margin: 20px 0 10px;
+  font-size: clamp(1.4rem, 2vw, 3rem);
+  letter-spacing: -0.06em;
+  color: $rhs-navy-blue;
 }
 
 .brand-panel p {
@@ -1712,6 +1719,13 @@ a {
 }
 
 .stats-page {
+  --rhs-blue: #{$rhs-light-blue};
+  --rhs-orange: #{$rhs-orange};
+  --rhs-rust: #{$rhs-rust-red};
+  --rhs-navy: #{$rhs-navy-blue};
+  --rhs-charcoal: #{$rhs-charcoal};
+  --rhs-gold: #f6cf5c;
+  --rhs-chart-empty: #e7ebf2;
   min-height: calc(100vh - 84px);
   padding: 34px clamp(20px, 4vw, 64px) 64px;
   background:
@@ -1829,13 +1843,16 @@ a {
 .stats-metric-card-gold {
   background: linear-gradient(145deg, #e99b27, #f6cf5c);
 }
+.stats-metric-card-navy {
+  background: linear-gradient(145deg, #192f68, #3258a5);
+}
 
 .stats-metric-label,
 .stats-metric-detail {
   display: block;
   color: rgba(255, 255, 255, 0.84);
   font-size: 0.9rem;
-  font-weight: 700;
+  font-weight: 600;
   font-family: $primary-font-family;
 }
 
@@ -1863,13 +1880,25 @@ a {
 }
 
 .stats-chart-violet {
-  border-top: 5px solid #8267e8;
+  border-top: 5px solid $rhs-light-blue;
 }
 .stats-chart-teal {
-  border-top: 5px solid #28b7a5;
+  border-top: 5px solid $rhs-navy-blue;
 }
 .stats-chart-orange {
-  border-top: 5px solid #f29a4a;
+  border-top: 5px solid $rhs-orange;
+}
+.stats-chart-expertise {
+  border-top: 5px solid $rhs-rust-red;
+}
+.stats-chart-sharing {
+  border-top: 5px solid $rhs-charcoal;
+}
+.stats-chart-institution {
+  border-top: 5px solid $rhs-light-blue;
+}
+.stats-chart-timeline {
+  border-top: 5px solid $rhs-orange;
 }
 
 .stats-chart-heading {
@@ -1894,6 +1923,28 @@ a {
   font-size: 0.88rem;
 }
 
+.stats-chart-control {
+  display: grid;
+  gap: 4px;
+  flex: 0 0 auto;
+  color: #7b8497;
+  font-size: 0.68rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+.stats-chart-control select {
+  min-height: 32px;
+  padding: 0 26px 0 8px;
+  border: 1px solid #dfe5ef;
+  border-radius: 6px;
+  background: #fff;
+  color: $rhs-navy-blue;
+  font-size: 0.78rem;
+  text-transform: none;
+  letter-spacing: 0;
+}
+
 .stats-chart-count {
   display: inline-flex;
   align-items: center;
@@ -1912,7 +1963,23 @@ a {
   gap: 15px;
 }
 .stats-bar-row {
+  display: block;
+  width: 100%;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  text-align: left;
   min-width: 0;
+  cursor: pointer;
+}
+.stats-bar-row:focus-visible,
+.stats-pie-legend-item:focus-visible {
+  outline: 3px solid rgba($rhs-light-blue, 0.35);
+  outline-offset: 4px;
+}
+.stats-bar-row.is-selected .stats-bar-label,
+.stats-bar-row:hover .stats-bar-label {
+  color: $rhs-navy-blue;
 }
 
 .stats-bar-label {
@@ -1944,13 +2011,182 @@ a {
   display: block;
   height: 100%;
   border-radius: inherit;
-  background: linear-gradient(40deg, #f89c49, #457fc1);
+  background: linear-gradient(40deg, $rhs-orange, $rhs-light-blue);
 }
 .stats-chart-teal .stats-bar-track span {
-  background: linear-gradient(90deg, #e4e7f1, #212e52);
+  background: linear-gradient(
+    90deg,
+    rgba($rhs-light-blue, 0.2),
+    $rhs-navy-blue
+  );
 }
 .stats-chart-orange .stats-bar-track span {
-  background: linear-gradient(90deg, #892f25, #f89c49);
+  background: linear-gradient(90deg, $rhs-rust-red, $rhs-orange);
+}
+.stats-chart-selection {
+  margin: 18px 0 0;
+  padding-top: 14px;
+  border-top: 1px solid #edf0f7;
+  color: #66718a;
+  font-size: 0.82rem;
+  line-height: 1.45;
+}
+.stats-chart-selection strong {
+  color: $rhs-navy-blue;
+}
+
+.stats-pie-layout {
+  display: grid;
+  grid-template-columns: minmax(130px, 0.9fr) minmax(0, 1.1fr);
+  align-items: center;
+  gap: 18px;
+}
+.stats-pie {
+  display: grid;
+  place-items: center;
+  width: min(170px, 100%);
+  aspect-ratio: 1;
+  margin: 0 auto;
+  border-radius: 50%;
+  position: relative;
+  text-align: center;
+}
+.stats-pie::after {
+  content: "";
+  position: absolute;
+  inset: 28%;
+  border-radius: 50%;
+  background: #fff;
+}
+.stats-pie strong,
+.stats-pie span {
+  position: relative;
+  z-index: 1;
+  max-width: 75px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.stats-pie strong {
+  margin: 0;
+  color: $rhs-navy-blue;
+  font-size: 1.3rem;
+}
+.stats-pie span {
+  margin: 0;
+  color: #66718a;
+  font-size: 0.68rem;
+}
+.stats-pie strong,
+.stats-pie span {
+  grid-column: 1;
+  grid-row: 1;
+}
+.stats-pie strong {
+  //transform: translateY(-10px);
+}
+.stats-pie span {
+  transform: translateY(12px);
+}
+.stats-pie-legend {
+  display: grid;
+  gap: 5px;
+}
+.stats-pie-legend-item {
+  display: grid;
+  grid-template-columns: 9px minmax(0, 1fr) auto auto;
+  align-items: center;
+  gap: 7px;
+  width: 100%;
+  padding: 6px 5px;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: #4f5c75;
+  font-size: 0.76rem;
+  text-align: left;
+  cursor: pointer;
+}
+.stats-pie-legend-item:hover,
+.stats-pie-legend-item.is-selected {
+  background: #f2f5fa;
+  color: $rhs-navy-blue;
+}
+.stats-pie-legend-item > span:nth-child(2) {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.stats-pie-legend-item strong {
+  color: $rhs-navy-blue;
+}
+.stats-pie-legend-item small {
+  min-width: 28px;
+  color: #7b8497;
+  text-align: right;
+}
+.stats-pie-swatch {
+  width: 9px;
+  height: 9px;
+  border-radius: 2px;
+  background: $rhs-light-blue;
+}
+.stats-pie-swatch-1 {
+  background: $rhs-orange;
+}
+.stats-pie-swatch-2 {
+  background: $rhs-rust-red;
+}
+.stats-pie-swatch-3 {
+  background: $rhs-navy-blue;
+}
+.stats-pie-swatch-4 {
+  background: $rhs-charcoal;
+}
+.stats-pie-swatch-5 {
+  background: #f6cf5c;
+}
+
+.stats-line-wrap {
+  width: 100%;
+  overflow-x: auto;
+}
+.stats-line {
+  display: block;
+  width: 100%;
+  min-width: 440px;
+  height: auto;
+  overflow: visible;
+}
+.stats-line line {
+  stroke: #dfe5ef;
+  stroke-width: 1;
+}
+.stats-line path {
+  fill: none;
+  stroke: $rhs-orange;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 3;
+}
+.stats-line circle {
+  fill: #fff;
+  stroke: $rhs-rust-red;
+  stroke-width: 3;
+  cursor: pointer;
+  transition:
+    r 160ms ease,
+    fill 160ms ease;
+}
+.stats-line circle:hover,
+.stats-line circle:focus,
+.stats-line circle.is-selected {
+  fill: $rhs-orange;
+  outline: none;
+}
+.stats-line text {
+  fill: #7b8497;
+  font-size: 10px;
 }
 
 .stats-empty,
@@ -2049,6 +2285,15 @@ a {
   .stats-insight-band {
     align-items: flex-start;
     flex-direction: column;
+  }
+  .stats-chart-heading {
+    flex-wrap: wrap;
+  }
+  .stats-pie-layout {
+    grid-template-columns: 1fr;
+  }
+  .stats-pie {
+    width: 150px;
   }
 }
 
@@ -3103,7 +3348,9 @@ a {
 .events-list-header,
 .event-list-row {
   display: grid;
-  grid-template-columns: minmax(220px, 1.5fr) minmax(100px, 0.7fr) minmax(110px, 0.8fr) minmax(90px, 0.65fr) 80px;
+  grid-template-columns:
+    minmax(220px, 1.5fr) minmax(100px, 0.7fr) minmax(110px, 0.8fr)
+    minmax(90px, 0.65fr) 80px;
   gap: 18px;
   min-width: 980px;
   align-items: center;
@@ -5741,6 +5988,24 @@ input:checked + .slider::before {
     opacity: 0.12;
   }
 }
+.mentorship-modal .mentorship-field-label,
+.mentorship-modal .mentorship-field-help,
+.mentorship-modal .mentorship-availability-select,
+.mentorship-modal .mentorship-expertise-select,
+.mentorship-modal .mentorship-days-dropdown button {
+  font-size: 16px;
+}
+.mentorship-modal .mentorship-expertise-select,
+.mentorship-modal .mentorship-availability-select {
+  width: 100%;
+  min-height: 56px;
+  height: 56px;
+  padding: 0 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  box-sizing: border-box;
+}
 
 .donations-page {
   max-width: 720px;
@@ -5786,7 +6051,7 @@ input:checked + .slider::before {
   display: block;
   width: 100%;
   height: auto;
-  max-height: 250px;
+  max-height: 251px;
   object-fit: cover;
   object-position: center;
 }
