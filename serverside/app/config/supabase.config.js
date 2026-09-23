@@ -7,4 +7,6 @@ module.exports = {
     process.env.SUPABASE_SERVICE_ROLE_KEY ||
     "",
   bucket: process.env.SUPABASE_STORAGE_BUCKET || "profile-images",
+  teacherAvatarBucket:
+    process.env.SUPABASE_TEACHER_AVATAR_BUCKET || "teacher_avator",
 };
