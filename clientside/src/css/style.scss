@@ -2828,9 +2828,10 @@ a {
 
 .social-links-row {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 28px 22px;
-  margin-top: 28px;
+  width: min(100%, 1100px);
+  margin: 28px auto 0;
 }
 
 .social-link-card {
@@ -3330,6 +3331,49 @@ a {
 
 .featured-teachers {
   margin: 8px 0 28px;
+}
+
+.dashboard-announcements {
+  width: min(100%, 1100px);
+  margin: 28px auto 36px;
+}
+
+.dashboard-announcements .announcement-list {
+  width: 100%;
+}
+
+.dashboard-teacher-team {
+  width: min(100%, 1100px);
+  margin: 8px auto 36px;
+}
+
+.dashboard-teacher-team-header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.dashboard-teacher-team-title {
+  margin: 0;
+  font-size: clamp(1.4rem, 2vw, 1.9rem);
+  font-weight: 800;
+  color: #1a1d2d;
+}
+
+.dashboard-teacher-team-link {
+  color: #0a66c2;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.dashboard-teacher-team-link:hover {
+  text-decoration: underline;
+}
+
+.dashboard-teacher-team .teacher-grid--pastoral {
+  max-width: none;
 }
 
 .featured-teachers-title {
@@ -6510,10 +6554,9 @@ input:checked + .slider::before {
   }
 }
 
-// Force one uniform font size across all body text, overriding every
-// per-component size set earlier in this file. Icon-glyph buttons
-// (×, ‹ › chevrons) are excluded below so they don't shrink/grow with body text.
-h1, h2, h3, h4, h5, h6,
+// Force one uniform font size across body text only. Headings (h1–h6)
+// are excluded so title styles like .events-title keep their designed sizes.
+// Icon-glyph buttons (×, ‹ › chevrons) are excluded below.
 p, span, a, li, label, dt, dd, td, th, caption,
 input, textarea, select, button,
 strong, em, small {

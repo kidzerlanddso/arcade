@@ -44,11 +44,16 @@ function Dashboard() {
   const [events, setEvents] = useState([]);
   const [carouselIndex, setCarouselIndex] = useState(0);
   const [featuredTeachers, setFeaturedTeachers] = useState([]);
+  const [featuredTeachersStatus, setFeaturedTeachersStatus] = useState("loading");
+  const [announcements, setAnnouncements] = useState([]);
+  const [announcementsStatus, setAnnouncementsStatus] = useState("loading");
+  const [openAnnouncement, setOpenAnnouncement] = useState(null);
   const [showIntroModal, setShowIntroModal] = useState(
     () => localStorage.getItem(DASHBOARD_INTRO_DISMISSED_KEY) !== "true",
   );
   const isAdmin = getAdminFromToken();
   const carouselEvents = events.slice(0, 5);
+  const dashboardAnnouncements = announcements.slice(0, 3);
 
   const dismissIntroModal = (rememberChoice = false) => {
     if (rememberChoice) {
@@ -189,8 +194,30 @@ function Dashboard() {
 
     api
       .get("/content/teachers")
-      .then((response) => setFeaturedTeachers(response.data.filter((teacher) => teacher.featured)))
-      .catch(() => setFeaturedTeachers([]));
+      .then((response) => {
+        const teachers = Array.isArray(response.data) ? response.data : [];
+        const featured = teachers.filter((teacher) => Boolean(teacher.featured));
+        setFeaturedTeachers(featured);
+        setFeaturedTeachersStatus("ready");
+      })
+      .catch((error) => {
+        console.error("Unable to load featured teachers:", error);
+        setFeaturedTeachers([]);
+        setFeaturedTeachersStatus("error");
+      });
+
+    api
+      .get("/content/news")
+      .then((response) => {
+        const news = Array.isArray(response.data) ? response.data : [];
+        setAnnouncements(news);
+        setAnnouncementsStatus("ready");
+      })
+      .catch((error) => {
+        console.error("Unable to load announcements:", error);
+        setAnnouncements([]);
+        setAnnouncementsStatus("error");
+      });
   }, [isAdmin]);
 
   useEffect(() => {
@@ -455,6 +482,99 @@ function Dashboard() {
         </p>
       )}
 
+      {announcementsStatus !== "loading" && (
+        <section
+          className="dashboard-announcements"
+          aria-label="Latest announcements"
+        >
+          <div className="dashboard-teacher-team-header">
+            <h2 className="dashboard-teacher-team-title">Announcements</h2>
+            <Link to="/announcements" className="dashboard-teacher-team-link">
+              View all news
+            </Link>
+          </div>
+          {dashboardAnnouncements.length > 0 ? (
+            <div className="announcement-list">
+              {dashboardAnnouncements.map((announcement) => (
+                <article
+                  className="announcement-card"
+                  key={announcement.id}
+                  role="button"
+                  tabIndex="0"
+                  onClick={() => setOpenAnnouncement(announcement.id)}
+                  onKeyDown={(keyEvent) => {
+                    if (keyEvent.key === "Enter" || keyEvent.key === " ") {
+                      keyEvent.preventDefault();
+                      setOpenAnnouncement(announcement.id);
+                    }
+                  }}
+                >
+                  <img
+                    src={announcement.image || schoolBackground}
+                    alt=""
+                  />
+                  <div className="announcement-card-content">
+                    <p className="announcement-date">
+                      {announcement.date
+                        ? new Date(announcement.date).toLocaleDateString(
+                            "en-NZ",
+                            { dateStyle: "long" },
+                          )
+                        : "Rototuna News"}
+                    </p>
+                    <h2>{announcement.title}</h2>
+                    <p>{announcement.body}</p>
+                  </div>
+                </article>
+              ))}
+            </div>
+          ) : (
+            <p className="events-empty-state">
+              {announcementsStatus === "error"
+                ? "Unable to load announcements. Please refresh and try again."
+                : "No announcements yet."}{" "}
+              <Link to="/announcements">Open news</Link>
+            </p>
+          )}
+        </section>
+      )}
+
+      {featuredTeachersStatus !== "loading" && (
+        <section className="teacher-team-section dashboard-teacher-team" aria-label="Featured teachers">
+          <div className="dashboard-teacher-team-header">
+            <h2 className="dashboard-teacher-team-title">Featured Teachers</h2>
+            <Link to="/teachers" className="dashboard-teacher-team-link">
+              View all teachers
+            </Link>
+          </div>
+          {featuredTeachers.length > 0 ? (
+            <div className="teacher-grid teacher-grid--pastoral">
+              {featuredTeachers.map((teacher) => (
+                <article className="teacher-card" key={teacher.id}>
+                  <img
+                    src={teacher.image || schoolBackground}
+                    alt={`${teacher.name} profile`}
+                    className="teacher-avatar"
+                  />
+                  <p className="teacher-role">{teacher.role}</p>
+                  {teacher.focus && (
+                    <p className="teacher-focus">{teacher.focus}</p>
+                  )}
+                  <h3>{teacher.name}</h3>
+                </article>
+              ))}
+            </div>
+          ) : (
+            <p className="events-empty-state">
+              {featuredTeachersStatus === "error"
+                ? "Unable to load featured teachers. Please refresh and try again."
+                : "No featured teachers yet. Mark teachers as featured in Teacher Profiles."}{" "}
+              <Link to="/teachers">Open teacher profiles</Link>
+            </p>
+          )}
+        </section>
+      )}
+
       <div className="social-links-row">
         <a
           className="social-link-card"
@@ -515,21 +635,57 @@ function Dashboard() {
         </a>
       </div>
 
-      {featuredTeachers.length > 0 && (
-        <section className="featured-teachers" aria-label="Featured teachers">
-          <h2 className="featured-teachers-title">Featured Teachers</h2>
-          <div className="featured-teachers-grid">
-            {featuredTeachers.map((teacher) => (
-              <article className="teacher-card featured-teacher-card" key={teacher.id}>
-                <img src={teacher.image || schoolBackground} alt={`${teacher.name} profile`} className="teacher-avatar" />
-                <p className="teacher-role">{teacher.role}</p>
-                {teacher.focus && <p className="teacher-focus">{teacher.focus}</p>}
-                <h3>{teacher.name}</h3>
-              </article>
-            ))}
-          </div>
-        </section>
-      )}
+      {openAnnouncement !== null &&
+        (() => {
+          const announcement = announcements.find(
+            (item) => item.id === openAnnouncement,
+          );
+          if (!announcement) return null;
+          return (
+            <div
+              className="modal-overlay"
+              onClick={() => setOpenAnnouncement(null)}
+            >
+              <div
+                className="announcement-modal-card modal-card"
+                role="dialog"
+                aria-modal="true"
+                aria-labelledby="dashboard-announcement-modal-title"
+                onClick={(event) => event.stopPropagation()}
+              >
+                <div className="modal-header">
+                  <h2 id="dashboard-announcement-modal-title">
+                    {announcement.title}
+                  </h2>
+                  <button
+                    type="button"
+                    className="close-button"
+                    aria-label="Close article"
+                    onClick={() => setOpenAnnouncement(null)}
+                  >
+                    ×
+                  </button>
+                </div>
+                <img
+                  src={announcement.image || schoolBackground}
+                  alt=""
+                  className="announcement-modal-image"
+                />
+                <p className="announcement-date">
+                  {announcement.date
+                    ? new Date(announcement.date).toLocaleDateString("en-NZ", {
+                        dateStyle: "long",
+                      })
+                    : "Rototuna News"}
+                </p>
+                <p>{announcement.fullBody || announcement.body}</p>
+                {announcement.issue && (
+                  <p>This story is part of the {announcement.issue} issue.</p>
+                )}
+              </div>
+            </div>
+          );
+        })()}
 
       <EventDetailsModal
         event={selectedEvent}
