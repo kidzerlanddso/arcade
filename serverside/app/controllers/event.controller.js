@@ -2,9 +2,14 @@ const Event = require("../models/event.model");
 const sharp = require("sharp");
 const { uploadProfileImage: uploadToStorage } = require("../services/supabaseStorage");
 
-const requiredFields = ["title", "date", "startTime", "endTime", "location", "description"];
+const requiredFields = ["title", "date", "activeFrom", "startTime", "endTime", "location", "description"];
 
-const validateEvent = (body) => requiredFields.every((field) => body[field] !== undefined && body[field] !== "");
+const validateEvent = (body) =>
+  requiredFields.every((field) => body[field] !== undefined && body[field] !== "") &&
+  (body.recurring !== true || (
+    ["monthly", "yearly"].includes(body.recurrenceFrequency) &&
+    body.activeTo && body.activeTo >= body.activeFrom
+  ));
 
 exports.findAll = (req, res) => {
   Event.findAll((err, data) => {

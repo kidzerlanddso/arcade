@@ -64,6 +64,7 @@ function MyProfilePage({ readOnly = false }) {
     "As a mentor",
     "Offering work experience",
     "As a tutor",
+    "Other",
   ];
   const [expertise, setExpertise] = useState("");
   const [expertiseId, setExpertiseId] = useState("");

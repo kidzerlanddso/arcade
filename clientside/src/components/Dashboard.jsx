@@ -381,16 +381,13 @@ function Dashboard() {
         </div>
       )}
 
-      <div className="events-topbar">
-        <h1 className="events-title">What's On</h1>
-      </div>
-
       {activeCarouselEvent ? (
         <section
           className="events-carousel"
           aria-roledescription="carousel"
           aria-label="Featured upcoming events"
         >
+          <h1 className="events-title">What's On</h1>
           <button
             type="button"
             className="events-carousel-nav events-carousel-nav--prev"
@@ -525,7 +522,7 @@ function Dashboard() {
           aria-label="Featured teachers"
         >
           <div className="dashboard-teacher-team-header">
-            <h2 className="dashboard-teacher-team-title">Featured Teachers</h2>
+            <h2 className="dashboard-teacher-team-title">Spotlight </h2>
             <Link to="/teachers" className="dashboard-teacher-team-link">
               View all teachers
             </Link>
@@ -539,11 +536,11 @@ function Dashboard() {
                     alt={`${teacher.name} profile`}
                     className="teacher-avatar"
                   />
-                  <p className="teacher-role">{teacher.role}</p>
+                  <p className="teacher-role">{teacher.name}</p>
                   {teacher.focus && (
                     <p className="teacher-focus">{teacher.focus}</p>
                   )}
-                  <h3>{teacher.name}</h3>
+                  <h3>{teacher.role}</h3>
                 </article>
               ))}
             </div>

@@ -5,7 +5,26 @@ const DEFAULT_EVENT_IMAGE = "https://images.unsplash.com/photo-1529156069898-499
 
 Event.findAll = (result) => {
   db.query(
-    `SELECT id, title, event_date AS date, start_time AS "startTime",
+    `UPDATE events SET active = CASE
+       WHEN CURRENT_DATE < active_from OR (recurring AND CURRENT_DATE > active_to) THEN 0
+       WHEN NOT recurring THEN 1
+       WHEN recurrence_frequency = 'monthly' AND EXTRACT(DAY FROM CURRENT_DATE) = EXTRACT(DAY FROM active_from) THEN 1
+       WHEN recurrence_frequency = 'yearly'
+         AND EXTRACT(MONTH FROM CURRENT_DATE) = EXTRACT(MONTH FROM active_from)
+         AND EXTRACT(DAY FROM CURRENT_DATE) = EXTRACT(DAY FROM active_from) THEN 1
+       ELSE 0 END
+     WHERE active IS DISTINCT FROM CASE
+       WHEN CURRENT_DATE < active_from OR (recurring AND CURRENT_DATE > active_to) THEN 0
+       WHEN NOT recurring THEN 1
+       WHEN recurrence_frequency = 'monthly' AND EXTRACT(DAY FROM CURRENT_DATE) = EXTRACT(DAY FROM active_from) THEN 1
+       WHEN recurrence_frequency = 'yearly'
+         AND EXTRACT(MONTH FROM CURRENT_DATE) = EXTRACT(MONTH FROM active_from)
+         AND EXTRACT(DAY FROM CURRENT_DATE) = EXTRACT(DAY FROM active_from) THEN 1
+       ELSE 0 END`,
+    (syncError) => {
+      if (syncError) return result(syncError, null);
+      db.query(
+    `SELECT id, title, event_date AS date, active_from AS "activeFrom", active_to AS "activeTo", recurring, recurrence_frequency AS "recurrenceFrequency", start_time AS "startTime",
                 end_time AS "endTime", location, description, price,
                 COALESCE(image, $1) AS image,
                 COALESCE(registration_counts.pending, 0) AS "pendingRegistrations",
@@ -22,6 +41,7 @@ Event.findAll = (result) => {
        FROM event_registrations
        WHERE event_id = events.id
      ) registration_counts ON TRUE
+     WHERE events.active = 1
      ORDER BY event_date ASC, start_time ASC, id ASC`,
               [DEFAULT_EVENT_IMAGE],
               (err, res) => {
@@ -33,17 +53,19 @@ Event.findAll = (result) => {
 
       result(null, res.rows);
     },
+      );
+    },
   );
 };
 
 Event.create = (event, result) => {
   db.query(
     `INSERT INTO events
-      (title, event_date, start_time, end_time, location, description, price, image, created_by)
-     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
-     RETURNING id, title, event_date AS date, start_time AS "startTime",
+      (title, event_date, active_from, active_to, recurring, recurrence_frequency, active, start_time, end_time, location, description, price, image, created_by)
+     VALUES ($1, $2, $3, $4, $5, $6::varchar(10), CASE WHEN CURRENT_DATE >= $3::date AND (NOT $5::boolean OR (CURRENT_DATE <= $4::date AND (($6::varchar(10) = 'monthly' AND EXTRACT(DAY FROM CURRENT_DATE) = EXTRACT(DAY FROM $3::date)) OR ($6::varchar(10) = 'yearly' AND TO_CHAR(CURRENT_DATE, 'MM-DD') = TO_CHAR($3::date, 'MM-DD'))))) THEN 1 ELSE 0 END, $7, $8, $9, $10, $11, $12, $13)
+     RETURNING id, title, event_date AS date, active_from AS "activeFrom", active_to AS "activeTo", recurring, recurrence_frequency AS "recurrenceFrequency", start_time AS "startTime",
                end_time AS "endTime", location, description, price, image`,
-    [event.title, event.date, event.startTime, event.endTime, event.location, event.description, event.price || "Free", event.image || DEFAULT_EVENT_IMAGE, event.created_by],
+    [event.title, event.date, event.activeFrom, event.recurring ? event.activeTo : null, Boolean(event.recurring), event.recurrenceFrequency || "monthly", event.startTime, event.endTime, event.location, event.description, event.price || "Free", event.image || DEFAULT_EVENT_IMAGE, event.created_by],
     (err, res) => {
       if (err) {
         console.log("Event create error:", err);
@@ -59,12 +81,13 @@ Event.create = (event, result) => {
 Event.updateById = (id, event, result) => {
   db.query(
     `UPDATE events
-     SET title = $1, event_date = $2, start_time = $3, end_time = $4,
-         location = $5, description = $6, price = $7, image = $8, updated_at = NOW()
-     WHERE id = $9
-     RETURNING id, title, event_date AS date, start_time AS "startTime",
+     SET title = $1, event_date = $2, active_from = $3, active_to = $4, recurring = $5, recurrence_frequency = $6::varchar(10),
+         active = CASE WHEN CURRENT_DATE >= $3::date AND (NOT $5::boolean OR (CURRENT_DATE <= $4::date AND (($6::varchar(10) = 'monthly' AND EXTRACT(DAY FROM CURRENT_DATE) = EXTRACT(DAY FROM $3::date)) OR ($6::varchar(10) = 'yearly' AND TO_CHAR(CURRENT_DATE, 'MM-DD') = TO_CHAR($3::date, 'MM-DD'))))) THEN 1 ELSE 0 END,
+         start_time = $7, end_time = $8, location = $9, description = $10, price = $11, image = $12, updated_at = NOW()
+     WHERE id = $13
+     RETURNING id, title, event_date AS date, active_from AS "activeFrom", active_to AS "activeTo", recurring, recurrence_frequency AS "recurrenceFrequency", start_time AS "startTime",
                end_time AS "endTime", location, description, price, image`,
-    [event.title, event.date, event.startTime, event.endTime, event.location, event.description, event.price || "Free", event.image || DEFAULT_EVENT_IMAGE, id],
+    [event.title, event.date, event.activeFrom, event.recurring ? event.activeTo : null, Boolean(event.recurring), event.recurrenceFrequency || "monthly", event.startTime, event.endTime, event.location, event.description, event.price || "Free", event.image || DEFAULT_EVENT_IMAGE, id],
     (err, res) => {
       if (err) {
         console.log("Event updateById error:", err);
@@ -86,7 +109,7 @@ Event.updateImage = (id, imageUrl, result) => {
   db.query(
     `UPDATE events SET image = $1, updated_at = NOW()
      WHERE id = $2
-     RETURNING id, title, event_date AS date, start_time AS "startTime",
+     RETURNING id, title, event_date AS date, active_from AS "activeFrom", active_to AS "activeTo", recurring, recurrence_frequency AS "recurrenceFrequency", start_time AS "startTime",
                end_time AS "endTime", location, description, price, image`,
     [imageUrl, id],
     (err, res) => {

@@ -285,9 +285,9 @@ a {
 .teacher-section-title {
   margin: 0;
   color: #7d0736;
-  font-family: Georgia, "Times New Roman", serif;
-  font-weight: 700;
-  text-transform: uppercase;
+  font-family: $primary-font-family;
+  font-weight: 600;
+  //text-transform: uppercase;
 }
 
 .teacher-page-heading h1 {
@@ -2620,7 +2620,8 @@ a {
   font-size: clamp(2.2rem, 2.2vw, 3.2rem);
   line-height: 1.05;
   letter-spacing: -0.06em;
-  font-weight: 800;
+  font-weight: 700;
+  font-family: $primary-font-family;
   color: #1a1d2d;
   text-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
 }
@@ -3255,6 +3256,7 @@ a {
   font-size: clamp(1.4rem, 2vw, 1.9rem);
   font-weight: 800;
   color: #1a1d2d;
+  font-family: $primary-font-family;
 }
 
 .dashboard-teacher-team-link {
@@ -3352,6 +3354,19 @@ a {
   flex-direction: column;
   gap: 6px;
   min-width: 0;
+}
+
+.add-event-form .event-recurring-toggle {
+  flex-direction: row;
+  align-items: center;
+  align-self: center;
+}
+
+.add-event-form .event-recurring-toggle input[type="checkbox"] {
+  width: auto;
+  min-height: 0;
+  margin: 0;
+  padding: 0;
 }
 
 .add-event-form .form-field input,
