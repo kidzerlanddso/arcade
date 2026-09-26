@@ -10,6 +10,10 @@ import {
 } from "../data/events";
 
 const getAdminStatus = () => localStorage.getItem("isAdmin") === "true";
+const getTodayDateInputValue = () => {
+  const today = new Date();
+  return `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}-${String(today.getDate()).padStart(2, "0")}`;
+};
 
 function EventsPage() {
   const [events, setEvents] = useState([]);
@@ -27,11 +31,17 @@ function EventsPage() {
   const [isMonthPickerOpen, setIsMonthPickerOpen] = useState(false);
   const [isCalendarViewMenuOpen, setIsCalendarViewMenuOpen] = useState(false);
   const [registeringEventId, setRegisteringEventId] = useState(null);
+  const [isSavingEvent, setIsSavingEvent] = useState(false);
+  const isSavingEventRef = useRef(false);
   const [imageFile, setImageFile] = useState(null);
   const imageInputRef = useRef(null);
   const [newEvent, setNewEvent] = useState({
     title: "",
     date: "",
+    activeFrom: getTodayDateInputValue(),
+    activeTo: "",
+    recurring: false,
+    recurrenceFrequency: "monthly",
     startTime: "",
     endTime: "",
     location: "",
@@ -60,29 +70,55 @@ function EventsPage() {
 
   const handleAddEvent = async (event) => {
     event.preventDefault();
+    if (isSavingEventRef.current) return;
+    isSavingEventRef.current = true;
+    setIsSavingEvent(true);
     try {
-      const response = editingEventId === null
-        ? await api.post("/events", newEvent)
-        : await api.patch(`/events/${editingEventId}`, newEvent);
+      const response =
+        editingEventId === null
+          ? await api.post("/events", newEvent)
+          : await api.patch(`/events/${editingEventId}`, newEvent);
       let savedEvent = response.data;
 
       if (imageFile) {
         const imageData = new FormData();
         imageData.append("eventImage", imageFile);
-        const imageResponse = await api.post(`/events/${savedEvent.id}/image`, imageData);
+        const imageResponse = await api.post(
+          `/events/${savedEvent.id}/image`,
+          imageData,
+        );
         savedEvent = imageResponse.data;
       }
 
-      setEvents((currentEvents) => editingEventId === null
-        ? [...currentEvents, savedEvent]
-        : currentEvents.map((currentEvent) => currentEvent.id === editingEventId ? savedEvent : currentEvent));
-      setNewEvent({ ...newEvent, title: "", date: "", startTime: "", endTime: "", location: "", description: "" });
+      setEvents((currentEvents) =>
+        editingEventId === null
+          ? [...currentEvents, savedEvent]
+          : currentEvents.map((currentEvent) =>
+              currentEvent.id === editingEventId ? savedEvent : currentEvent,
+            ),
+      );
+      setNewEvent({
+        ...newEvent,
+        title: "",
+        date: "",
+        activeFrom: getTodayDateInputValue(),
+        activeTo: "",
+        recurring: false,
+        recurrenceFrequency: "monthly",
+        startTime: "",
+        endTime: "",
+        location: "",
+        description: "",
+      });
       setImageFile(null);
       setShowAddEvent(false);
       setEditingEventId(null);
       setErrorMessage("");
     } catch (error) {
       setErrorMessage(error.response?.data?.message || "Unable to save event.");
+    } finally {
+      isSavingEventRef.current = false;
+      setIsSavingEvent(false);
     }
   };
 
@@ -92,6 +128,10 @@ function EventsPage() {
     setNewEvent({
       ...event,
       date: toDateInputValue(event.date),
+      activeFrom: toDateInputValue(event.activeFrom),
+      activeTo: toDateInputValue(event.activeTo),
+      recurring: Boolean(event.recurring),
+      recurrenceFrequency: event.recurrenceFrequency || "monthly",
       startTime: toTimeInputValue(event.startTime),
       endTime: toTimeInputValue(event.endTime),
     });
@@ -106,6 +146,10 @@ function EventsPage() {
     setNewEvent({
       title: "",
       date: "",
+      activeFrom: getTodayDateInputValue(),
+      activeTo: "",
+      recurring: false,
+      recurrenceFrequency: "monthly",
       startTime: "",
       endTime: "",
       location: "",
@@ -220,9 +264,7 @@ function EventsPage() {
 
       <div className="events-page-header">
         <div>
-          <h1>
-            Events list <span>— All, {events.length} events</span>
-          </h1>
+          <h1>Events Management</h1>
         </div>
         <div className="events-header-actions">
           <span className="events-count">{events.length} events</span>
@@ -259,6 +301,7 @@ function EventsPage() {
         <div
           className="modal-overlay"
           onClick={(clickEvent) => {
+            if (isSavingEventRef.current) return;
             if (clickEvent.target !== clickEvent.currentTarget) return;
             setShowAddEvent(false);
             setEditingEventId(null);
@@ -283,6 +326,7 @@ function EventsPage() {
                 className="close-button"
                 type="button"
                 aria-label="Close event window"
+                disabled={isSavingEvent}
                 onClick={() => {
                   setShowAddEvent(false);
                   setEditingEventId(null);
@@ -310,6 +354,59 @@ function EventsPage() {
                   required
                 />
               </div>
+              <div className="form-field">
+                <label htmlFor="event-active-from">Active from</label>
+                <input
+                  id="event-active-from"
+                  type="date"
+                  name="activeFrom"
+                  value={toDateInputValue(newEvent.activeFrom)}
+                  onChange={handleNewEventChange}
+                  required
+                />
+              </div>
+              <label className="form-field event-recurring-toggle">
+                <input
+                  type="checkbox"
+                  name="recurring"
+                  checked={Boolean(newEvent.recurring)}
+                  onChange={(event) =>
+                    setNewEvent((current) => ({
+                      ...current,
+                      recurring: event.target.checked,
+                    }))
+                  }
+                />
+                <span>Recurring event</span>
+              </label>
+              {newEvent.recurring && (
+                <>
+                  <div className="form-field">
+                    <label htmlFor="event-recurrence-frequency">Repeats</label>
+                    <select
+                      id="event-recurrence-frequency"
+                      name="recurrenceFrequency"
+                      value={newEvent.recurrenceFrequency}
+                      onChange={handleNewEventChange}
+                    >
+                      <option value="monthly">Monthly</option>
+                      <option value="yearly">Yearly</option>
+                    </select>
+                  </div>
+                  <div className="form-field">
+                    <label htmlFor="event-active-to">Active until</label>
+                    <input
+                      id="event-active-to"
+                      type="date"
+                      name="activeTo"
+                      value={toDateInputValue(newEvent.activeTo)}
+                      min={newEvent.activeFrom || undefined}
+                      onChange={handleNewEventChange}
+                      required
+                    />
+                  </div>
+                </>
+              )}
               <div className="form-field">
                 <input
                   type="time"
@@ -358,12 +455,17 @@ function EventsPage() {
               required
             />
             <div className="add-event-form-actions">
-              <button className="btn btn-outline-primary" type="submit">
-                Save event
+              <button
+                className="btn btn-outline-primary"
+                type="submit"
+                disabled={isSavingEvent}
+              >
+                {isSavingEvent ? "Saving…" : "Save event"}
               </button>
               <button
                 className="btn btn-outline-secondary"
                 type="button"
+                disabled={isSavingEvent}
                 onClick={() => {
                   setShowAddEvent(false);
                   setEditingEventId(null);
@@ -527,14 +629,11 @@ function EventsPage() {
       ) : (
         <div className="events-list" role="table" aria-label="Events list">
           <div className="events-list-header" role="row">
-            <span>
-              Event name
-              <br />
-              Date, time, location
-            </span>
-            <span>Registration</span>
+            <span>Event Details</span>
+            <span>Active Status</span>
+
             <span>Registrations</span>
-            <span></span>
+            <span>Action</span>
           </div>
           {visibleEvents.map((event, index) => (
             <article
@@ -557,7 +656,7 @@ function EventsPage() {
                 <span>{event.location}</span>
               </div>
               <div>
-                <strong>Enabled</strong>
+                <strong>{event.active ? "Yes" : "No"} Alumni Registered</strong>
               </div>
               <div>
                 <strong>
