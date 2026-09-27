@@ -578,10 +578,6 @@ function Dashboard() {
           </div>
           <div className="event-copy">
             <h3>Join our Facebook Group</h3>
-            <p className="event-date">Stay connected with alumni</p>
-            <p className="event-location">
-              News, reunions, and community updates
-            </p>
           </div>
         </a>
 
@@ -607,10 +603,6 @@ function Dashboard() {
           </div>
           <div className="event-copy">
             <h3>Follow us on Instagram</h3>
-            <p className="event-date">@rototuna.senior.high</p>
-            <p className="event-location">
-              Photos, stories, and school highlights
-            </p>
           </div>
         </a>
       </div>

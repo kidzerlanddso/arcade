@@ -647,21 +647,23 @@ function ProfileList() {
           ))}
         </select>
 
-        <select
-          className="year-filter"
-          value={selectedSharingType}
-          onChange={(event) => {
-            setSelectedSharingType(event.target.value);
-            setCurrentPage(1);
-          }}
-        >
-          <option value="all">All sharing preferences</option>
-          {expertiseSharingOptions.map((sharingType) => (
-            <option key={sharingType} value={sharingType}>
-              {sharingType}
-            </option>
-          ))}
-        </select>
+        {isAdmin && (
+          <select
+            className="year-filter"
+            value={selectedSharingType}
+            onChange={(event) => {
+              setSelectedSharingType(event.target.value);
+              setCurrentPage(1);
+            }}
+          >
+            <option value="all">All sharing preferences</option>
+            {expertiseSharingOptions.map((sharingType) => (
+              <option key={sharingType} value={sharingType}>
+                {sharingType}
+              </option>
+            ))}
+          </select>
+        )}
       </div>
       <div className="profile-toolbar">
         {isAdmin && (

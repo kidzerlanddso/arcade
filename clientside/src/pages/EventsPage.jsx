@@ -14,6 +14,14 @@ const getTodayDateInputValue = () => {
   const today = new Date();
   return `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}-${String(today.getDate()).padStart(2, "0")}`;
 };
+const getEventActiveStatus = (event) => {
+  if (Number(event.active) === 1) return "Active";
+  return (
+    <span style={{ color: "red" }}>
+      Goes live on {formatEventDate(event.activeFrom)}
+    </span>
+  );
+};
 
 function EventsPage() {
   const [events, setEvents] = useState([]);
@@ -23,7 +31,7 @@ function EventsPage() {
   const [showAddEvent, setShowAddEvent] = useState(false);
   const [editingEventId, setEditingEventId] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
-  const [eventFilter, setEventFilter] = useState("all");
+  const [eventFilter, setEventFilter] = useState("upcoming");
   const [isAdmin] = useState(getAdminStatus);
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
@@ -629,7 +637,9 @@ function EventsPage() {
       ) : (
         <div className="events-list" role="table" aria-label="Events list">
           <div className="events-list-header" role="row">
-            <span>Event Details</span>
+            <span>Event Name</span>
+            <span>Date& Time</span>
+            <span>Location</span>
             <span>Active Status</span>
 
             <span>Registrations</span>
@@ -643,20 +653,24 @@ function EventsPage() {
               onClick={() => setSelectedEvent(event)}
             >
               <div className="event-list-name">
-                <Link
-                  to={`/events/${event.id}`}
-                  onClick={(clickEvent) => clickEvent.stopPropagation()}
-                >
-                  {event.title}
-                </Link>
                 <strong>
-                  {formatEventDate(event.date)} ·{" "}
-                  {formatEventTimeRange(event.startTime, event.endTime)}
+                  <Link
+                    to={`/events/${event.id}`}
+                    onClick={(clickEvent) => clickEvent.stopPropagation()}
+                  >
+                    {event.title}
+                  </Link>
                 </strong>
+              </div>
+              <div className="event-list-name">
+                {formatEventDate(event.date)} · <br />
+                {formatEventTimeRange(event.startTime, event.endTime)}
+              </div>
+              <div>
                 <span>{event.location}</span>
               </div>
               <div>
-                <strong>{event.active ? "Yes" : "No"} Alumni Registered</strong>
+                <strong>{getEventActiveStatus(event)}</strong>
               </div>
               <div>
                 <strong>
@@ -669,15 +683,19 @@ function EventsPage() {
                     className="event-register-button"
                     type="button"
                     disabled={
-                      event.userJoined || registeringEventId === event.id
+                      Number(event.active) !== 1 ||
+                      event.userJoined ||
+                      registeringEventId === event.id
                     }
                     onClick={(clickEvent) => handleRegister(event, clickEvent)}
                   >
-                    {registeringEventId === event.id
-                      ? "Registering..."
-                      : event.userJoined
-                        ? "Registered"
-                        : "Register"}
+                    {Number(event.active) !== 1
+                      ? "Not active"
+                      : registeringEventId === event.id
+                        ? "Registering..."
+                        : event.userJoined
+                          ? "Registered"
+                          : "Register"}
                   </button>
                 )}
                 {isAdmin && (
