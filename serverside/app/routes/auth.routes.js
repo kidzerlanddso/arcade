@@ -8,6 +8,8 @@ module.exports = (app) => {
   app.post("/auth/google/register", auth.googleRegister);
   app.post("/auth/RegisterAdmin", verifyToken, verifyAdmin, auth.RegisterAdmin);
   app.post("/auth/login", auth.login);
+  app.post("/auth/forgot-password", auth.forgotPassword);
+  app.post("/auth/reset-password", verifyToken, auth.resetPassword);
   app.post("/auth/refresh", auth.refresh);
   app.post("/auth/logout", auth.logout);
   app.get(

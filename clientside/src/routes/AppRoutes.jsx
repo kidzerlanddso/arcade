@@ -18,6 +18,7 @@ import AlumniProfilePage from "../pages/AlumniProfilePage";
 import AnnouncementsPage from "../pages/AnnouncementsPage";
 import TeacherProfilesPage from "../pages/TeacherProfilesPage";
 import StatsPage from "../pages/StatsPage";
+import SpotlightDetailsPage from "../pages/SpotlightDetailsPage";
 
 function AppRoutes() {
   return (
@@ -76,6 +77,22 @@ function AppRoutes() {
         element={
           <ProtectedRoute>
             <TeacherProfilesPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/spotlights"
+        element={
+          <ProtectedRoute>
+            <SpotlightDetailsPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/spotlights/:spotlightId"
+        element={
+          <ProtectedRoute>
+            <SpotlightDetailsPage />
           </ProtectedRoute>
         }
       />

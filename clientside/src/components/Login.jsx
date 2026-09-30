@@ -8,10 +8,14 @@ function Login({ onGoogleNeedsRegistration }) {
 
   const [formData, setFormData] = useState({
     login: "",
-    password: ""
+    password: "",
   });
   const [status, setStatus] = useState({ type: "", message: "" });
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showForgotPassword, setShowForgotPassword] = useState(false);
+  const [forgotEmail, setForgotEmail] = useState("");
+  const [forgotStatus, setForgotStatus] = useState({ type: "", message: "" });
+  const [isRequestingPassword, setIsRequestingPassword] = useState(false);
 
   const handleChange = (event) => {
     const { name, value } = event.target;
@@ -27,7 +31,7 @@ function Login({ onGoogleNeedsRegistration }) {
       const response = await api.post("/auth/login", {
         ...formData,
         // Keep compatibility with servers that still expect username.
-        username: formData.login
+        username: formData.login,
       });
       const token = response.data.token;
       const isAdmin = Number(response.data.admin) === 1;
@@ -37,7 +41,7 @@ function Login({ onGoogleNeedsRegistration }) {
       localStorage.setItem("isAdmin", String(isAdmin));
       setStatus({
         type: "success",
-        message: response.data.message || "Login successful! Redirecting..."
+        message: response.data.message || "Login successful! Redirecting...",
       });
 
       window.setTimeout(() => {
@@ -47,10 +51,37 @@ function Login({ onGoogleNeedsRegistration }) {
       console.error(error);
       setStatus({
         type: "error",
-        message: error?.response?.data?.message || "Login failed"
+        message: error?.response?.data?.message || "Login failed",
       });
     } finally {
       setIsSubmitting(false);
+    }
+  };
+
+  const handleForgotPassword = async (event) => {
+    event.preventDefault();
+    setForgotStatus({ type: "", message: "" });
+    setIsRequestingPassword(true);
+
+    try {
+      const response = await api.post("/auth/forgot-password", {
+        email: forgotEmail.trim(),
+      });
+      setForgotStatus({
+        type: "success",
+        message:
+          response.data?.message ||
+          "Temporary password will be sent to the registered email id shortly.",
+      });
+    } catch (error) {
+      setForgotStatus({
+        type: "error",
+        message:
+          error?.response?.data?.message ||
+          "Unable to process the request. Please try again later.",
+      });
+    } finally {
+      setIsRequestingPassword(false);
     }
   };
 
@@ -66,10 +97,9 @@ function Login({ onGoogleNeedsRegistration }) {
             borderRadius: "8px",
             fontSize: "14px",
             fontWeight: 600,
-            background:
-              status.type === "success" ? "#e8f7ee" : "#fdecea",
+            background: status.type === "success" ? "#e8f7ee" : "#fdecea",
             color: status.type === "success" ? "#1f7a4d" : "#b42318",
-            border: `1px solid ${status.type === "success" ? "#9ad3b0" : "#f5b7b1"}`
+            border: `1px solid ${status.type === "success" ? "#9ad3b0" : "#f5b7b1"}`,
           }}
         >
           {status.message}
@@ -116,10 +146,59 @@ function Login({ onGoogleNeedsRegistration }) {
         </button>
       </form>
 
+      <button
+        className="forgot-password-trigger"
+        type="button"
+        aria-expanded={showForgotPassword}
+        onClick={() => {
+          setShowForgotPassword((visible) => !visible);
+          setForgotEmail(
+            (current) =>
+              current || (formData.login.includes("@") ? formData.login : ""),
+          );
+          setForgotStatus({ type: "", message: "" });
+        }}
+      >
+        Forgot password?
+      </button>
+
+      {showForgotPassword && (
+        <form className="forgot-password-form" onSubmit={handleForgotPassword}>
+          <p>Enter the email address registered to your account.</p>
+          <div className="form-field">
+            <label htmlFor="forgot-password-email">Registered email</label>
+            <input
+              id="forgot-password-email"
+              type="email"
+              autoComplete="email"
+              value={forgotEmail}
+              onChange={(event) => setForgotEmail(event.target.value)}
+              placeholder="Enter your email address"
+              required
+            />
+          </div>
+          <button
+            className="login-button"
+            type="submit"
+            disabled={isRequestingPassword}
+          >
+            {isRequestingPassword ? "Sending..." : "Send temporary password"}
+          </button>
+          {forgotStatus.message && (
+            <p
+              className={`form-status form-status--${forgotStatus.type}`}
+              role="status"
+              aria-live="polite"
+            >
+              {forgotStatus.message}
+            </p>
+          )}
+        </form>
+      )}
+
       <div className="auth-divider">
         <span>or</span>
       </div>
-
       <GoogleSignInButton
         onNeedsRegistration={onGoogleNeedsRegistration}
         onLoginSuccess={() => {

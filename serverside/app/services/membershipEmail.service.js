@@ -74,9 +74,43 @@ const sendMembershipRequestEmail = async ({ profile, pathway }) => {
   return data;
 };
 
+const sendTemporaryPasswordEmail = async ({ email, temporaryPassword }) => {
+  const resend = getResendClient();
+  if (!resend) {
+    throw new Error("RESEND_API_KEY is not configured.");
+  }
+
+  const from =
+    process.env.RESEND_FROM_EMAIL || "Alumni Connect <onboarding@resend.dev>";
+  const { data, error } = await resend.emails.send({
+    from,
+    to: [email],
+    subject: "Your Alumni Connect temporary password",
+    text: `Your temporary Alumni Connect password is: ${temporaryPassword}\n\nSign in with this password, then use the Reset Password option in your account menu to choose a new password. If you did not initiate this request, contact the RSHS AlumniConnect administrator.`,
+    html: `
+      <h2>Your temporary Alumni Connect password</h2>
+      <p>Use this temporary password to sign in:</p>
+      <p style="font-size: 20px; font-weight: bold; letter-spacing: 1px;">${escapeHtml(temporaryPassword)}</p>
+      <p>After signing in, use <strong>Reset Password</strong> in your account menu to choose a new password.</p>
+      <p>If you did not request this, contact the school administrator.</p>
+    `,
+  });
+
+  if (error) {
+    console.error("[password-reset-email] Resend rejected the email", error);
+    throw new Error(error.message || "Resend rejected the email.");
+  }
+
+  console.log("[password-reset-email] Resend accepted the email", {
+    messageId: data?.id || null,
+  });
+  return data;
+};
+
 const isMembershipEmailConfigured = () => Boolean(process.env.RESEND_API_KEY);
 
 module.exports = {
   sendMembershipRequestEmail,
+  sendTemporaryPasswordEmail,
   isMembershipEmailConfigured,
 };

@@ -124,6 +124,50 @@ pool.ensureContentTables = function (callback) {
     CREATE INDEX IF NOT EXISTS teacher_profiles_department_idx ON teacher_profiles (department);
     CREATE INDEX IF NOT EXISTS teacher_profiles_featured_idx ON teacher_profiles (featured);
 
+    CREATE TABLE IF NOT EXISTS spotlights (
+      id BIGSERIAL PRIMARY KEY,
+      teacher_id BIGINT REFERENCES teacher_profiles(id) ON DELETE CASCADE,
+      spotlight_type VARCHAR(20) NOT NULL DEFAULT 'teacher'
+        CHECK (spotlight_type IN ('teacher', 'alumni', 'community')),
+      subject_name VARCHAR(180),
+      title VARCHAR(200) NOT NULL,
+      story TEXT NOT NULL,
+      achievement_date DATE NOT NULL DEFAULT CURRENT_DATE,
+      image TEXT,
+      published BOOLEAN NOT NULL DEFAULT FALSE,
+      created_by INTEGER REFERENCES users(id) ON DELETE SET NULL,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      CONSTRAINT spotlights_subject_check CHECK (
+        (spotlight_type = 'teacher' AND teacher_id IS NOT NULL)
+        OR (spotlight_type <> 'teacher' AND teacher_id IS NULL)
+      )
+    );
+    CREATE INDEX IF NOT EXISTS spotlights_published_date_idx
+      ON spotlights (published, achievement_date DESC);
+    CREATE INDEX IF NOT EXISTS spotlights_teacher_idx
+      ON spotlights (teacher_id, achievement_date DESC);
+
+    DO $spotlight_migration$
+    BEGIN
+      IF to_regclass('public.teacher_spotlights') IS NOT NULL THEN
+        INSERT INTO spotlights
+          (id, teacher_id, spotlight_type, subject_name, title, story,
+           achievement_date, image, published, created_by, created_at, updated_at)
+        SELECT id, teacher_id, 'teacher', NULL, title, story,
+               achievement_date, image, published, created_by, created_at, updated_at
+        FROM teacher_spotlights
+        ON CONFLICT (id) DO NOTHING;
+
+        PERFORM setval(
+          pg_get_serial_sequence('spotlights', 'id'),
+          COALESCE((SELECT MAX(id) FROM spotlights), 1),
+          EXISTS (SELECT 1 FROM spotlights)
+        );
+      END IF;
+    END
+    $spotlight_migration$;
+
     CREATE TABLE IF NOT EXISTS content_items (
       id BIGSERIAL PRIMARY KEY,
       content_type VARCHAR(20) NOT NULL CHECK (content_type IN ('news', 'teacher')),

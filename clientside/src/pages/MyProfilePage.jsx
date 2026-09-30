@@ -57,6 +57,7 @@ function MyProfilePage({ readOnly = false }) {
   const [enableEmail, setEnableEmail] = useState("");
   const [mentorshipAvailable, setMentorshipAvailable] = useState(false);
   const [expertiseSharingTypes, setExpertiseSharingTypes] = useState([]);
+  const [otherExpertiseSharing, setOtherExpertiseSharing] = useState("");
   const [showExpertiseSharingDropdown, setShowExpertiseSharingDropdown] =
     useState(false);
   const expertiseSharingOptions = [
@@ -64,13 +65,13 @@ function MyProfilePage({ readOnly = false }) {
     "As a mentor",
     "Offering work experience",
     "As a tutor",
-    "Other",
   ];
   const [expertise, setExpertise] = useState("");
   const [expertiseId, setExpertiseId] = useState("");
   const [subcategoryId, setSubcategoryId] = useState("");
   const [selectedExpertiseIds, setSelectedExpertiseIds] = useState([]);
   const [selectedSubcategoryIds, setSelectedSubcategoryIds] = useState([]);
+  
   const [showMultiSubcategoryDropdown, setShowMultiSubcategoryDropdown] =
     useState(false);
   const [showMultiExpertiseDropdown, setShowMultiExpertiseDropdown] =
@@ -83,6 +84,11 @@ function MyProfilePage({ readOnly = false }) {
   const [profileImageUrl, setProfileImageUrl] = useState("");
   const [profileImageFile, setProfileImageFile] = useState(null);
   const [employment, setEmployment] = useState([]);
+  const isOthersExpertiseSelected = expertiseOptions.some(
+  (item) =>
+    item.expertise === "Others" &&
+    selectedExpertiseIds.includes(String(item.expertise_id))
+);
   const [jobTitle, setJobTitle] = useState("");
   const [editingEmploymentId, setEditingEmploymentId] = useState(null);
   const [company, setCompany] = useState("");
@@ -121,6 +127,7 @@ function MyProfilePage({ readOnly = false }) {
   const multiExpertiseDropdownRef = useRef(null);
   const multiSubcategoryDropdownRef = useRef(null);
   const mentorshipDaysDropdownRef = useRef(null);
+  const expertiseSharingDropdownRef = useRef(null);
   const mentorshipDays = [
     "Monday",
     "Tuesday",
@@ -168,6 +175,12 @@ function MyProfilePage({ readOnly = false }) {
       ) {
         setShowMentorshipDaysDropdown(false);
       }
+      if (
+  expertiseSharingDropdownRef.current &&
+  !expertiseSharingDropdownRef.current.contains(event.target)
+) {
+  setShowExpertiseSharingDropdown(false);
+}
     };
 
     document.addEventListener("mousedown", handleClickOutside);
@@ -262,10 +275,13 @@ function MyProfilePage({ readOnly = false }) {
     setLinkedinUrl(currentProfile?.linkedin_url || "");
     setMentorshipAvailable(currentProfile?.mentorship_available ?? false);
     setExpertiseSharingTypes(
-      Array.isArray(currentProfile?.expertise_sharing_types)
-        ? currentProfile.expertise_sharing_types
-        : [],
-    );
+  Array.isArray(currentProfile?.expertise_sharing_types)
+    ? currentProfile.expertise_sharing_types.filter(
+        (item) => item !== "Others" && item !== "Other"
+      )
+    : [],
+);
+setOtherExpertiseSharing(currentProfile?.other_subcategory || "");
     setShowExpertiseSharingDropdown(false);
     setExpertise(currentProfile?.expertise || "");
 
@@ -595,15 +611,21 @@ function MyProfilePage({ readOnly = false }) {
     try {
       await api.patch(`/profile/${profile.id}`, {
         mentorship_available: mentorshipAvailable,
-        expertise_id: mentorshipAvailable
-          ? selectedExpertiseIds.map(Number)
-          : [],
+       expertise_id:
+  mentorshipAvailable
+    ? selectedExpertiseIds.map(Number)
+    : [],
         expertise_sharing_types: mentorshipAvailable
           ? expertiseSharingTypes
           : [],
-        subcategory_id: mentorshipAvailable
-          ? selectedSubcategoryIds.map(Number)
-          : [],
+         other_subcategory:
+  mentorshipAvailable && isOthersExpertiseSelected
+    ? otherExpertiseSharing
+    : "",
+       subcategory_id:
+  mentorshipAvailable && !isOthersExpertiseSelected
+    ? selectedSubcategoryIds.map(Number)
+    : [],
         mentorship_availability: mentorshipAvailable
           ? mentorshipAvailability
           : "",
@@ -614,15 +636,22 @@ function MyProfilePage({ readOnly = false }) {
         expertise_sharing_types: mentorshipAvailable
           ? expertiseSharingTypes
           : [],
-        expertise_id: mentorshipAvailable
-          ? selectedExpertiseIds.map(Number)
-          : [],
-        subcategory_id: mentorshipAvailable
-          ? selectedSubcategoryIds.map(Number)
-          : [],
+          other_subcategory:
+  mentorshipAvailable && isOthersExpertiseSelected
+    ? otherExpertiseSharing
+    : "",
+        expertise_id:
+  mentorshipAvailable
+    ? selectedExpertiseIds.map(Number)
+    : [],
 
-        expertise: mentorshipAvailable ? expertise : "",
+subcategory_id:
+  mentorshipAvailable && !isOthersExpertiseSelected
+    ? selectedSubcategoryIds.map(Number)
+    : [],
 
+expertise:
+  mentorshipAvailable ? expertise : "",
         mentorship_availability: mentorshipAvailable
           ? mentorshipAvailability
           : "",
@@ -639,6 +668,7 @@ function MyProfilePage({ readOnly = false }) {
       console.error("Error saving Mentorship:", error);
     }
   };
+  
   const handleAddEmployment = async () => {
     const payload = getTokenPayload();
 
@@ -1416,7 +1446,10 @@ function MyProfilePage({ readOnly = false }) {
                 <button
                   type="button"
                   className="section-edit-button"
-                  onClick={() => setShowMentorshipModal(true)}
+              onClick={() => {
+  setOtherExpertiseSharing(profile?.expertise_sharing_other || "");
+  setShowMentorshipModal(true);
+}}
                   aria-label="Edit Mentorship"
                 >
                   <svg
@@ -1505,7 +1538,10 @@ function MyProfilePage({ readOnly = false }) {
                         >
                           Select one or more options.
                         </p>
-                        <div className="mentorship-days-dropdown">
+                      <div
+  className="mentorship-days-dropdown"
+  ref={expertiseSharingDropdownRef}
+>
                           <button
                             type="button"
                             aria-controls="expertise-sharing-options"
@@ -1551,6 +1587,13 @@ function MyProfilePage({ readOnly = false }) {
                                               (item) => item !== option,
                                             ),
                                       );
+                                      if (option === "Others" && checked) {
+  setSelectedExpertiseIds([]);
+  setSelectedSubcategoryIds([]);
+  setExpertiseId("");
+  setSubcategoryId("");
+  setExpertise("");
+}
 
                                       setShowExpertiseSharingDropdown(false);
                                     }}
@@ -1560,7 +1603,37 @@ function MyProfilePage({ readOnly = false }) {
                               ))}
                             </div>
                           )}
+                          {expertiseSharingTypes.includes("Others") && (
+  <div style={{ marginTop: "12px" }}>
+    <label
+      style={{
+        display: "block",
+        marginBottom: "6px",
+        fontWeight: "500",
+      }}
+    >
+      Please specify
+    </label>
+
+    <input
+      type="text"
+      value={otherExpertiseSharing}
+      onChange={(e) => setOtherExpertiseSharing(e.target.value)}
+      placeholder="Enter how you would like to share your expertise"
+      style={{
+        width: "100%",
+        padding: "12px",
+        border: "1px solid #ccc",
+        borderRadius: "8px",
+        fontSize: "16px",
+        boxSizing: "border-box",
+      }}
+    />
+  </div>
+)}
                         </div>
+                        {!expertiseSharingTypes.includes("Others") && (
+  <>
                         <label className="mentorship-field-label">
                           Expertise
                         </label>
@@ -1622,25 +1695,53 @@ function MyProfilePage({ readOnly = false }) {
                                   <div
                                     key={item.expertise_id}
                                     onClick={() => {
-                                      const updatedIds = isSelected
-                                        ? selectedExpertiseIds.filter(
-                                            (selectedId) => selectedId !== id,
-                                          )
-                                        : [...selectedExpertiseIds, id];
+  const othersOption = expertiseOptions.find(
+    (option) => option.expertise === "Others"
+  );
 
-                                      setSelectedExpertiseIds(updatedIds);
+  const othersId = othersOption
+    ? String(othersOption.expertise_id)
+    : "";
 
-                                      setExpertise(
-                                        expertiseOptions
-                                          .filter((option) =>
-                                            updatedIds.includes(
-                                              String(option.expertise_id),
-                                            ),
-                                          )
-                                          .map((option) => option.expertise)
-                                          .join(", "),
-                                      );
-                                    }}
+  let updatedIds;
+
+  if (item.expertise === "Others") {
+    // Others can only be selected by itself
+    updatedIds = isSelected ? [] : [id];
+
+    setSelectedSubcategoryIds([]);
+
+    if (isSelected) {
+      setOtherExpertiseSharing("");
+    }
+  } else {
+    // Remove Others if user selects a normal expertise
+    const idsWithoutOthers = selectedExpertiseIds.filter(
+      (selectedId) => selectedId !== othersId
+    );
+
+    updatedIds = isSelected
+      ? idsWithoutOthers.filter(
+          (selectedId) => selectedId !== id
+        )
+      : [...idsWithoutOthers, id];
+
+    if (selectedExpertiseIds.includes(othersId)) {
+      setOtherExpertiseSharing("");
+    }
+  }
+
+  setSelectedExpertiseIds(updatedIds);
+
+  setExpertise(
+    expertiseOptions
+      .filter((option) =>
+        updatedIds.includes(String(option.expertise_id))
+      )
+      .map((option) => option.expertise)
+      .join(", ")
+  );
+}}
                                     style={{
                                       padding: "10px 14px",
                                       cursor: "pointer",
@@ -1661,6 +1762,8 @@ function MyProfilePage({ readOnly = false }) {
                             </div>
                           )}
                         </div>
+                        {!isOthersExpertiseSelected && (
+  <>
                         <label className="mentorship-field-label">
                           Subcategory
                         </label>
@@ -1750,6 +1853,32 @@ function MyProfilePage({ readOnly = false }) {
                             </div>
                           )}
                         </div>
+                          </>
+)}
+  </>
+)}
+{isOthersExpertiseSelected && (
+  <div style={{ marginBottom: "16px" }}>
+    <label className="mentorship-field-label">
+      Please specify your area of expertise
+    </label>
+
+    <input
+      type="text"
+      value={otherExpertiseSharing}
+      onChange={(e) => setOtherExpertiseSharing(e.target.value)}
+      placeholder="Enter your area of expertise"
+      style={{
+        width: "100%",
+        padding: "12px",
+        border: "1px solid #ccc",
+        borderRadius: "8px",
+        fontSize: "16px",
+        boxSizing: "border-box",
+      }}
+    />
+  </div>
+)}
                         <label className="mentorship-field-label">
                           Availability
                         </label>
@@ -1829,13 +1958,16 @@ function MyProfilePage({ readOnly = false }) {
                     <div style={{ marginBottom: "14px" }}>
                       <strong>I can share my expertise as</strong>
                       <div style={{ marginTop: "4px" }}>
-                        {profile.expertise_sharing_types.join(", ")}
+                      {profile.expertise_sharing_types.includes("Others")
+  ? profile.expertise_sharing_other
+  : profile.expertise_sharing_types.join(", ")}
                       </div>
                     </div>
                   )}
 
-                {mentorshipAvailable && (
+              {mentorshipAvailable && (
                   <>
+                  {!profile?.expertise_sharing_types?.includes("Others") && (
                     <div>
                       <strong>Areas of Expertise</strong>
 
@@ -1868,12 +2000,19 @@ function MyProfilePage({ readOnly = false }) {
                                   {expertiseItem?.expertise || ""}
                                 </strong>
 
-                                {relatedSubcategories.length > 0 && (
-                                  <>
-                                    {" > "}
-                                    {relatedSubcategories.join(", ")}
-                                  </>
-                                )}
+                      {expertiseItem?.expertise === "Others" && profile?.other_subcategory ? (
+  <>
+  {" > "}
+    {profile.other_subcategory}
+  </>
+) : (
+  relatedSubcategories.length > 0 && (
+    <>
+      {" > "}
+      {relatedSubcategories.join(", ")}
+    </>
+  )
+)}
                               </div>
                             );
                           })}
@@ -1883,6 +2022,7 @@ function MyProfilePage({ readOnly = false }) {
                       )}
                     </div>
 
+)}
                     <div style={{ marginTop: "14px" }}>
                       <strong>Days Available to Share Expertise</strong>
                       <div style={{ marginTop: "4px" }}>
