@@ -12,6 +12,10 @@ function Login({ onGoogleNeedsRegistration }) {
   });
   const [status, setStatus] = useState({ type: "", message: "" });
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showForgotPassword, setShowForgotPassword] = useState(false);
+  const [forgotEmail, setForgotEmail] = useState("");
+  const [forgotStatus, setForgotStatus] = useState({ type: "", message: "" });
+  const [isRequestingPassword, setIsRequestingPassword] = useState(false);
 
   const handleChange = (event) => {
     const { name, value } = event.target;
@@ -51,6 +55,33 @@ function Login({ onGoogleNeedsRegistration }) {
       });
     } finally {
       setIsSubmitting(false);
+    }
+  };
+
+  const handleForgotPassword = async (event) => {
+    event.preventDefault();
+    setForgotStatus({ type: "", message: "" });
+    setIsRequestingPassword(true);
+
+    try {
+      const response = await api.post("/auth/forgot-password", {
+        email: forgotEmail.trim(),
+      });
+      setForgotStatus({
+        type: "success",
+        message:
+          response.data?.message ||
+          "If an account exists for that email, a temporary password will be sent shortly.",
+      });
+    } catch (error) {
+      setForgotStatus({
+        type: "error",
+        message:
+          error?.response?.data?.message ||
+          "Unable to process the request. Please try again later.",
+      });
+    } finally {
+      setIsRequestingPassword(false);
     }
   };
 
@@ -115,6 +146,55 @@ function Login({ onGoogleNeedsRegistration }) {
           {isSubmitting ? "Signing In..." : "Sign In"}
         </button>
       </form>
+
+      <button
+        className="forgot-password-trigger"
+        type="button"
+        aria-expanded={showForgotPassword}
+        onClick={() => {
+          setShowForgotPassword((visible) => !visible);
+          setForgotEmail((current) =>
+            current || (formData.login.includes("@") ? formData.login : ""),
+          );
+          setForgotStatus({ type: "", message: "" });
+        }}
+      >
+        Forgot password?
+      </button>
+
+      {showForgotPassword && (
+        <form className="forgot-password-form" onSubmit={handleForgotPassword}>
+          <p>Enter the email address registered to your account.</p>
+          <div className="form-field">
+            <label htmlFor="forgot-password-email">Registered email</label>
+            <input
+              id="forgot-password-email"
+              type="email"
+              autoComplete="email"
+              value={forgotEmail}
+              onChange={(event) => setForgotEmail(event.target.value)}
+              placeholder="Enter your email address"
+              required
+            />
+          </div>
+          <button
+            className="login-button"
+            type="submit"
+            disabled={isRequestingPassword}
+          >
+            {isRequestingPassword ? "Sending..." : "Send temporary password"}
+          </button>
+          {forgotStatus.message && (
+            <p
+              className={`form-status form-status--${forgotStatus.type}`}
+              role="status"
+              aria-live="polite"
+            >
+              {forgotStatus.message}
+            </p>
+          )}
+        </form>
+      )}
 
       <div className="auth-divider">
         <span>or</span>

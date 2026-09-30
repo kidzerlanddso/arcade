@@ -1395,6 +1395,36 @@ a {
   color: #fff;
 }
 
+.forgot-password-trigger {
+  display: block;
+  margin: 12px 0 0 auto;
+  padding: 0 !important;
+  border: 0 !important;
+  background: transparent !important;
+  color: $primary-blue;
+  font-size: 0.9rem;
+  text-decoration: underline;
+}
+
+.forgot-password-form {
+  margin-top: 14px;
+  padding: 16px;
+  border: 1px solid #dbe4ef;
+  border-radius: 12px;
+  background: #f8fbff;
+}
+
+.forgot-password-form > p:first-child {
+  margin: 0 0 12px;
+  color: #526071;
+  font-size: 0.9rem;
+  line-height: 1.45;
+}
+
+.forgot-password-form .form-status {
+  margin: 0;
+}
+
 .auth-divider {
   display: flex;
   align-items: center;
