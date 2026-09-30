@@ -399,6 +399,7 @@ function ProtectedRoute({ children }) {
 
             <form className="auth-form" onSubmit={handleResetPassword}>
               <input
+                style={{ margin: "10px;" }}
                 type="password"
                 name="currentPassword"
                 value={formData.currentPassword}
@@ -412,6 +413,7 @@ function ProtectedRoute({ children }) {
               />
 
               <input
+                style={{ margin: "10px;" }}
                 type="password"
                 name="newPassword"
                 value={formData.newPassword}
@@ -425,6 +427,7 @@ function ProtectedRoute({ children }) {
               />
 
               <input
+                style={{ margin: "10px;" }}
                 type="password"
                 name="confirmPassword"
                 value={formData.confirmPassword}
