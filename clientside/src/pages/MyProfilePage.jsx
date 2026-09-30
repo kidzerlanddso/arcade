@@ -57,6 +57,7 @@ function MyProfilePage({ readOnly = false }) {
   const [enableEmail, setEnableEmail] = useState("");
   const [mentorshipAvailable, setMentorshipAvailable] = useState(false);
   const [expertiseSharingTypes, setExpertiseSharingTypes] = useState([]);
+  const [otherExpertiseSharing, setOtherExpertiseSharing] = useState("");
   const [showExpertiseSharingDropdown, setShowExpertiseSharingDropdown] =
     useState(false);
   const expertiseSharingOptions = [
@@ -64,7 +65,7 @@ function MyProfilePage({ readOnly = false }) {
     "As a mentor",
     "Offering work experience",
     "As a tutor",
-    "Other",
+    "Others",
   ];
   const [expertise, setExpertise] = useState("");
   const [expertiseId, setExpertiseId] = useState("");
@@ -121,6 +122,7 @@ function MyProfilePage({ readOnly = false }) {
   const multiExpertiseDropdownRef = useRef(null);
   const multiSubcategoryDropdownRef = useRef(null);
   const mentorshipDaysDropdownRef = useRef(null);
+  const expertiseSharingDropdownRef = useRef(null);
   const mentorshipDays = [
     "Monday",
     "Tuesday",
@@ -168,6 +170,12 @@ function MyProfilePage({ readOnly = false }) {
       ) {
         setShowMentorshipDaysDropdown(false);
       }
+      if (
+  expertiseSharingDropdownRef.current &&
+  !expertiseSharingDropdownRef.current.contains(event.target)
+) {
+  setShowExpertiseSharingDropdown(false);
+}
     };
 
     document.addEventListener("mousedown", handleClickOutside);
@@ -595,15 +603,21 @@ function MyProfilePage({ readOnly = false }) {
     try {
       await api.patch(`/profile/${profile.id}`, {
         mentorship_available: mentorshipAvailable,
-        expertise_id: mentorshipAvailable
-          ? selectedExpertiseIds.map(Number)
-          : [],
+       expertise_id:
+  mentorshipAvailable && !expertiseSharingTypes.includes("Others")
+    ? selectedExpertiseIds.map(Number)
+    : [],
         expertise_sharing_types: mentorshipAvailable
           ? expertiseSharingTypes
           : [],
-        subcategory_id: mentorshipAvailable
-          ? selectedSubcategoryIds.map(Number)
-          : [],
+          expertise_sharing_other:
+  mentorshipAvailable && expertiseSharingTypes.includes("Others")
+    ? otherExpertiseSharing
+    : "",
+        subcategory_id:
+  mentorshipAvailable && !expertiseSharingTypes.includes("Others")
+    ? selectedSubcategoryIds.map(Number)
+    : [],
         mentorship_availability: mentorshipAvailable
           ? mentorshipAvailability
           : "",
@@ -614,15 +628,24 @@ function MyProfilePage({ readOnly = false }) {
         expertise_sharing_types: mentorshipAvailable
           ? expertiseSharingTypes
           : [],
-        expertise_id: mentorshipAvailable
-          ? selectedExpertiseIds.map(Number)
-          : [],
-        subcategory_id: mentorshipAvailable
-          ? selectedSubcategoryIds.map(Number)
-          : [],
+          expertise_sharing_other:
+  mentorshipAvailable && expertiseSharingTypes.includes("Others")
+    ? otherExpertiseSharing
+    : "",
+        expertise_id:
+  mentorshipAvailable && !expertiseSharingTypes.includes("Others")
+    ? selectedExpertiseIds.map(Number)
+    : [],
 
-        expertise: mentorshipAvailable ? expertise : "",
+subcategory_id:
+  mentorshipAvailable && !expertiseSharingTypes.includes("Others")
+    ? selectedSubcategoryIds.map(Number)
+    : [],
 
+expertise:
+  mentorshipAvailable && !expertiseSharingTypes.includes("Others")
+    ? expertise
+    : "",
         mentorship_availability: mentorshipAvailable
           ? mentorshipAvailability
           : "",
@@ -1416,7 +1439,10 @@ function MyProfilePage({ readOnly = false }) {
                 <button
                   type="button"
                   className="section-edit-button"
-                  onClick={() => setShowMentorshipModal(true)}
+              onClick={() => {
+  setOtherExpertiseSharing(profile?.expertise_sharing_other || "");
+  setShowMentorshipModal(true);
+}}
                   aria-label="Edit Mentorship"
                 >
                   <svg
@@ -1505,7 +1531,10 @@ function MyProfilePage({ readOnly = false }) {
                         >
                           Select one or more options.
                         </p>
-                        <div className="mentorship-days-dropdown">
+                      <div
+  className="mentorship-days-dropdown"
+  ref={expertiseSharingDropdownRef}
+>
                           <button
                             type="button"
                             aria-controls="expertise-sharing-options"
@@ -1551,6 +1580,13 @@ function MyProfilePage({ readOnly = false }) {
                                               (item) => item !== option,
                                             ),
                                       );
+                                      if (option === "Others" && checked) {
+  setSelectedExpertiseIds([]);
+  setSelectedSubcategoryIds([]);
+  setExpertiseId("");
+  setSubcategoryId("");
+  setExpertise("");
+}
 
                                       setShowExpertiseSharingDropdown(false);
                                     }}
@@ -1560,7 +1596,37 @@ function MyProfilePage({ readOnly = false }) {
                               ))}
                             </div>
                           )}
+                          {expertiseSharingTypes.includes("Others") && (
+  <div style={{ marginTop: "12px" }}>
+    <label
+      style={{
+        display: "block",
+        marginBottom: "6px",
+        fontWeight: "500",
+      }}
+    >
+      Please specify
+    </label>
+
+    <input
+      type="text"
+      value={otherExpertiseSharing}
+      onChange={(e) => setOtherExpertiseSharing(e.target.value)}
+      placeholder="Enter how you would like to share your expertise"
+      style={{
+        width: "100%",
+        padding: "12px",
+        border: "1px solid #ccc",
+        borderRadius: "8px",
+        fontSize: "16px",
+        boxSizing: "border-box",
+      }}
+    />
+  </div>
+)}
                         </div>
+                        {!expertiseSharingTypes.includes("Others") && (
+  <>
                         <label className="mentorship-field-label">
                           Expertise
                         </label>
@@ -1750,6 +1816,8 @@ function MyProfilePage({ readOnly = false }) {
                             </div>
                           )}
                         </div>
+                          </>
+)}
                         <label className="mentorship-field-label">
                           Availability
                         </label>
@@ -1829,13 +1897,16 @@ function MyProfilePage({ readOnly = false }) {
                     <div style={{ marginBottom: "14px" }}>
                       <strong>I can share my expertise as</strong>
                       <div style={{ marginTop: "4px" }}>
-                        {profile.expertise_sharing_types.join(", ")}
+                      {profile.expertise_sharing_types.includes("Others")
+  ? profile.expertise_sharing_other
+  : profile.expertise_sharing_types.join(", ")}
                       </div>
                     </div>
                   )}
 
-                {mentorshipAvailable && (
+              {mentorshipAvailable && (
                   <>
+                  {!profile?.expertise_sharing_types?.includes("Others") && (
                     <div>
                       <strong>Areas of Expertise</strong>
 
@@ -1883,6 +1954,7 @@ function MyProfilePage({ readOnly = false }) {
                       )}
                     </div>
 
+)}
                     <div style={{ marginTop: "14px" }}>
                       <strong>Days Available to Share Expertise</strong>
                       <div style={{ marginTop: "4px" }}>
