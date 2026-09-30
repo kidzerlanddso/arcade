@@ -65,13 +65,13 @@ function MyProfilePage({ readOnly = false }) {
     "As a mentor",
     "Offering work experience",
     "As a tutor",
-    "Others",
   ];
   const [expertise, setExpertise] = useState("");
   const [expertiseId, setExpertiseId] = useState("");
   const [subcategoryId, setSubcategoryId] = useState("");
   const [selectedExpertiseIds, setSelectedExpertiseIds] = useState([]);
   const [selectedSubcategoryIds, setSelectedSubcategoryIds] = useState([]);
+  
   const [showMultiSubcategoryDropdown, setShowMultiSubcategoryDropdown] =
     useState(false);
   const [showMultiExpertiseDropdown, setShowMultiExpertiseDropdown] =
@@ -84,6 +84,11 @@ function MyProfilePage({ readOnly = false }) {
   const [profileImageUrl, setProfileImageUrl] = useState("");
   const [profileImageFile, setProfileImageFile] = useState(null);
   const [employment, setEmployment] = useState([]);
+  const isOthersExpertiseSelected = expertiseOptions.some(
+  (item) =>
+    item.expertise === "Others" &&
+    selectedExpertiseIds.includes(String(item.expertise_id))
+);
   const [jobTitle, setJobTitle] = useState("");
   const [editingEmploymentId, setEditingEmploymentId] = useState(null);
   const [company, setCompany] = useState("");
@@ -270,10 +275,13 @@ function MyProfilePage({ readOnly = false }) {
     setLinkedinUrl(currentProfile?.linkedin_url || "");
     setMentorshipAvailable(currentProfile?.mentorship_available ?? false);
     setExpertiseSharingTypes(
-      Array.isArray(currentProfile?.expertise_sharing_types)
-        ? currentProfile.expertise_sharing_types
-        : [],
-    );
+  Array.isArray(currentProfile?.expertise_sharing_types)
+    ? currentProfile.expertise_sharing_types.filter(
+        (item) => item !== "Others" && item !== "Other"
+      )
+    : [],
+);
+setOtherExpertiseSharing(currentProfile?.other_subcategory || "");
     setShowExpertiseSharingDropdown(false);
     setExpertise(currentProfile?.expertise || "");
 
@@ -604,18 +612,18 @@ function MyProfilePage({ readOnly = false }) {
       await api.patch(`/profile/${profile.id}`, {
         mentorship_available: mentorshipAvailable,
        expertise_id:
-  mentorshipAvailable && !expertiseSharingTypes.includes("Others")
+  mentorshipAvailable
     ? selectedExpertiseIds.map(Number)
     : [],
         expertise_sharing_types: mentorshipAvailable
           ? expertiseSharingTypes
           : [],
-          expertise_sharing_other:
-  mentorshipAvailable && expertiseSharingTypes.includes("Others")
+         other_subcategory:
+  mentorshipAvailable && isOthersExpertiseSelected
     ? otherExpertiseSharing
     : "",
-        subcategory_id:
-  mentorshipAvailable && !expertiseSharingTypes.includes("Others")
+       subcategory_id:
+  mentorshipAvailable && !isOthersExpertiseSelected
     ? selectedSubcategoryIds.map(Number)
     : [],
         mentorship_availability: mentorshipAvailable
@@ -628,24 +636,22 @@ function MyProfilePage({ readOnly = false }) {
         expertise_sharing_types: mentorshipAvailable
           ? expertiseSharingTypes
           : [],
-          expertise_sharing_other:
-  mentorshipAvailable && expertiseSharingTypes.includes("Others")
+          other_subcategory:
+  mentorshipAvailable && isOthersExpertiseSelected
     ? otherExpertiseSharing
     : "",
         expertise_id:
-  mentorshipAvailable && !expertiseSharingTypes.includes("Others")
+  mentorshipAvailable
     ? selectedExpertiseIds.map(Number)
     : [],
 
 subcategory_id:
-  mentorshipAvailable && !expertiseSharingTypes.includes("Others")
+  mentorshipAvailable && !isOthersExpertiseSelected
     ? selectedSubcategoryIds.map(Number)
     : [],
 
 expertise:
-  mentorshipAvailable && !expertiseSharingTypes.includes("Others")
-    ? expertise
-    : "",
+  mentorshipAvailable ? expertise : "",
         mentorship_availability: mentorshipAvailable
           ? mentorshipAvailability
           : "",
@@ -662,6 +668,7 @@ expertise:
       console.error("Error saving Mentorship:", error);
     }
   };
+  
   const handleAddEmployment = async () => {
     const payload = getTokenPayload();
 
@@ -1688,25 +1695,53 @@ expertise:
                                   <div
                                     key={item.expertise_id}
                                     onClick={() => {
-                                      const updatedIds = isSelected
-                                        ? selectedExpertiseIds.filter(
-                                            (selectedId) => selectedId !== id,
-                                          )
-                                        : [...selectedExpertiseIds, id];
+  const othersOption = expertiseOptions.find(
+    (option) => option.expertise === "Others"
+  );
 
-                                      setSelectedExpertiseIds(updatedIds);
+  const othersId = othersOption
+    ? String(othersOption.expertise_id)
+    : "";
 
-                                      setExpertise(
-                                        expertiseOptions
-                                          .filter((option) =>
-                                            updatedIds.includes(
-                                              String(option.expertise_id),
-                                            ),
-                                          )
-                                          .map((option) => option.expertise)
-                                          .join(", "),
-                                      );
-                                    }}
+  let updatedIds;
+
+  if (item.expertise === "Others") {
+    // Others can only be selected by itself
+    updatedIds = isSelected ? [] : [id];
+
+    setSelectedSubcategoryIds([]);
+
+    if (isSelected) {
+      setOtherExpertiseSharing("");
+    }
+  } else {
+    // Remove Others if user selects a normal expertise
+    const idsWithoutOthers = selectedExpertiseIds.filter(
+      (selectedId) => selectedId !== othersId
+    );
+
+    updatedIds = isSelected
+      ? idsWithoutOthers.filter(
+          (selectedId) => selectedId !== id
+        )
+      : [...idsWithoutOthers, id];
+
+    if (selectedExpertiseIds.includes(othersId)) {
+      setOtherExpertiseSharing("");
+    }
+  }
+
+  setSelectedExpertiseIds(updatedIds);
+
+  setExpertise(
+    expertiseOptions
+      .filter((option) =>
+        updatedIds.includes(String(option.expertise_id))
+      )
+      .map((option) => option.expertise)
+      .join(", ")
+  );
+}}
                                     style={{
                                       padding: "10px 14px",
                                       cursor: "pointer",
@@ -1727,6 +1762,8 @@ expertise:
                             </div>
                           )}
                         </div>
+                        {!isOthersExpertiseSelected && (
+  <>
                         <label className="mentorship-field-label">
                           Subcategory
                         </label>
@@ -1817,6 +1854,30 @@ expertise:
                           )}
                         </div>
                           </>
+)}
+  </>
+)}
+{isOthersExpertiseSelected && (
+  <div style={{ marginBottom: "16px" }}>
+    <label className="mentorship-field-label">
+      Please specify your area of expertise
+    </label>
+
+    <input
+      type="text"
+      value={otherExpertiseSharing}
+      onChange={(e) => setOtherExpertiseSharing(e.target.value)}
+      placeholder="Enter your area of expertise"
+      style={{
+        width: "100%",
+        padding: "12px",
+        border: "1px solid #ccc",
+        borderRadius: "8px",
+        fontSize: "16px",
+        boxSizing: "border-box",
+      }}
+    />
+  </div>
 )}
                         <label className="mentorship-field-label">
                           Availability
@@ -1939,12 +2000,19 @@ expertise:
                                   {expertiseItem?.expertise || ""}
                                 </strong>
 
-                                {relatedSubcategories.length > 0 && (
-                                  <>
-                                    {" > "}
-                                    {relatedSubcategories.join(", ")}
-                                  </>
-                                )}
+                      {expertiseItem?.expertise === "Others" && profile?.other_subcategory ? (
+  <>
+  {" > "}
+    {profile.other_subcategory}
+  </>
+) : (
+  relatedSubcategories.length > 0 && (
+    <>
+      {" > "}
+      {relatedSubcategories.join(", ")}
+    </>
+  )
+)}
                               </div>
                             );
                           })}
