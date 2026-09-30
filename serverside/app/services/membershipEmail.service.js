@@ -86,7 +86,7 @@ const sendTemporaryPasswordEmail = async ({ email, temporaryPassword }) => {
     from,
     to: [email],
     subject: "Your Alumni Connect temporary password",
-    text: `Your temporary Alumni Connect password is: ${temporaryPassword}\n\nSign in with this password, then use the Reset Password option in your account menu to choose a new password. If you did not request this, contact the school administrator.`,
+    text: `Your temporary Alumni Connect password is: ${temporaryPassword}\n\nSign in with this password, then use the Reset Password option in your account menu to choose a new password. If you did not initiate this request, contact the RSHS AlumniConnect administrator.`,
     html: `
       <h2>Your temporary Alumni Connect password</h2>
       <p>Use this temporary password to sign in:</p>
