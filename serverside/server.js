@@ -11,7 +11,7 @@ console.log(
 );
 console.log(
   "[startup] Resend sender:",
-  process.env.RESEND_FROM_EMAIL || "Alumni Connect <onboarding@resend.dev>",
+  process.env.RESEND_FROM_EMAIL || "Alumni Connect <alumni@rhs.school.nz>",
 );
 
 const express = require("express");
@@ -95,23 +95,23 @@ db.ensureEventAttendeesTable((migrationError) => {
 
   db.ensureContentTables((contentError) => {
     if (contentError) {
-      console.error(`Could not prepare content tables: ${contentError.message}`);
+      console.error(
+        `Could not prepare content tables: ${contentError.message}`,
+      );
       process.exitCode = 1;
       return;
     }
 
     db.syncSequences((sequenceError) => {
-    if (sequenceError) {
-      console.warn(
-        `Could not synchronize ${sequenceError.table || "database"} ID sequence: ${sequenceError.message}`,
-      );
-    }
+      if (sequenceError) {
+        console.warn(
+          `Could not synchronize ${sequenceError.table || "database"} ID sequence: ${sequenceError.message}`,
+        );
+      }
 
-    app.listen(PORT, () => {
-      console.log(
-        `CORS enabled Express web server is running on port ${PORT}.`,
-      );
-    });
+      app.listen(PORT, () => {
+        console.log(`CORS enabled web server is running on port.`);
+      });
     });
   });
 });

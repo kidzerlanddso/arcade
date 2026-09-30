@@ -39,6 +39,7 @@ function EventsPage() {
   const [isMonthPickerOpen, setIsMonthPickerOpen] = useState(false);
   const [isCalendarViewMenuOpen, setIsCalendarViewMenuOpen] = useState(false);
   const [registeringEventId, setRegisteringEventId] = useState(null);
+  const [deletingEventId, setDeletingEventId] = useState(null);
   const [isSavingEvent, setIsSavingEvent] = useState(false);
   const isSavingEventRef = useRef(false);
   const [imageFile, setImageFile] = useState(null);
@@ -188,6 +189,29 @@ function EventsPage() {
       );
     } finally {
       setRegisteringEventId(null);
+    }
+  };
+
+  const handleDeleteEvent = async (event, clickEvent) => {
+    clickEvent.stopPropagation();
+    if (!window.confirm(`Delete “${event.title}”? This cannot be undone.`)) {
+      return;
+    }
+
+    setDeletingEventId(event.id);
+    setErrorMessage("");
+    try {
+      await api.delete(`/events/${event.id}`);
+      setEvents((currentEvents) =>
+        currentEvents.filter((currentEvent) => currentEvent.id !== event.id),
+      );
+      setSelectedEvent((currentEvent) =>
+        currentEvent?.id === event.id ? null : currentEvent,
+      );
+    } catch (error) {
+      setErrorMessage(error.response?.data?.message || "Unable to delete event.");
+    } finally {
+      setDeletingEventId(null);
     }
   };
 
@@ -392,6 +416,7 @@ function EventsPage() {
                   <div className="form-field">
                     <label htmlFor="event-recurrence-frequency">Repeats</label>
                     <select
+                      className="year-filter"
                       id="event-recurrence-frequency"
                       name="recurrenceFrequency"
                       value={newEvent.recurrenceFrequency}
@@ -699,13 +724,23 @@ function EventsPage() {
                   </button>
                 )}
                 {isAdmin && (
-                  <button
-                    className="edit-event-button"
-                    type="button"
-                    onClick={(clickEvent) => handleEditEvent(event, clickEvent)}
-                  >
-                    Edit
-                  </button>
+                  <>
+                    <button
+                      className="edit-event-button"
+                      type="button"
+                      onClick={(clickEvent) => handleEditEvent(event, clickEvent)}
+                    >
+                      Edit
+                    </button>
+                    <button
+                      className="delete-event-button"
+                      type="button"
+                      disabled={deletingEventId === event.id}
+                      onClick={(clickEvent) => handleDeleteEvent(event, clickEvent)}
+                    >
+                      {deletingEventId === event.id ? "Deleting..." : "Delete"}
+                    </button>
+                  </>
                 )}
               </div>
             </article>

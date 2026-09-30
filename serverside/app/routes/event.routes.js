@@ -12,5 +12,6 @@ module.exports = (app) => {
   app.post("/events/:id/image", verifyToken, verifyAdmin, upload.single("eventImage"), events.uploadImage);
   app.patch("/events/registrations/:registrationId", verifyToken, verifyAdmin, events.updateRegistration);
   app.post("/events", verifyToken, verifyAdmin, events.create);
+  app.delete("/events/:id", verifyToken, verifyAdmin, events.remove);
   app.patch("/events/:id", verifyToken, verifyAdmin, events.update);
 };
