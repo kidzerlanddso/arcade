@@ -104,6 +104,22 @@ Event.updateById = (id, event, result) => {
   );
 };
 
+Event.deleteById = (id, result) => {
+  db.query("DELETE FROM events WHERE id = $1 RETURNING id", [id], (err, res) => {
+    if (err) {
+      result(err, null);
+      return;
+    }
+
+    if (!res.rows.length) {
+      result({ kind: "not_found" }, null);
+      return;
+    }
+
+    result(null, res.rows[0]);
+  });
+};
+
 Event.updateImage = (id, imageUrl, result) => {
   db.query(
     `UPDATE events SET image = $1, updated_at = NOW()

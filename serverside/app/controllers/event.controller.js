@@ -59,6 +59,22 @@ exports.update = (req, res) => {
   });
 };
 
+exports.remove = (req, res) => {
+  Event.deleteById(req.params.id, (err, data) => {
+    if (err) {
+      if (err.kind === "not_found") {
+        res.status(404).send({ message: `Event with id ${req.params.id} was not found.` });
+        return;
+      }
+
+      res.status(500).send({ message: err.message || "Error deleting event." });
+      return;
+    }
+
+    res.send({ message: "Event deleted successfully.", id: data.id });
+  });
+};
+
 exports.uploadImage = async (req, res) => {
   if (!req.file) return res.status(400).send({ message: "No image file uploaded." });
 

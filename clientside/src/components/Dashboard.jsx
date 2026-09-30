@@ -6,7 +6,6 @@ import schoolBackground from "../assets/school_bg.webp";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import {
-  defaultEvents,
   formatEventDate,
   formatEventTime,
 } from "../data/events";
@@ -45,6 +44,9 @@ function Dashboard() {
   const [carouselIndex, setCarouselIndex] = useState(0);
   const [featuredTeachers, setFeaturedTeachers] = useState([]);
   const [featuredTeachersStatus, setFeaturedTeachersStatus] =
+    useState("loading");
+  const [teacherSpotlights, setTeacherSpotlights] = useState([]);
+  const [teacherSpotlightsStatus, setTeacherSpotlightsStatus] =
     useState("loading");
   const [announcements, setAnnouncements] = useState([]);
   const [announcementsStatus, setAnnouncementsStatus] = useState("loading");
@@ -181,32 +183,26 @@ function Dashboard() {
     api
       .get("/events")
       .then((response) => {
-        const upcomingEvents = getUpcomingEvents(response.data);
-        setEvents(
-          upcomingEvents.length
-            ? upcomingEvents
-            : getUpcomingEvents(defaultEvents),
-        );
+        const activeEvents = Array.isArray(response.data)
+          ? response.data.filter((event) => Number(event.active) === 1)
+          : [];
+        setEvents(getUpcomingEvents(activeEvents));
       })
       .catch((error) => {
         console.error("Unable to load dashboard events:", error);
-        setEvents(getUpcomingEvents(defaultEvents));
+        setEvents([]);
       });
 
     api
-      .get("/content/teachers")
+      .get("/content/spotlights")
       .then((response) => {
-        const teachers = Array.isArray(response.data) ? response.data : [];
-        const featured = teachers.filter((teacher) =>
-          Boolean(teacher.featured),
-        );
-        setFeaturedTeachers(featured);
-        setFeaturedTeachersStatus("ready");
+        setTeacherSpotlights(Array.isArray(response.data) ? response.data : []);
+        setTeacherSpotlightsStatus("ready");
       })
       .catch((error) => {
-        console.error("Unable to load featured teachers:", error);
-        setFeaturedTeachers([]);
-        setFeaturedTeachersStatus("error");
+        console.error("Unable to load teacher spotlights:", error);
+        setTeacherSpotlights([]);
+        setTeacherSpotlightsStatus("error");
       });
 
     api
@@ -456,10 +452,7 @@ function Dashboard() {
           )}
         </section>
       ) : (
-        <p className="events-empty-state">
-          No upcoming events at the moment.{" "}
-          <Link to="/events">Browse all events</Link>
-        </p>
+        <p className="events-empty-state"></p>
       )}
 
       {announcementsStatus !== "loading" && (
@@ -516,40 +509,55 @@ function Dashboard() {
         </section>
       )}
 
-      {featuredTeachersStatus !== "loading" && (
+      {teacherSpotlightsStatus !== "loading" && (
         <section
-          className="teacher-team-section dashboard-teacher-team"
-          aria-label="Featured teachers"
+          className="teacher-team-section dashboard-teacher-team dashboard-spotlight-section"
+          aria-label="Teacher achievements"
         >
           <div className="dashboard-teacher-team-header">
-            <h2 className="dashboard-teacher-team-title">Spotlight </h2>
-            <Link to="/teachers" className="dashboard-teacher-team-link">
-              View all teachers
-            </Link>
+            <h2 className="dashboard-teacher-team-title">Spotlight</h2>
+            <div className="dashboard-spotlight-header-links">
+              <Link to="/spotlights" className="dashboard-teacher-team-link">
+                View all spotlights
+              </Link>
+            </div>
           </div>
-          {featuredTeachers.length > 0 ? (
-            <div className="teacher-grid teacher-grid--pastoral">
-              {featuredTeachers.map((teacher) => (
-                <article className="teacher-card" key={teacher.id}>
-                  <img
-                    src={teacher.image || schoolBackground}
-                    alt={`${teacher.name} profile`}
-                    className="teacher-avatar"
-                  />
-                  <p className="teacher-role">{teacher.name}</p>
-                  {teacher.focus && (
-                    <p className="teacher-focus">{teacher.focus}</p>
+          {teacherSpotlights.length > 0 ? (
+            <div className="teacher-spotlight-grid">
+              {teacherSpotlights.slice(0, 3).map((spotlight) => (
+                <Link
+                  to={`/spotlights/${spotlight.id}`}
+                  className="dashboard-spotlight-card"
+                  key={spotlight.id}
+                >
+                  {(spotlight.image || spotlight.teacherImage) && (
+                    <img
+                      src={spotlight.image || spotlight.teacherImage}
+                      alt={
+                        spotlight.image
+                          ? ""
+                          : `${spotlight.displayName || "Rototuna community"} profile`
+                      }
+                    />
                   )}
-                  <h3>{teacher.role}</h3>
-                </article>
+                  <div className="dashboard-spotlight-card-copy">
+                    <h3>{spotlight.title}</h3>
+                    <p>{spotlight.story}</p>
+                    <small>
+                      {new Date(
+                        `${String(spotlight.achievementDate).slice(0, 10)}T00:00:00`,
+                      ).toLocaleDateString("en-NZ", { dateStyle: "long" })}
+                    </small>
+                  </div>
+                </Link>
               ))}
             </div>
           ) : (
             <p className="events-empty-state">
-              {featuredTeachersStatus === "error"
-                ? "Unable to load featured teachers. Please refresh and try again."
-                : "No featured teachers yet. Mark teachers as featured in Teacher Profiles."}{" "}
-              <Link to="/teachers">Open teacher profiles</Link>
+              {teacherSpotlightsStatus === "error"
+                ? "Unable to load teacher spotlights. Please refresh and try again."
+                : "No teacher achievements have been published yet."}{" "}
+              <Link to="/teachers">View teacher profiles</Link>
             </p>
           )}
         </section>

@@ -19,11 +19,7 @@ $rhs-charcoal: #25282a;
 body {
   margin: 0;
   background: #f3f2ef;
-  font-family: "Segoe UI", sans-serif;
-  font-family:
-    -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue",
-    Arial, "Noto Sans", sans-serif, "Apple Color Emoji", "Segoe UI Emoji",
-    "Segoe UI Symbol", "Noto Color Emoji";
+  font-family: $primary-font-family;
   color: $dark-text;
 }
 
@@ -353,6 +349,28 @@ a {
   font-size: 1.12rem;
 }
 
+.teacher-spotlight-preview {
+  margin-top: 12px;
+  padding: 12px;
+  border-left: 3px solid #8b174e;
+  background: #fff7fa;
+  text-align: left;
+}
+
+.teacher-spotlight-preview strong {
+  color: #641039;
+}
+
+.teacher-spotlight-preview p {
+  margin: 6px 0;
+  color: #414957;
+  font-size: 0.9rem;
+}
+
+.teacher-spotlight-preview small {
+  color: #727987;
+}
+
 .teacher-card a {
   color: #4d5664;
   font-size: 0.86rem;
@@ -425,7 +443,7 @@ a {
 .department-details h3 {
   margin: 0 0 28px;
   color: #7d0736;
-  font-family: Georgia, "Times New Roman", serif;
+  font-family: $primary-font-family;
   font-size: 1.5rem;
   text-decoration: underline;
   text-transform: uppercase;
@@ -517,7 +535,7 @@ a {
 
 .announcements-page .content-page-heading h1 {
   color: $primary-blue;
-  font-family: Georgia, "Times New Roman", serif;
+  font-family: $primary-font-family;
   font-size: clamp(2.2rem, 4vw, 3.2rem);
   font-weight: 700;
 }
@@ -644,7 +662,9 @@ a {
 .admin-content-toolbar {
   display: flex;
   justify-content: flex-end;
-  margin: 0 0 18px;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin: 5rem 0 5rem;
 }
 
 .add-news-button {
@@ -777,6 +797,64 @@ a {
   border-radius: 22px;
   background: linear-gradient(180deg, #ffffff 0%, #f4f8fe 100%);
   box-shadow: 0 18px 42px rgba(17, 42, 74, 0.16);
+}
+
+.teacher-spotlight-manager {
+  max-height: min(90vh, 900px);
+  overflow-y: auto;
+}
+
+.spotlight-editor-overlay {
+  z-index: 1001;
+}
+
+.teacher-spotlight-editor {
+  max-height: min(90vh, 900px);
+  overflow-y: auto;
+}
+
+.spotlight-manager-add-button {
+  margin-bottom: 16px;
+}
+
+.spotlight-manager-empty {
+  margin: 0;
+  color: #586779;
+}
+
+.teacher-spotlight-manager .teacher-modal-header h2 {
+  font-size: clamp(1.2rem, 2.4vw, 1.8rem);
+  letter-spacing: -0.02em;
+}
+
+.teacher-spotlight-list {
+  display: grid;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.teacher-spotlight-admin-item {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 14px;
+  border: 1px solid #e0e7f0;
+  border-radius: 10px;
+  background: #fff;
+}
+
+.teacher-spotlight-admin-item p {
+  margin: 6px 0;
+}
+
+.teacher-spotlight-admin-item .admin-card-actions {
+  flex: 0 0 auto;
+  margin-top: 0;
+}
+
+.teacher-spotlight-editor .spotlight-story-field {
+  grid-column: 1 / -1;
 }
 
 .teacher-modal-header {
@@ -1430,7 +1508,7 @@ a {
 .search-input,
 .year-filter {
   padding: 12px 14px;
-  border: 1px solid $soft-border;
+  border: 1px solid #d1d5db;
   border-radius: 10px;
   background: #fff;
   color: $dark-text;
@@ -3270,8 +3348,175 @@ a {
   text-decoration: underline;
 }
 
+.dashboard-spotlight-header-links {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 16px;
+}
+
 .dashboard-teacher-team .teacher-grid--pastoral {
   max-width: none;
+}
+
+.teacher-spotlight-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 20px;
+}
+
+.dashboard-spotlight-card {
+  display: block;
+  overflow: hidden;
+  border: 1px solid #e2e6ed;
+  border-radius: 16px;
+  background: #fff;
+  box-shadow: 0 8px 22px rgba(15, 23, 42, 0.08);
+  color: inherit;
+  text-decoration: none;
+  transition:
+    transform 0.18s ease,
+    box-shadow 0.18s ease;
+}
+
+.dashboard-spotlight-card:hover,
+.dashboard-spotlight-card:focus-visible {
+  transform: translateY(-3px);
+  box-shadow: 0 13px 28px rgba(15, 23, 42, 0.14);
+  outline: 2px solid rgba(10, 102, 194, 0.35);
+  outline-offset: 2px;
+}
+
+.dashboard-spotlight-card > img {
+  display: block;
+  width: 100%;
+  max-height: 230px;
+  object-fit: cover;
+}
+
+.dashboard-spotlight-card-copy {
+  padding: 18px;
+}
+
+.dashboard-spotlight-teacher {
+  margin: 0 0 8px;
+  color: #7d0736;
+  font-weight: 700;
+}
+
+.dashboard-spotlight-card-copy h3 {
+  margin: 0 0 10px;
+  color: #1a1d2d;
+}
+
+.dashboard-spotlight-card-copy > p:not(.dashboard-spotlight-teacher) {
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 5;
+  margin: 0 0 12px;
+  color: #4b5563;
+}
+
+.dashboard-spotlight-card-copy small {
+  color: #727987;
+}
+
+.spotlight-detail-page {
+  width: min(calc(100% - 32px), 1040px);
+  margin: 32px auto 80px;
+  color: $dark-text;
+  font-family: $primary-font-family;
+}
+
+.spotlight-index-header {
+  margin-bottom: 28px;
+}
+
+.spotlight-index-header h1 {
+  margin: 0 0 8px;
+  color: #172235;
+  font-family: $primary-font-family;
+  font-size: clamp(2rem, 5vw, 3.2rem);
+}
+
+.spotlight-index-header > p:last-child {
+  margin: 0;
+  color: #68717d;
+}
+
+.spotlight-detail-back {
+  display: inline-block;
+  margin-bottom: 24px;
+  color: $primary-blue;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.spotlight-detail-article {
+  overflow: hidden;
+  border: 1px solid #e2e6ed;
+  border-radius: 18px;
+  background: #fff;
+  box-shadow: 0 12px 34px rgba(15, 23, 42, 0.08);
+}
+
+.spotlight-detail-heading {
+  padding: clamp(24px, 5vw, 56px) clamp(22px, 6vw, 72px) 28px;
+}
+
+.spotlight-detail-category {
+  margin: 0 0 12px;
+  color: #7d0736;
+  font-size: 0.85rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.spotlight-detail-heading h1 {
+  margin: 0 0 18px;
+  color: #172235;
+  font-family: $primary-font-family;
+  font-size: clamp(2rem, 5vw, 3.6rem);
+  line-height: 1.1;
+}
+
+.spotlight-detail-byline {
+  color: #68717d;
+  font-size: 1rem;
+}
+
+.spotlight-detail-image {
+  display: block;
+  width: 100%;
+  max-height: 580px;
+  object-fit: cover;
+}
+
+.spotlight-detail-story {
+  max-width: 780px;
+  margin: 0 auto;
+  padding: clamp(24px, 5vw, 56px) 22px;
+  color: #303947;
+  font-size: 1.08rem;
+  line-height: 1.8;
+  white-space: normal;
+}
+
+.spotlight-detail-story p {
+  margin: 0 0 1.2em;
+  white-space: pre-wrap;
+}
+
+@media (max-width: 760px) {
+  .teacher-spotlight-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .teacher-spotlight-admin-item {
+    flex-direction: column;
+  }
 }
 
 .featured-teachers-title {
@@ -3613,6 +3858,28 @@ a {
 
 .event-row-actions .edit-event-button {
   margin: 0;
+}
+
+.delete-event-button {
+  margin-top: 8px;
+  border: 1px solid #c53030;
+  border-radius: 10px;
+  padding: 8px 13px;
+  background: #fff;
+  color: #b42318;
+  cursor: pointer;
+  font-weight: 700;
+}
+
+.delete-event-button:hover,
+.delete-event-button:focus-visible {
+  background: #fff1f0;
+  outline: none;
+}
+
+.delete-event-button:disabled {
+  cursor: wait;
+  opacity: 0.65;
 }
 
 .event-row-actions .event-register-button {
@@ -5973,7 +6240,7 @@ input:checked + .slider::before {
 /* Site footer — RHS style: Contact Us + Find Us + Privacy */
 .site-footer {
   color: #fff;
-  font-family: "DM Sans", sans-serif;
+  font-family: $primary-font-family;
   font-size: 16px;
   line-height: 1.8;
   background-color: #437fc1;
@@ -6051,7 +6318,7 @@ input:checked + .slider::before {
 .site-footer-block h4 {
   margin: 0 0 12px;
   color: #fff;
-  font-family: "DM Sans", sans-serif;
+  font-family: $primary-font-family;
   font-size: 21px;
   font-weight: 600;
   line-height: 1.35;
