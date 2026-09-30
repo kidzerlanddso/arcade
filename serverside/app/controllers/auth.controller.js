@@ -6,6 +6,7 @@ const Profile = require("../models/profile.model");
 const config = require("../config/db.config.js");
 const {
   sendMembershipRequestEmail,
+  sendTemporaryPasswordEmail,
 } = require("../services/membershipEmail.service");
 const { verifyGoogleIdToken } = require("../services/googleAuth.service");
 
@@ -304,6 +305,153 @@ exports.login = function (req, res) {
     }
 
     return respondForAuthenticatedUser(res, data);
+  });
+};
+
+const generateTemporaryPassword = () => {
+  const characterSets = [
+    "ABCDEFGHJKLMNPQRSTUVWXYZ",
+    "abcdefghijkmnopqrstuvwxyz",
+    "23456789",
+    "!@#$%^&*_-+=",
+  ];
+  const allCharacters = characterSets.join("");
+  const passwordCharacters = characterSets.map(
+    (characters) => characters[crypto.randomInt(characters.length)],
+  );
+
+  while (passwordCharacters.length < 16) {
+    passwordCharacters.push(allCharacters[crypto.randomInt(allCharacters.length)]);
+  }
+
+  for (let index = passwordCharacters.length - 1; index > 0; index -= 1) {
+    const swapIndex = crypto.randomInt(index + 1);
+    [passwordCharacters[index], passwordCharacters[swapIndex]] = [
+      passwordCharacters[swapIndex],
+      passwordCharacters[index],
+    ];
+  }
+
+  return passwordCharacters.join("");
+};
+
+const genericForgotPasswordResponse = (res) =>
+  res.status(200).send({
+    message:
+      "If an account exists for that email, a temporary password will be sent shortly.",
+  });
+
+const passwordResetCooldowns = new Map();
+const PASSWORD_RESET_COOLDOWN_MS = 60 * 1000;
+
+exports.forgotPassword = function (req, res) {
+  const email = String(req.body?.email || "").trim();
+  if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    return res.status(400).send({ message: "Enter a valid email address." });
+  }
+
+  const normalizedEmail = email.toLowerCase();
+  const emailKey = crypto
+    .createHash("sha256")
+    .update(normalizedEmail)
+    .digest("hex");
+  const now = Date.now();
+  const previousRequest = passwordResetCooldowns.get(emailKey);
+  if (previousRequest && now - previousRequest < PASSWORD_RESET_COOLDOWN_MS) {
+    return genericForgotPasswordResponse(res);
+  }
+  passwordResetCooldowns.set(emailKey, now);
+  if (passwordResetCooldowns.size > 1000) {
+    for (const [key, requestedAt] of passwordResetCooldowns) {
+      if (now - requestedAt >= PASSWORD_RESET_COOLDOWN_MS) {
+        passwordResetCooldowns.delete(key);
+      }
+    }
+  }
+
+  User.findByProfileEmail(normalizedEmail, (lookupError, user) => {
+    if (lookupError) {
+      if (lookupError.kind === "not_found") {
+        return genericForgotPasswordResponse(res);
+      }
+      console.error("[password-reset] Account lookup failed.");
+      return res.status(500).send({ message: "Unable to process the request." });
+    }
+
+    const temporaryPassword = generateTemporaryPassword();
+    const temporaryPasswordHash = bcrypt.hashSync(temporaryPassword, 10);
+
+    User.updatePasswordById(user.id, temporaryPasswordHash, async (updateError) => {
+      if (updateError) {
+        console.error("[password-reset] Temporary password update failed.");
+        return res.status(500).send({ message: "Unable to process the request." });
+      }
+
+      try {
+        await sendTemporaryPasswordEmail({
+          email: normalizedEmail,
+          temporaryPassword,
+        });
+      } catch (emailError) {
+        await new Promise((resolve) => {
+          User.restorePasswordById(
+            user.id,
+            temporaryPasswordHash,
+            user.password,
+            (restoreError) => {
+              if (restoreError) {
+                console.error(
+                  "[password-reset] Could not restore the previous password.",
+                );
+              }
+              resolve();
+            },
+          );
+        });
+        console.error(
+          "[password-reset] Unable to send the temporary password email:",
+          emailError.message,
+        );
+      }
+
+      return genericForgotPasswordResponse(res);
+    });
+  });
+};
+
+exports.resetPassword = function (req, res) {
+  const currentPassword = req.body?.currentPassword;
+  const newPassword = req.body?.newPassword;
+  const strongPassword =
+    typeof newPassword === "string" &&
+    /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).{8,}$/.test(newPassword);
+
+  if (!currentPassword || !strongPassword) {
+    return res.status(400).send({
+      message:
+        "New password must be at least 8 characters and include uppercase, lowercase, a number, and a special character.",
+    });
+  }
+
+  User.findByUsername(req.username, (lookupError, user) => {
+    if (lookupError) {
+      if (lookupError.kind === "not_found") {
+        return res.status(400).send({ message: "Current password is incorrect." });
+      }
+      return res.status(500).send({ message: "Unable to verify current password." });
+    }
+
+    if (!bcrypt.compareSync(currentPassword, user.password)) {
+      return res.status(400).send({ message: "Current password is incorrect." });
+    }
+
+    const passwordHash = bcrypt.hashSync(newPassword, 10);
+    User.updatePasswordById(user.id, passwordHash, (updateError) => {
+      if (updateError) {
+        return res.status(500).send({ message: "Unable to update password." });
+      }
+      return res.status(200).send({ message: "Password updated successfully." });
+    });
   });
 };
 

@@ -379,6 +379,34 @@ User.findByProfileEmail = function (email, result) {
   );
 };
 
+User.updatePasswordById = function (userId, passwordHash, result) {
+  db.query(
+    "UPDATE users SET password = $2 WHERE id = $1 RETURNING id",
+    [userId, passwordHash],
+    function (err, res) {
+      if (err) return result(err, null);
+      if (!res.rows.length) return result({ kind: "not_found" }, null);
+      result(null, res.rows[0]);
+    },
+  );
+};
+
+User.restorePasswordById = function (
+  userId,
+  expectedPasswordHash,
+  previousPasswordHash,
+  result,
+) {
+  db.query(
+    "UPDATE users SET password = $3 WHERE id = $1 AND password = $2 RETURNING id",
+    [userId, expectedPasswordHash, previousPasswordHash],
+    function (err, res) {
+      if (err) return result(err, null);
+      result(null, res.rows[0] || null);
+    },
+  );
+};
+
 User.linkGoogleId = function (userId, googleId, result) {
   db.query(
     "UPDATE users SET google_id = $1 WHERE id = $2 AND google_id IS NULL RETURNING *",
