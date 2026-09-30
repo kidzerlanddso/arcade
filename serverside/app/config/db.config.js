@@ -22,4 +22,3 @@ module.exports = {
   REFRESH_SECRET: "our_jwt_refresh_secret_CSMAX_rototuna_alumni_platform",
 };
 
-//const resend = new Resend(process.env.RESEND_API_KEY || 're_Lzk2nzQm_Hzb7vdKeyZdWGfnPY3hknVag');

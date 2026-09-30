@@ -15,6 +15,7 @@ const Project = function (profile) {
   this.mentorship_available = profile.mentorship_available ?? false;
   this.mentorship_availability = profile.mentorship_availability || "";
   this.expertise_sharing_types = profile.expertise_sharing_types ?? [];
+  this.expertise_sharing_other = profile.expertise_sharing_other ?? "";
 };
 
 Project.getAll = (result) => {

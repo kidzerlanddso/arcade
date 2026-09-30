@@ -31,9 +31,12 @@ function EventDetailsPage() {
   const isAdmin = getAdminStatus();
 
   useEffect(() => {
-    api.get("/events")
+    api
+      .get("/events")
       .then((response) => {
-        const selectedEvent = response.data.find((item) => String(item.id) === eventId);
+        const selectedEvent = response.data.find(
+          (item) => String(item.id) === eventId,
+        );
         if (!selectedEvent) {
           setErrorMessage("Event not found.");
           return;
@@ -41,14 +44,19 @@ function EventDetailsPage() {
         setEvent(selectedEvent);
         setIsJoined(Boolean(selectedEvent.userJoined));
       })
-      .catch((error) => setErrorMessage(error.response?.data?.message || "Unable to load event."));
+      .catch((error) =>
+        setErrorMessage(
+          error.response?.data?.message || "Unable to load event.",
+        ),
+      );
   }, [eventId]);
 
   useEffect(() => {
     if (!event) return;
 
     setIsCheckingJoinStatus(true);
-    api.get(`/events/${event.id}/join-status`)
+    api
+      .get(`/events/${event.id}/join-status`)
       .then((response) => {
         setIsJoined(Boolean(response.data?.joined));
         setJoinedAt(response.data?.joinedAt || null);
@@ -63,16 +71,31 @@ function EventDetailsPage() {
   useEffect(() => {
     if (!event || !isAdmin) return;
 
-    api.get(`/events/${event.id}/attendees`)
+    api
+      .get(`/events/${event.id}/attendees`)
       .then((response) => setAttendees(response.data || []))
-      .catch((error) => setJoinError(error.response?.data?.message || "Unable to load attendees."));
+      .catch((error) =>
+        setJoinError(
+          error.response?.data?.message || "Unable to load attendees.",
+        ),
+      );
   }, [event, isAdmin]);
 
   if (errorMessage) {
-    return <main className="event-details-page"><p className="events-error">{errorMessage}</p><Link to="/events">Back to events</Link></main>;
+    return (
+      <main className="event-details-page">
+        <p className="events-error">{errorMessage}</p>
+        <Link to="/events">Back to events</Link>
+      </main>
+    );
   }
 
-  if (!event) return <main className="event-details-page"><p>Loading event...</p></main>;
+  if (!event)
+    return (
+      <main className="event-details-page">
+        <p>Loading event...</p>
+      </main>
+    );
 
   const handleCopyLink = async () => {
     try {
@@ -85,7 +108,9 @@ function EventDetailsPage() {
 
   const handleSectionChange = (section) => {
     setActiveSection(section);
-    document.getElementById(section)?.scrollIntoView({ behavior: "smooth", block: "start" });
+    document
+      .getElementById(section)
+      ?.scrollIntoView({ behavior: "smooth", block: "start" });
   };
 
   const handleJoin = async () => {
@@ -93,7 +118,9 @@ function EventDetailsPage() {
     try {
       const response = await api.post(`/events/${event.id}/join`);
       setIsJoined(true);
-      setJoinedAt(response.data.registration?.joinedAt || new Date().toISOString());
+      setJoinedAt(
+        response.data.registration?.joinedAt || new Date().toISOString(),
+      );
     } catch (error) {
       setJoinError(error.response?.data?.message || "Unable to join event.");
     }
@@ -113,7 +140,10 @@ function EventDetailsPage() {
       setEvent(response.data);
       setPhotoStatus("Photo updated.");
     } catch (error) {
-      setPhotoStatus(error.response?.data?.message || `Unable to update photo (${error.response?.status || "network error"}).`);
+      setPhotoStatus(
+        error.response?.data?.message ||
+          `Unable to update photo (${error.response?.status || "network error"}).`,
+      );
     } finally {
       setIsUploadingPhoto(false);
     }
@@ -121,11 +151,13 @@ function EventDetailsPage() {
 
   const handleExportAttendees = async () => {
     try {
-      const response = await api.get(`/events/${event.id}/attendees/export`, { responseType: "blob" });
+      const response = await api.get(`/events/${event.id}/attendees/export`, {
+        responseType: "blob",
+      });
       const downloadUrl = window.URL.createObjectURL(new Blob([response.data]));
       const link = document.createElement("a");
       link.href = downloadUrl;
-      link.download = `event-${event.id}-registrations.csv`;
+      link.download = `${event.title}-registrations.csv`;
       document.body.appendChild(link);
       link.click();
       link.remove();
@@ -148,42 +180,94 @@ function EventDetailsPage() {
 
   return (
     <main className="event-details-page">
-      <Link className="event-details-back" to="/events">Back to events</Link>
+      <Link className="event-details-back" to="/events">
+        Back to events
+      </Link>
       <section className="event-details-hero">
         <div className="event-details-hero-image-wrap">
-          <div className="event-details-hero-image" style={{ backgroundImage: `url(${event.image})` }} />
+          <div
+            className="event-details-hero-image"
+            style={{ backgroundImage: `url(${event.image})` }}
+          />
           {isAdmin && (
             <>
-              <label className="event-hero-edit-button" htmlFor="event-hero-photo">
+              <label
+                className="event-hero-edit-button"
+                htmlFor="event-hero-photo"
+              >
                 {isUploadingPhoto ? "Uploading..." : "Edit photo"}
               </label>
-              <input id="event-hero-photo" type="file" accept="image/*" onChange={handlePhotoChange} hidden disabled={isUploadingPhoto} />
-              {photoStatus && <p className="event-hero-photo-status" role="status">{photoStatus}</p>}
+              <input
+                id="event-hero-photo"
+                type="file"
+                accept="image/*"
+                onChange={handlePhotoChange}
+                hidden
+                disabled={isUploadingPhoto}
+              />
+              {photoStatus && (
+                <p className="event-hero-photo-status" role="status">
+                  {photoStatus}
+                </p>
+              )}
             </>
           )}
         </div>
         <div className="event-details-summary">
           <h1>{event.title}</h1>
-          <p className="event-details-rating">★★★★★ <span>Community event</span></p>
+          <p className="event-details-rating">
+            ★★★★★ <span>Community event</span>
+          </p>
           <p className="event-details-meta">⌖ {event.location}</p>
-          <p className="event-details-meta">◷ {formatEventDate(event.date)} · {formatEventTimeRange(event.startTime, event.endTime)}</p>
-          <div className="event-details-share"><span>Share</span><button type="button" onClick={handleCopyLink}>{copyStatus}</button></div>
+          <p className="event-details-meta">
+            ◷ {formatEventDate(event.date)} ·{" "}
+            {formatEventTimeRange(event.startTime, event.endTime)}
+          </p>
+          <div className="event-details-share">
+            <span>Share</span>
+            <button type="button" onClick={handleCopyLink}>
+              {copyStatus}
+            </button>
+          </div>
         </div>
       </section>
 
       <nav className="event-details-tabs" aria-label="Event details sections">
-        {["about", "details", "discussion"].map((section) => (
-          <button className={activeSection === section ? "event-details-tab-active" : ""} type="button" key={section} onClick={() => handleSectionChange(section)}>
+        {["about", "details"].map((section) => (
+          <button
+            className={
+              activeSection === section ? "event-details-tab-active" : ""
+            }
+            type="button"
+            key={section}
+            onClick={() => handleSectionChange(section)}
+          >
             {section === "about" ? "✦" : section === "details" ? "▣" : "☷"}
-            <span>{section === "discussion" ? "Discussions" : section[0].toUpperCase() + section.slice(1)}</span>
+            <span>
+              {section === "discussion"
+                ? "Discussions"
+                : section[0].toUpperCase() + section.slice(1)}
+            </span>
           </button>
         ))}
         {!isAdmin && (
           <div className="event-join-action">
-            <button type="button" onClick={handleJoin} disabled={isCheckingJoinStatus || isJoined}>
-              {isCheckingJoinStatus ? "Checking..." : isJoined ? "Joined" : "Join this event"}
+            <button
+              type="button"
+              onClick={handleJoin}
+              disabled={isCheckingJoinStatus || isJoined}
+            >
+              {isCheckingJoinStatus
+                ? "Checking..."
+                : isJoined
+                  ? "Joined"
+                  : "Join this event"}
             </button>
-            {isJoined && joinedAt && <span role="status">Joined on {new Date(joinedAt).toLocaleDateString()}</span>}
+            {isJoined && joinedAt && (
+              <span role="status">
+                Joined on {new Date(joinedAt).toLocaleDateString()}
+              </span>
+            )}
           </div>
         )}
       </nav>
@@ -192,30 +276,55 @@ function EventDetailsPage() {
         <section className="event-details-copy" id="about">
           <h2>About this event</h2>
           <p>{event.description}</p>
-          <p id="details">Join fellow Rototuna alumni and community members for an inclusive event with time to connect, learn, and enjoy the school community.</p>
+          <p id="details">
+            Join fellow Rototuna alumni and community members for an inclusive
+            event with time to connect, learn, and enjoy the school community.
+          </p>
           <h2>Details</h2>
           <dl className="event-details-facts">
-            <div><dt>Date</dt><dd>{formatEventDate(event.date)}</dd></div>
-            <div><dt>Time</dt><dd>{formatEventTimeRange(event.startTime, event.endTime)}</dd></div>
-            <div><dt>Location</dt><dd>{event.location}</dd></div>
+            <div>
+              <dt>Date</dt>
+              <dd>{formatEventDate(event.date)}</dd>
+            </div>
+            <div>
+              <dt>Time</dt>
+              <dd>{formatEventTimeRange(event.startTime, event.endTime)}</dd>
+            </div>
+            <div>
+              <dt>Location</dt>
+              <dd>{event.location}</dd>
+            </div>
           </dl>
-          <section id="discussion" className="event-details-section">
+          {/*<section id="discussion" className="event-details-section">
             <h2>Discussions</h2>
             <p>Join the conversation with other attendees before the event.</p>
-          </section>
+          </section>*/}
           {isAdmin && (
-            <section className="event-details-section" aria-label="Event attendees">
+            <section
+              className="event-details-section"
+              aria-label="Event attendees"
+            >
               <h2>Joined attendees ({attendees.length})</h2>
               {attendees.length > 0 && (
-                <button type="button" className="event-export-button" onClick={handleExportAttendees}>
+                <button
+                  type="button"
+                  className="event-export-button"
+                  onClick={handleExportAttendees}
+                >
                   Export registrations (Excel)
                 </button>
               )}
-              {attendees.length === 0 ? <p>No users have joined this event.</p> : (
+              {attendees.length === 0 ? (
+                <p>No users have joined this event.</p>
+              ) : (
                 <ul className="event-attendee-list">
                   {attendees.map((attendee) => (
                     <li key={attendee.id}>
-                      <strong>{[attendee.firstname, attendee.lastname].filter(Boolean).join(" ") || attendee.username}</strong>
+                      <strong>
+                        {[attendee.firstname, attendee.lastname]
+                          .filter(Boolean)
+                          .join(" ") || attendee.username}
+                      </strong>
                       <span>{attendee.email || attendee.username}</span>
                     </li>
                   ))}
@@ -223,8 +332,17 @@ function EventDetailsPage() {
               )}
             </section>
           )}
-          {joinError && <p className="events-error" role="alert">{joinError}</p>}
-          <div className="event-details-location" aria-label="Event location map">{event.location}</div>
+          {joinError && (
+            <p className="events-error" role="alert">
+              {joinError}
+            </p>
+          )}
+          <div
+            className="event-details-location"
+            aria-label="Event location map"
+          >
+            {event.location}
+          </div>
         </section>
 
         {!isAdmin && (
@@ -233,7 +351,12 @@ function EventDetailsPage() {
               <h2>Organiser</h2>
               <p className="event-organiser-avatar">R</p>
               <strong>Rototuna Alumni Team</strong>
-              <a className="event-organiser-button" href="mailto:alumni@rototuna.school.nz">Contact organiser</a>
+              <a
+                className="event-organiser-button"
+                href="mailto:alumni@rototuna.school.nz"
+              >
+                Contact organiser
+              </a>
             </section>
           </aside>
         )}
