@@ -16,6 +16,7 @@ const Project = function (profile) {
   this.mentorship_availability = profile.mentorship_availability || "";
   this.expertise_sharing_types = profile.expertise_sharing_types ?? [];
   this.expertise_sharing_other = profile.expertise_sharing_other ?? "";
+  this.other_subcategory = profile.other_subcategory ?? "";
 };
 
 Project.getAll = (result) => {
