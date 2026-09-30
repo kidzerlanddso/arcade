@@ -8,7 +8,7 @@ function Login({ onGoogleNeedsRegistration }) {
 
   const [formData, setFormData] = useState({
     login: "",
-    password: ""
+    password: "",
   });
   const [status, setStatus] = useState({ type: "", message: "" });
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -31,7 +31,7 @@ function Login({ onGoogleNeedsRegistration }) {
       const response = await api.post("/auth/login", {
         ...formData,
         // Keep compatibility with servers that still expect username.
-        username: formData.login
+        username: formData.login,
       });
       const token = response.data.token;
       const isAdmin = Number(response.data.admin) === 1;
@@ -41,7 +41,7 @@ function Login({ onGoogleNeedsRegistration }) {
       localStorage.setItem("isAdmin", String(isAdmin));
       setStatus({
         type: "success",
-        message: response.data.message || "Login successful! Redirecting..."
+        message: response.data.message || "Login successful! Redirecting...",
       });
 
       window.setTimeout(() => {
@@ -51,7 +51,7 @@ function Login({ onGoogleNeedsRegistration }) {
       console.error(error);
       setStatus({
         type: "error",
-        message: error?.response?.data?.message || "Login failed"
+        message: error?.response?.data?.message || "Login failed",
       });
     } finally {
       setIsSubmitting(false);
@@ -71,7 +71,7 @@ function Login({ onGoogleNeedsRegistration }) {
         type: "success",
         message:
           response.data?.message ||
-          "If an account exists for that email, a temporary password will be sent shortly.",
+          "Temporary password will be sent to the registered email id shortly.",
       });
     } catch (error) {
       setForgotStatus({
@@ -97,10 +97,9 @@ function Login({ onGoogleNeedsRegistration }) {
             borderRadius: "8px",
             fontSize: "14px",
             fontWeight: 600,
-            background:
-              status.type === "success" ? "#e8f7ee" : "#fdecea",
+            background: status.type === "success" ? "#e8f7ee" : "#fdecea",
             color: status.type === "success" ? "#1f7a4d" : "#b42318",
-            border: `1px solid ${status.type === "success" ? "#9ad3b0" : "#f5b7b1"}`
+            border: `1px solid ${status.type === "success" ? "#9ad3b0" : "#f5b7b1"}`,
           }}
         >
           {status.message}
@@ -153,8 +152,9 @@ function Login({ onGoogleNeedsRegistration }) {
         aria-expanded={showForgotPassword}
         onClick={() => {
           setShowForgotPassword((visible) => !visible);
-          setForgotEmail((current) =>
-            current || (formData.login.includes("@") ? formData.login : ""),
+          setForgotEmail(
+            (current) =>
+              current || (formData.login.includes("@") ? formData.login : ""),
           );
           setForgotStatus({ type: "", message: "" });
         }}
@@ -199,7 +199,6 @@ function Login({ onGoogleNeedsRegistration }) {
       <div className="auth-divider">
         <span>or</span>
       </div>
-
       <GoogleSignInButton
         onNeedsRegistration={onGoogleNeedsRegistration}
         onLoginSuccess={() => {
