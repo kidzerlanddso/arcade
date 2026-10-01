@@ -3,7 +3,7 @@ const db = require("./db");
 const Event = {};
 const DEFAULT_EVENT_IMAGE = "https://images.unsplash.com/photo-1529156069898-49953e39b3ac?auto=format&fit=crop&w=1200&q=80";
 
-Event.findAll = (result) => {
+Event.findAll = (userId, result) => {
   db.query(
     `UPDATE events SET active = CASE
        WHEN CURRENT_DATE < active_from OR (recurring AND CURRENT_DATE > active_to) THEN 0
@@ -30,7 +30,13 @@ Event.findAll = (result) => {
                 COALESCE(registration_counts.pending, 0) AS "pendingRegistrations",
                 COALESCE(registration_counts.confirmed, 0) AS "confirmedRegistrations",
                 COALESCE(registration_counts.cancelled, 0) AS "cancelledRegistrations",
-                COALESCE(registration_counts.attended, 0) AS "attendedCount"
+                COALESCE(registration_counts.attended, 0) AS "attendedCount",
+                EXISTS (
+                  SELECT 1
+                  FROM event_registrations user_registration
+                  WHERE user_registration.event_id = events.id
+                    AND user_registration.user_id = $2
+                ) AS "userJoined"
             FROM events
      LEFT JOIN LATERAL (
        SELECT
@@ -42,7 +48,7 @@ Event.findAll = (result) => {
        WHERE event_id = events.id
      ) registration_counts ON TRUE
      ORDER BY event_date ASC, start_time ASC, id ASC`,
-              [DEFAULT_EVENT_IMAGE],
+              [DEFAULT_EVENT_IMAGE, userId],
               (err, res) => {
       if (err) {
         console.log("Event findAll error:", err);
@@ -186,7 +192,7 @@ Event.join = (eventId, userId, result) => {
 
 Event.hasJoined = (eventId, userId, result) => {
   db.query(
-    `SELECT id, joined_at AS "joinedAt", status, attended
+    `SELECT id, joined_at AS "joinedAt"
      FROM event_registrations
      WHERE event_id = $1 AND user_id = $2`,
     [eventId, userId],
@@ -226,7 +232,7 @@ Event.updateRegistration = (registrationId, updates, result) => {
 
 Event.getAttendees = (eventId, result) => {
   db.query(
-    `SELECT r.id, r.event_id AS "eventId", r.joined_at AS "joinedAt", r.status, r.attended,
+    `SELECT r.id, r.event_id AS "eventId", r.joined_at AS "joinedAt", 
             u.id AS "userId", u.username,
             p.firstname, p.lastname, p.email
      FROM event_registrations r
@@ -249,7 +255,7 @@ Event.getAttendees = (eventId, result) => {
 Event.getAllAttendees = (result) => {
   db.query(
     `SELECT e.id AS "eventId", e.title, e.event_date AS date,
-            r.id AS "registrationId", r.joined_at AS "joinedAt", r.status, r.attended,
+            r.id AS "registrationId", r.joined_at AS "joinedAt",
             u.id AS "userId", u.username,
             p.firstname, p.lastname, p.email
      FROM events e

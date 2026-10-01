@@ -1,6 +1,10 @@
 {
   "chat.tools.terminal.autoApprove": {
     "npm install": true,
-    "npm run lint": true
+    "npm run lint": true,
+    "/^node --check app/controllers/event\\.controller\\.js; node --check app/models/event\\.model\\.js$/": {
+      "approve": true,
+      "matchCommandLine": true
+    }
   }
 }

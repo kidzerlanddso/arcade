@@ -299,7 +299,7 @@ function AnnouncementsPage() {
                 <button type="button" onClick={() => editNews(announcement)}>
                   <img
                     src="src/assets/edit.png"
-                    alt="Delete"
+                    alt="Edit"
                     style={{ width: "16px", height: "16px" }}
                   />
                 </button>
