@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import EventDetailsModal from "./EventDetailsModal";
 import api from "../api/axios";
 import schoolBackground from "../assets/school_bg.webp";
+import rhsLogo from "../assets/RHS-logo-black.png";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import {
@@ -300,7 +301,7 @@ function Dashboard() {
             </button>
 
             <img
-              src="src/assets/RHS-logo-black.png"
+              src={rhsLogo}
               alt="Logo"
               className="app-logo"
             />

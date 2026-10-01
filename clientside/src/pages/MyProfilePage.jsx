@@ -1447,7 +1447,7 @@ expertise:
                   type="button"
                   className="section-edit-button"
               onClick={() => {
-  setOtherExpertiseSharing(profile?.expertise_sharing_other || "");
+setOtherExpertiseSharing(profile?.other_subcategory || "");
   setShowMentorshipModal(true);
 }}
                   aria-label="Edit Mentorship"
