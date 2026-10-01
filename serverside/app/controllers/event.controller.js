@@ -12,7 +12,7 @@ const validateEvent = (body) =>
   ));
 
 exports.findAll = (req, res) => {
-  Event.findAll((err, data) => {
+  Event.findAll(req.userId, (err, data) => {
     if (err) {
       res.status(500).send({ message: err.message || "Error retrieving events." });
       return;
@@ -189,12 +189,10 @@ const toCsv = (rows, columns) => {
 const attendeeColumns = [
   { label: "Name", value: (attendee) => [attendee.firstname, attendee.lastname].filter(Boolean).join(" ") || attendee.username },
   { label: "Email", value: (attendee) => attendee.email || attendee.username },
-  { label: "Status", value: (attendee) => attendee.status },
-  { label: "Attended", value: (attendee) => (attendee.attended ? "Yes" : "No") },
   { label: "Joined At", value: (attendee) => (attendee.joinedAt ? new Date(attendee.joinedAt).toLocaleString() : "") },
 ];
 
-exports.exportAttendees = (req, res) => {
+exports.exportAttendees = (req, res) => { 
   Event.getAttendees(req.params.id, (err, data) => {
     if (err) {
       res.status(500).send({ message: err.message || "Unable to load event attendees." });

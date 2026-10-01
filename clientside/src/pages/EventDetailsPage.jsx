@@ -253,6 +253,7 @@ function EventDetailsPage() {
         {!isAdmin && (
           <div className="event-join-action">
             <button
+              className="btn btn-success"
               type="button"
               onClick={handleJoin}
               disabled={isCheckingJoinStatus || isJoined}
