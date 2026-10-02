@@ -311,6 +311,44 @@ a {
   text-align: center;
 }
 
+.teacher-card--clickable {
+  cursor: pointer;
+  border-radius: 12px;
+}
+
+.teacher-card--clickable:focus-visible {
+  outline: 3px solid #1b7fe3;
+  outline-offset: 5px;
+}
+
+.teacher-profile-details {
+  text-align: center;
+}
+
+.teacher-profile-details-avatar {
+  display: block;
+  width: min(100%, 220px);
+  aspect-ratio: 1;
+  margin: 12px auto 18px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.teacher-profile-details h3 {
+  margin: 0 0 4px;
+}
+
+.teacher-profile-details-role {
+  color: #7d0736;
+  font-weight: 600;
+}
+
+.teacher-profile-details-bio {
+  margin: 18px 0;
+  text-align: left;
+  white-space: pre-wrap;
+}
+
 .teacher-card .admin-card-actions {
   margin-top: auto;
   padding-top: 14px;
@@ -872,7 +910,7 @@ a {
   font-size: clamp(2rem, 3vw, 2.9rem);
   line-height: 1.1;
   letter-spacing: -0.04em;
-  font-weight: 700;
+
 }
 
 .teacher-content-editor-form {
@@ -899,6 +937,7 @@ a {
 .field-group span {
   font-size: 0.95rem;
   font-weight: 600;
+  font-family: $primary-font-family;
 }
 
 .field-group input,
@@ -939,6 +978,10 @@ a {
   border-radius: 8px;
   background: #f8fbff;
   font-size: 0.96rem;
+}
+
+.teacher-form-grid .teacher-bio-field {
+  grid-column: 1 / -1;
 }
 
 .teacher-content-editor-form .content-editor-actions {
