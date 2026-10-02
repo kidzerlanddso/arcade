@@ -9,6 +9,7 @@ const emptyTeacher = {
   name: "",
   role: "",
   focus: "",
+  bio: "",
   email: "",
   phone: "",
   image: "",
@@ -51,16 +52,35 @@ function TeacherCard({
   onEdit,
   onDelete,
   onManageSpotlights,
+  onViewProfile,
 }) {
   return (
-    <article className="teacher-card">
+    <article
+      className="teacher-card teacher-card--clickable profile-card"
+      role="button"
+      tabIndex={0}
+      aria-label={`View ${teacher.name}'s profile`}
+      onClick={() => onViewProfile(teacher)}
+      onKeyDown={(event) => {
+        if (event.target !== event.currentTarget) return;
+        if (event.key === "Enter" || event.key === " ") {
+          event.preventDefault();
+          onViewProfile(teacher);
+        }
+      }}
+    >
       <img
         src={teacher.image || schoolBackground}
         alt={`${teacher.name} profile`}
         className="teacher-avatar"
       />
       <p className="teacher-role">{teacher.name}</p>
-      <a href={`mailto:${teacher.email}`}>{teacher.email}</a>
+      <a
+        href={`mailto:${teacher.email}`}
+        onClick={(event) => event.stopPropagation()}
+      >
+        {teacher.email}
+      </a>
       <h3>{teacher.role}</h3>
       {teacher.focus && <p className="teacher-focus">{teacher.focus}</p>}
       {teacher.phone && <p className="teacher-phone">{teacher.phone}</p>}
@@ -78,13 +98,31 @@ function TeacherCard({
 
       {isAdmin && (
         <div className="admin-card-actions">
-          <button type="button" onClick={() => onManageSpotlights(teacher)}>
+          <button
+            type="button"
+            onClick={(event) => {
+              event.stopPropagation();
+              onManageSpotlights(teacher);
+            }}
+          >
             Manage spotlights
           </button>
-          <button type="button" onClick={() => onEdit(teacher)}>
+          <button
+            type="button"
+            onClick={(event) => {
+              event.stopPropagation();
+              onEdit(teacher);
+            }}
+          >
             Edit
           </button>
-          <button type="button" onClick={() => onDelete(teacher.id)}>
+          <button
+            type="button"
+            onClick={(event) => {
+              event.stopPropagation();
+              onDelete(teacher.id);
+            }}
+          >
             Delete
           </button>
         </div>
@@ -100,6 +138,7 @@ function TeacherProfilesPage() {
   const [imageFile, setImageFile] = useState(null);
   const [editingId, setEditingId] = useState(null);
   const [showForm, setShowForm] = useState(false);
+  const [viewingTeacher, setViewingTeacher] = useState(null);
   const [errorMessage, setErrorMessage] = useState("");
   const [spotlights, setSpotlights] = useState([]);
   const [spotlightTeacher, setSpotlightTeacher] = useState(null);
@@ -456,6 +495,16 @@ function TeacherProfilesPage() {
                       placeholder="Phone"
                     />
                   </label>
+                  <label className="field-group teacher-bio-field">
+                    <span>Profile description</span>
+                    <textarea
+                      name="bio"
+                      value={form.bio}
+                      onChange={handleFormChange}
+                      placeholder="Add a short profile description"
+                      rows={4}
+                    />
+                  </label>
                   <label className="image-upload-field field-group">
                     <span>Upload portrait</span>
                     <input
@@ -721,6 +770,7 @@ function TeacherProfilesPage() {
                 onEdit={editTeacher}
                 onDelete={deleteTeacher}
                 onManageSpotlights={openSpotlightManager}
+                onViewProfile={setViewingTeacher}
               />
             ))}
           </div>
@@ -731,6 +781,40 @@ function TeacherProfilesPage() {
           )}
         </section>
       </section>
+      {viewingTeacher && (
+        <div className="modal-overlay" onClick={() => setViewingTeacher(null)}>
+          <section
+            className="teacher-modal-card modal-card teacher-profile-details"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="teacher-details-title"
+            onClick={(event) => event.stopPropagation()}
+          >
+            <div className="teacher-modal-header modal-header">
+              <h2 id="teacher-details-title">Teacher profile</h2>
+              <button
+                type="button"
+                className="close-button"
+                aria-label="Close teacher profile"
+                onClick={() => setViewingTeacher(null)}
+              >
+                ×
+              </button>
+            </div>
+            <img
+              src={viewingTeacher.image || schoolBackground}
+              alt={`${viewingTeacher.name} profile`}
+              className="teacher-profile-details-avatar"
+            />
+            <h3>{viewingTeacher.name}</h3>
+            <p className="teacher-profile-details-role">{viewingTeacher.role}</p>
+            {viewingTeacher.focus && <p><strong>Focus:</strong> {viewingTeacher.focus}</p>}
+            {viewingTeacher.email && <p><strong>Email:</strong> <a href={`mailto:${viewingTeacher.email}`}>{viewingTeacher.email}</a></p>}
+            {viewingTeacher.phone && <p><strong>Phone:</strong> {viewingTeacher.phone}</p>}
+            {viewingTeacher.bio && <p className="teacher-profile-details-bio">{viewingTeacher.bio}</p>}
+          </section>
+        </div>
+      )}
     </main>
   );
 }

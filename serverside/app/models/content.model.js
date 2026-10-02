@@ -13,7 +13,7 @@ Content.findAllNews = (result) => {
 
 Content.findAllTeachers = (result) => {
   db.query(
-    `SELECT id, team, department, name, role, focus, email, phone, image, featured
+    `SELECT id, team, department, name, role, focus, bio, email, phone, image, featured
      FROM teacher_profiles
      ORDER BY team, department, id`,
     (error, response) => result(error, response?.rows || null),
@@ -167,10 +167,10 @@ Content.updateNewsImage = (id, image, result) => {
 Content.createTeacher = (teacher, result) => {
   db.query(
     `INSERT INTO teacher_profiles
-      (team, department, name, role, focus, email, phone, image, featured, created_by)
-     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
-     RETURNING id, team, department, name, role, focus, email, phone, image, featured`,
-    [teacher.team, teacher.department || null, teacher.name, teacher.role, teacher.focus || null, teacher.email, teacher.phone || null, teacher.image || null, !!teacher.featured, teacher.createdBy],
+      (team, department, name, role, focus, bio, email, phone, image, featured, created_by)
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+     RETURNING id, team, department, name, role, focus, bio, email, phone, image, featured`,
+    [teacher.team, teacher.department || null, teacher.name, teacher.role, teacher.focus || null, teacher.bio || null, teacher.email, teacher.phone || null, teacher.image || null, !!teacher.featured, teacher.createdBy],
     (error, response) => result(error, response?.rows?.[0] || null),
   );
 };
@@ -178,10 +178,10 @@ Content.createTeacher = (teacher, result) => {
 Content.updateTeacher = (id, teacher, result) => {
   db.query(
     `UPDATE teacher_profiles SET team = $1, department = $2, name = $3, role = $4,
-      focus = $5, email = $6, phone = $7, image = $8, featured = $9, updated_at = NOW()
-     WHERE id = $10
-     RETURNING id, team, department, name, role, focus, email, phone, image, featured`,
-    [teacher.team, teacher.department || null, teacher.name, teacher.role, teacher.focus || null, teacher.email, teacher.phone || null, teacher.image || null, !!teacher.featured, id],
+      focus = $5, bio = $6, email = $7, phone = $8, image = $9, featured = $10, updated_at = NOW()
+     WHERE id = $11
+     RETURNING id, team, department, name, role, focus, bio, email, phone, image, featured`,
+    [teacher.team, teacher.department || null, teacher.name, teacher.role, teacher.focus || null, teacher.bio || null, teacher.email, teacher.phone || null, teacher.image || null, !!teacher.featured, id],
     (error, response) => result(error, response?.rows?.[0] || null),
   );
 };
@@ -190,7 +190,7 @@ Content.updateTeacherImage = (id, image, result) => {
   db.query(
     `UPDATE teacher_profiles SET image = $1, updated_at = NOW()
      WHERE id = $2
-     RETURNING id, team, department, name, role, focus, email, phone, image, featured`,
+     RETURNING id, team, department, name, role, focus, bio, email, phone, image, featured`,
     [image, id],
     (error, response) => {
       if (error) return result(error, null);

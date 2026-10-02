@@ -108,6 +108,7 @@ pool.ensureContentTables = function (callback) {
       name VARCHAR(180) NOT NULL,
       role VARCHAR(180) NOT NULL,
       focus VARCHAR(180),
+      bio TEXT,
       email VARCHAR(255) NOT NULL,
       phone VARCHAR(80),
       image TEXT,
@@ -119,6 +120,7 @@ pool.ensureContentTables = function (callback) {
         OR team IN ('leadership', 'pastoral')
       )
     );
+    ALTER TABLE teacher_profiles ADD COLUMN IF NOT EXISTS bio TEXT;
     ALTER TABLE teacher_profiles ADD COLUMN IF NOT EXISTS featured BOOLEAN NOT NULL DEFAULT FALSE;
     CREATE INDEX IF NOT EXISTS teacher_profiles_team_idx ON teacher_profiles (team);
     CREATE INDEX IF NOT EXISTS teacher_profiles_department_idx ON teacher_profiles (department);
