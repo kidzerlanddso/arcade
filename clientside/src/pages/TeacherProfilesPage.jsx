@@ -67,8 +67,7 @@ function TeacherCard({
           event.preventDefault();
           onViewProfile(teacher);
         }
-      }}
-    >
+      }}    >
       <img
         src={teacher.image || schoolBackground}
         alt={`${teacher.name} profile`}
