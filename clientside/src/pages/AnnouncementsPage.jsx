@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
 import api from "../api/axios";
 import schoolBackground from "../assets/school_bg.webp";
+import editIcon from '../assets/edit.png';
+import deleteIcon from '../assets/bin.png';
 
 const getAdminStatus = () => localStorage.getItem("isAdmin") === "true";
 const emptyNews = {
@@ -298,7 +300,7 @@ function AnnouncementsPage() {
               >
                 <button type="button" onClick={() => editNews(announcement)}>
                   <img
-                    src="src/assets/edit.png"
+                    src={editIcon}
                     alt="Edit"
                     style={{ width: "16px", height: "16px" }}
                   />
@@ -308,7 +310,7 @@ function AnnouncementsPage() {
                   onClick={() => deleteNews(announcement.id)}
                 >
                   <img
-                    src="/assets/bin.png"
+                    src={deleteIcon}
                     alt="Delete"
                     style={{ width: "16px", height: "16px" }}
                   />
