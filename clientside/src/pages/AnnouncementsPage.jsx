@@ -298,7 +298,7 @@ function AnnouncementsPage() {
               >
                 <button type="button" onClick={() => editNews(announcement)}>
                   <img
-                    src="src/assets/edit.png"
+                    src="assets/edit.png"
                     alt="Edit"
                     style={{ width: "16px", height: "16px" }}
                   />
@@ -308,7 +308,7 @@ function AnnouncementsPage() {
                   onClick={() => deleteNews(announcement.id)}
                 >
                   <img
-                    src="src/assets/bin.png"
+                    src="assets/bin.png"
                     alt="Delete"
                     style={{ width: "16px", height: "16px" }}
                   />
