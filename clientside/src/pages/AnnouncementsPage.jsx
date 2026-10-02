@@ -308,7 +308,7 @@ function AnnouncementsPage() {
                   onClick={() => deleteNews(announcement.id)}
                 >
                   <img
-                    src="assets/bin.png"
+                    src="/assets/bin.png"
                     alt="Delete"
                     style={{ width: "16px", height: "16px" }}
                   />
