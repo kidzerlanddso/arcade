@@ -1,5 +1,7 @@
 import { useState, useEffect } from "react";
 import api from "../api/axios";
+import editIcon from '../assets/edit.png';
+import deleteIcon from '../assets/bin.png';
 
 function EditExpertise({ expertise, isOpen, onClose, onSaved }) {
   const expertiseId = Number(expertise?.expertise_id ?? expertise?.id ?? 0);
@@ -261,7 +263,7 @@ function EditExpertise({ expertise, isOpen, onClose, onSaved }) {
                           }}
                         >
                           <img
-                            src="src/assets/edit.png"
+                            src={editIcon}
                             alt="Edit"
                             style={{ width: "16px", height: "16px" }}
                           />
@@ -272,7 +274,7 @@ function EditExpertise({ expertise, isOpen, onClose, onSaved }) {
                           onClick={() => handleDeleteSubcategory(subcategoryId)}
                         >
                           <img
-                            src="src/assets/bin.png"
+                            src={deleteIcon}
                             alt="Delete"
                             style={{ width: "16px", height: "16px" }}
                           />
