@@ -3,6 +3,8 @@ import { useNavigate } from "react-router-dom";
 import AddExpertise from "./addExpertise";
 import EditExpertise from "./EditExpertise";
 import api from "../api/axios";
+import editIcon from '../assets/edit.png';
+import deleteIcon from '../assets/bin.png';
 
 const getAdminFromToken = () => {
   const currentToken = localStorage.getItem("token");
@@ -163,7 +165,7 @@ function DynamicDataList() {
                       onClick={() => setExpertiseToEdit(skill)}
                     >
                       <img
-                        src="src/assets/edit.png"
+                        src={editIcon}
                         alt="Edit"
                         style={{ width: "16px", height: "16px" }}
                       />
@@ -176,7 +178,7 @@ function DynamicDataList() {
                       }
                     >
                       <img
-                        src="src/assets/bin.png"
+                        src={deleteIcon}
                         alt="Delete"
                         style={{ width: "16px", height: "16px" }}
                       />
