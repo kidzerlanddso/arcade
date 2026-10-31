@@ -1,24 +1,10 @@
 import { Navigate, Route, Routes } from "react-router-dom";
-import DonationsPage from "../pages/DonationsPage";
 import ProtectedRoute from "../components/ProtectedRoute";
 import AuthPage from "../pages/AuthPage";
-import ProfilePage from "../pages/profilePage";
-import MyProfilePage from "../pages/MyProfilePage";
+import ArcadeCustomerManagement from "../pages/ArcadeCustomerManagement";
+import ArcadeReceivables from "../pages/ArcadeReceivables";
+import ArcadeSparkles from "../pages/ArcadeSparkles";
 import Dashboard from "../components/Dashboard";
-import MessageAlumniPage from "../pages/MessageAlumniPage";
-import EventsPage from "../pages/EventsPage";
-import About from "../pages/about";
-import EventDetailsPage from "../pages/EventDetailsPage";
-import DynamicData from "../components/DynamicData";
-import AdminList from "../components/adminlist";
-
-import NewProfile from "../components/NewProfile";
-import MembershipRequest from "../components/membershiprequest";
-import AlumniProfilePage from "../pages/AlumniProfilePage";
-import AnnouncementsPage from "../pages/AnnouncementsPage";
-import TeacherProfilesPage from "../pages/TeacherProfilesPage";
-import StatsPage from "../pages/StatsPage";
-import SpotlightDetailsPage from "../pages/SpotlightDetailsPage";
 
 function AppRoutes() {
   return (
@@ -27,148 +13,36 @@ function AppRoutes() {
       <Route
         path="/dashboard"
         element={
-          <ProtectedRoute>
+          <ProtectedRoute adminOnly>
             <Dashboard />
           </ProtectedRoute>
         }
       />
       <Route
-        path="/profile"
+        path="/arcade/customers"
         element={
-          <ProtectedRoute>
-            <ProfilePage />
+          <ProtectedRoute adminOnly>
+            <ArcadeCustomerManagement />
           </ProtectedRoute>
         }
       />
       <Route
-        path="/donations"
+        path="/arcade/receivables"
         element={
-          <ProtectedRoute>
-            <DonationsPage />
+          <ProtectedRoute adminOnly>
+            <ArcadeReceivables />
           </ProtectedRoute>
         }
       />
       <Route
-        path="/events"
+        path="/arcade/sparkles"
         element={
-          <ProtectedRoute>
-            <EventsPage />
+          <ProtectedRoute sparklesOnly>
+            <ArcadeSparkles />
           </ProtectedRoute>
         }
       />
-      <Route
-        path="/about"
-        element={
-          <ProtectedRoute>
-            <About />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/announcements"
-        element={
-          <ProtectedRoute>
-            <AnnouncementsPage />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/teachers"
-        element={
-          <ProtectedRoute>
-            <TeacherProfilesPage />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/spotlights"
-        element={
-          <ProtectedRoute>
-            <SpotlightDetailsPage />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/spotlights/:spotlightId"
-        element={
-          <ProtectedRoute>
-            <SpotlightDetailsPage />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/events/:eventId"
-        element={
-          <ProtectedRoute>
-            <EventDetailsPage />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/data/dynamicdata"
-        element={
-          <ProtectedRoute>
-            <DynamicData />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/dynamicdata"
-        element={
-          <ProtectedRoute>
-            <DynamicData />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/stats"
-        element={
-          <ProtectedRoute>
-            <StatsPage />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/admin"
-        element={
-          <ProtectedRoute>
-            <AdminList />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/profile/me"
-        element={
-          <ProtectedRoute>
-            <MyProfilePage />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/profile/new"
-        element={
-          <ProtectedRoute>
-            <NewProfile />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/membership-request"
-        element={
-          <ProtectedRoute>
-            <MembershipRequest />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/profile/view/:id"
-        element={
-          <ProtectedRoute>
-            <AlumniProfilePage />
-          </ProtectedRoute>
-        }
-      />
-      <Route path="*" element={<Navigate to="/login" replace />} />
+      <Route path="*" element={<Navigate to="/dashboard" replace />} />
     </Routes>
   );
 }

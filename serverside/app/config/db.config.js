@@ -1,24 +1,25 @@
-// module.exports = {
-//   HOST: "localhost",
-//   PORT: 5432,
-//   USER: "rototuna_app",
-//   PASSWORD: "Rototuna_2026$",
-//   DB: "rshs",
-//   SSL: "false",
-//   JWT_SECRET: "my_JWT_secret_key_COMPX_596",
+const dbPassword = process.env.DB_PASSWORD;
+const dbHost = process.env.DB_HOST || "localhost";
 
+if (typeof dbPassword !== "string" || dbPassword.length === 0) {
+  throw new Error(
+    "DB_PASSWORD is missing. Set it in serverside/.env before starting the server.",
+  );
+}
 
-//import { Resend } from {'resend'};
-
+if (/^https?:\/\//i.test(dbHost)) {
+  throw new Error(
+    "DB_HOST must be a database hostname, without https:// or a path. For Supabase, use the Database host from Connect.",
+  );
+}
 
 module.exports = {
-  HOST: "aws-0-ap-northeast-1.pooler.supabase.com",
+  HOST: "aws-0-ap-southeast-1.pooler.supabase.com",
   PORT: 5432,
-  USER: "postgres.qfnpgierpdjdwhmxfaho",
-  PASSWORD: "rototuna2026",
+  USER: "postgres.bkzpbqbnjsxcmhkrslmj",
+  PASSWORD: "R!du@2023!!",
   DB: "postgres",
   SSL: "true",
   JWT_SECRET: "my_JWT_secret_key_COMPX_596",
-  REFRESH_SECRET: "our_jwt_refresh_secret_CSMAX_rototuna_alumni_platform",
+  REFRESH_SECRET: "our_jwt_refresh_secret_CSMAX_kl_invoicing_platform",
 };
-

@@ -1,7 +1,5 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import AddExpertise from "./addExpertise";
-import EditExpertise from "./EditExpertise";
 import api from "../api/axios";
 import editIcon from '../assets/edit.png';
 import deleteIcon from '../assets/bin.png';

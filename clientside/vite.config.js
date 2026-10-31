@@ -6,11 +6,11 @@ export default defineConfig({
   plugins: [react()],
   server: {
     // 5173 falls in a Windows excluded port range (often Hyper-V/WSL), which causes EACCES
-    port: 3000,
+    port: 5173,
     strictPort: false,
     proxy: {
       '/api': {
-        target: 'http://localhost:3001',
+        target: 'http://localhost:3002',
         changeOrigin: true,
         rewrite: (path) => path.replace(/^\/api/, ''),
       },

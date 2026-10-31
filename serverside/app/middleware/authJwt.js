@@ -24,6 +24,7 @@ const verifyToken = function(req, res, next) {
     req.userId = decoded.userId;
     req.username = decoded.username;
     req.isAdmin = decoded.admin === true || Number(decoded.admin) === 1;
+    req.isSparkles = decoded.sparkles === true || Number(decoded.sparkles) === 1;
     next();
   });
 };
@@ -36,4 +37,12 @@ const verifyAdmin = function(req, res, next) {
   next();
 };
 
-module.exports = { verifyToken, verifyAdmin };
+const verifySparkles = function(req, res, next) {
+  if (!req.isAdmin && !req.isSparkles) {
+    return res.status(403).send({ message: "Sparkles access required." });
+  }
+
+  next();
+};
+
+module.exports = { verifyToken, verifyAdmin, verifySparkles };

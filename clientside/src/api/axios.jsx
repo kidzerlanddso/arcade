@@ -2,9 +2,7 @@ import axios from "axios";
 
 const API_URL =
   import.meta.env.VITE_API_URL ||
-  (import.meta.env.PROD
-    ? "https://rototuna-alumni-platform.onrender.com"
-    : "/api");
+  "/api";
 
 let memoryToken = localStorage.getItem("token");
 
@@ -47,10 +45,13 @@ const refreshAccessToken = async () => {
     refreshPromise = axios
       .post(`${API_URL}/auth/refresh`, {}, { withCredentials: true })
       .then((response) => {
-        const { token, admin } = response.data;
+        const { token, admin, sparkles } = response.data;
         setAccessToken(token);
         if (admin !== undefined) {
           localStorage.setItem("isAdmin", String(Number(admin) === 1));
+        }
+        if (sparkles !== undefined) {
+          localStorage.setItem("isSparkles", String(Number(sparkles) === 1));
         }
         return token;
       })

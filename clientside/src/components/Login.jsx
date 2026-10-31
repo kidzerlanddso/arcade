@@ -35,17 +35,21 @@ function Login({ onGoogleNeedsRegistration }) {
       });
       const token = response.data.token;
       const isAdmin = Number(response.data.admin) === 1;
+      const isSparkles = Number(response.data.sparkles) === 1;
 
       localStorage.setItem("token", token);
       setAccessToken(token);
       localStorage.setItem("isAdmin", String(isAdmin));
+      localStorage.setItem("isSparkles", String(isSparkles));
       setStatus({
         type: "success",
         message: response.data.message || "Login successful! Redirecting...",
       });
 
       window.setTimeout(() => {
-        navigate("/dashboard", { replace: true });
+        navigate(isSparkles && !isAdmin ? "/arcade/sparkles" : "/dashboard", {
+          replace: true,
+        });
       }, 1200);
     } catch (error) {
       console.error(error);

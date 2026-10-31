@@ -5,6 +5,10 @@
     "/^node --check app/controllers/event\\.controller\\.js; node --check app/models/event\\.model\\.js$/": {
       "approve": true,
       "matchCommandLine": true
+    },
+    "/^cd c:/wamp64/www/react/RHS/New/invoice/serverside ; node --check app/controllers/arcadeCustomer\\.controller\\.js ; node --check app/routes/arcadeCustomer\\.routes\\.js ; node --check server\\.js$/": {
+      "approve": true,
+      "matchCommandLine": true
     }
   }
 }

@@ -12,6 +12,639 @@ $rhs-rust-red: #892f25;
 $rhs-navy-blue: #212e52;
 $rhs-charcoal: #25282a;
 
+.arcade-management {
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: 2rem 1.25rem 4rem;
+  color: $dark-text;
+}
+
+.arcade-management-header,
+.arcade-section-heading,
+.arcade-customer-picker {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.arcade-management-header {
+  margin-bottom: 1.5rem;
+}
+.arcade-management-header h1 {
+  margin: 0.15rem 0 0.35rem;
+}
+.arcade-management-header p,
+.arcade-section-heading p {
+  margin: 0;
+  color: #667085;
+}
+.arcade-eyebrow {
+  color: $rhs-navy-blue !important;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+}
+.arcade-logo {
+  color: $rhs-rust-red !important;
+  font-size: 0.75rem;
+  width: 10rem;
+}
+.arcade-customer-picker {
+  justify-content: flex-start;
+  margin: 1.25rem 0;
+  padding: 1rem;
+  background: #fff;
+  border: 1px solid $soft-border;
+  border-radius: 0.75rem;
+}
+.arcade-customer-picker label {
+  font-weight: 700;
+}
+.arcade-customer-picker select {
+  min-width: 260px;
+  max-width: 100%;
+  padding: 0.55rem;
+  border: 1px solid $soft-border;
+  border-radius: 0.4rem;
+}
+.arcade-customer-picker span {
+  margin-left: auto;
+  color: #667085;
+}
+.arcade-tabs {
+  display: flex;
+  gap: 0.35rem;
+  margin: 1.25rem 0 0;
+  border-bottom: 1px solid $soft-border;
+}
+.arcade-tabs button {
+  padding: 0.75rem 1rem;
+  border: 0;
+  border-bottom: 3px solid transparent;
+  background: transparent;
+  color: #667085;
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+.arcade-tabs button.active {
+  border-bottom-color: $rhs-navy-blue;
+  color: $rhs-navy-blue;
+}
+.arcade-month-picker {
+  display: grid;
+  gap: 0.35rem;
+  min-width: 190px;
+  font-weight: 700;
+}
+.arcade-month-picker select {
+  min-height: 40px;
+  padding: 0.5rem 0.65rem;
+  border: 1px solid $soft-border;
+  border-radius: 0.4rem;
+  background: #fff;
+  font: inherit;
+}
+.arcade-report-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+.arcade-report-filters .arcade-month-picker {
+  min-width: 180px;
+}
+.arcade-receivables .arcade-summary-grid article:first-child {
+  border-color: #cce5d2;
+  background: #eff8f1;
+}
+.arcade-receivables .arcade-summary-grid article:last-child {
+  border-color: #cbdcf1;
+  background: #f0f6fc;
+}
+.arcade-received-table thead {
+  background: #212e52;
+  color: #fff;
+}
+.arcade-received-summary {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  margin-top: 0;
+}
+.arcade-received-table th,
+.arcade-received-table td {
+  vertical-align: middle;
+}
+.arcade-received-table tfoot {
+  border-top: 2px solid $soft-border;
+}
+.arcade-sparkles .arcade-section {
+  border-color: #e8d5f3;
+  box-shadow: 0 8px 24px rgba(90, 43, 122, 0.06);
+}
+.arcade-sparkles .arcade-section-heading h2 {
+  color: #642b83;
+}
+.arcade-sparkles-form {
+  align-items: end;
+}
+.arcade-sparkles-form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.6rem;
+}
+.arcade-sparkles-table thead {
+  background: #642b83;
+  color: #fff;
+}
+.arcade-sparkles-table th,
+.arcade-sparkles-table td {
+  vertical-align: middle;
+}
+.arcade-sparkles-table tbody tr:nth-child(even) {
+  background: #fbf7fd;
+}
+.arcade-customer-overview {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin: 1.5rem 0 0.5rem;
+}
+.arcade-customer-overview h2 {
+  margin: 0 0 0.25rem;
+}
+.arcade-customer-overview p {
+  margin: 0;
+  color: #667085;
+}
+.arcade-customer-actions,
+.arcade-modal-actions {
+  display: flex;
+  gap: 0.6rem;
+}
+.arcade-modal {
+  width: min(720px, calc(100vw - 2rem));
+  max-height: calc(100vh - 2rem);
+  overflow-y: auto;
+}
+.arcade-modal .arcade-form {
+  margin: 0;
+  padding: 1rem 0 0;
+  border: 0;
+}
+.arcade-modal-actions {
+  grid-column: 1 / -1;
+  justify-content: flex-end;
+  padding-top: 0.25rem;
+}
+
+.arcade-year-picker {
+  display: grid;
+  gap: 0.35rem;
+  min-width: 150px;
+  font-weight: 700;
+}
+.arcade-year-picker select {
+  padding: 0.6rem 0.75rem;
+  border: 1px solid $soft-border;
+  border-radius: 0.45rem;
+  background: #fff;
+  font: inherit;
+}
+.arcade-dashboard-cards {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1rem;
+  margin: 1.25rem 0;
+}
+.arcade-dashboard-cards article {
+  display: grid;
+  gap: 0.4rem;
+  padding: 1.2rem;
+  background: #fff;
+  border: 1px solid $soft-border;
+  border-radius: 0.75rem;
+}
+.arcade-dashboard-cards article > span {
+  color: #667085;
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+.arcade-dashboard-cards strong {
+  font-size: clamp(1.3rem, 3vw, 1.8rem);
+  line-height: 1.2;
+  overflow-wrap: anywhere;
+}
+.arcade-dashboard-cards small {
+  color: #667085;
+}
+.arcade-dashboard-cards .arcade-dashboard-balance {
+  background: #f3f7fc;
+  border-color: #cbd8e8;
+}
+.arcade-chart-legend {
+  display: flex;
+  gap: 1rem;
+  color: #667085;
+  font-size: 0.9rem;
+}
+.arcade-chart-legend span {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+.arcade-chart-legend i {
+  width: 0.7rem;
+  height: 0.7rem;
+  border-radius: 0.15rem;
+}
+.arcade-legend-fees,
+.arcade-bar-fees {
+  background: $rhs-light-blue;
+}
+.arcade-legend-payments,
+.arcade-bar-payments {
+  background: $primary-green;
+}
+.arcade-month-chart {
+  display: grid;
+  grid-template-columns: repeat(12, minmax(34px, 1fr));
+  gap: 0.45rem;
+  min-height: 250px;
+  padding: 1rem 0 0;
+  overflow-x: auto;
+}
+.arcade-month-column {
+  display: flex;
+  min-width: 34px;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.55rem;
+  color: #667085;
+  font-size: 0.8rem;
+}
+.arcade-month-bars {
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  gap: 3px;
+  width: 100%;
+  height: 210px;
+  border-bottom: 1px solid $soft-border;
+}
+.arcade-bar {
+  width: min(38%, 22px);
+  min-height: 0;
+  border-radius: 4px 4px 0 0;
+  transition: height 180ms ease;
+}
+.arcade-month-table th,
+.arcade-month-table td {
+  white-space: nowrap;
+}
+
+.arcade-summary-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 1rem;
+  margin: 1.25rem 0;
+}
+.arcade-summary-grid article {
+  display: grid;
+  gap: 0.4rem;
+  padding: 1.1rem;
+  background: #fff;
+  border: 1px solid $soft-border;
+  border-radius: 0.75rem;
+}
+.arcade-summary-grid span,
+.arcade-record-list article span {
+  color: #667085;
+  font-size: 0.9rem;
+}
+.arcade-summary-grid strong {
+  font-size: 1.35rem;
+}
+
+.arcade-section,
+.arcade-form,
+.arcade-empty-state {
+  margin: 1rem 0;
+  padding: 1.25rem;
+  background: #fff;
+  border: 1px solid $soft-border;
+  border-radius: 0.75rem;
+}
+.arcade-section-heading {
+  margin-bottom: 1rem;
+}
+.arcade-section-heading h2,
+.arcade-form h2 {
+  margin: 0 0 0.25rem;
+  font-size: 1.2rem;
+}
+.arcade-record-list article {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.85rem 0;
+  border-top: 1px solid #edf0f2;
+}
+.arcade-record-list article > div {
+  /* display: grid; */
+  gap: 0.2rem;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 12px;
+}
+.arcade-record-list article > div:last-child {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+.arcade-record-actions {
+  display: flex;
+  flex-shrink: 0;
+  gap: 0.45rem;
+}
+.arcade-payment-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: 0.55rem;
+}
+.arcade-select-all,
+.arcade-payment-checkbox {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+}
+.arcade-select-all {
+  color: #475467;
+  font-size: 0.9rem;
+  white-space: nowrap;
+}
+.arcade-select-all input,
+.arcade-payment-checkbox input {
+  width: 1rem;
+  height: 1rem;
+  accent-color: $rhs-navy-blue;
+}
+.arcade-payment-checkbox {
+  flex-shrink: 0;
+}
+
+.arcade-invoice-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 10000;
+  overflow: auto;
+  padding: 1.5rem;
+  background: #e9edf2;
+}
+.arcade-invoice-toolbar {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.65rem;
+  width: min(210mm, 100%);
+  margin: 0 auto 1rem;
+}
+.arcade-invoice-sheet {
+  width: min(210mm, 100%);
+  min-height: 270mm;
+  margin: 0 auto;
+  padding: 20mm;
+  background: #fff;
+  color: #202938;
+  box-shadow: 0 8px 32px rgba(16, 24, 40, 0.14);
+}
+.arcade-invoice-header {
+  display: flex;
+  justify-content: space-between;
+  gap: 2rem;
+  padding-bottom: 1.5rem;
+  border-bottom: 2px solid #212e52;
+}
+.arcade-invoice-header h1 {
+  margin: 0.25rem 0;
+  color: #212e52;
+  font-size: 2rem;
+}
+.arcade-invoice-header p {
+  margin: 0;
+  color: #667085;
+}
+.arcade-invoice-meta {
+  display: grid;
+  align-content: start;
+  gap: 0.45rem;
+  min-width: 200px;
+  font-size: 0.9rem;
+}
+.arcade-invoice-meta strong {
+  display: inline-block;
+  min-width: 70px;
+}
+.arcade-invoice-table {
+  margin-top: 1.75rem;
+}
+.arcade-invoice-table th {
+  color: #344054;
+}
+.arcade-invoice-amount {
+  text-align: right;
+  white-space: nowrap;
+}
+.arcade-invoice-subline {
+  display: block;
+  margin-top: 0.2rem;
+  color: #667085;
+}
+.arcade-invoice-footnote {
+  margin-top: 2rem;
+  padding-top: 1rem;
+  border-top: 1px solid #e4e7ec;
+  color: #667085;
+  font-size: 0.85rem;
+}
+.arcade-muted {
+  margin: 0;
+  color: #667085;
+}
+.arcade-empty-state {
+  text-align: center;
+  padding: 3rem 1.25rem;
+}
+.arcade-empty-state h2 {
+  margin-bottom: 0.4rem;
+}
+.arcade-empty-state p {
+  margin: 0;
+  color: #667085;
+}
+
+.arcade-form {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.85rem;
+  margin: 1rem 0;
+}
+.arcade-form h2 {
+  grid-column: 1 / -1;
+}
+.arcade-form label {
+  display: grid;
+  gap: 0.35rem;
+  font-weight: 600;
+}
+.arcade-form input,
+.arcade-form select,
+.arcade-form textarea {
+  width: 100%;
+  min-height: 40px;
+  padding: 0.5rem 0.65rem;
+  border: 1px solid $soft-border;
+  border-radius: 0.4rem;
+  font: inherit;
+}
+.arcade-form textarea {
+  min-height: 80px;
+}
+.arcade-form-grid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+.arcade-form-wide {
+  grid-column: 1 / -1;
+}
+.arcade-allocation-list {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.75rem;
+  padding: 0.85rem;
+  border: 1px solid $soft-border;
+  border-radius: 0.5rem;
+}
+.arcade-allocation-list legend {
+  float: none;
+  width: auto;
+  padding: 0 0.3rem;
+  font-size: 0.95rem;
+  font-weight: 700;
+}
+.arcade-allocation-list label {
+  font-weight: 500;
+}
+.arcade-form .arcade-checkbox {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+.arcade-form .arcade-checkbox input {
+  width: auto;
+  min-height: auto;
+}
+
+@media (max-width: 760px) {
+  .arcade-received-heading {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+  .arcade-month-picker {
+    width: 100%;
+  }
+  .arcade-summary-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .arcade-dashboard-cards {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .arcade-management-header {
+    flex-direction: column;
+  }
+  .arcade-chart-section .arcade-section-heading {
+    flex-direction: column;
+  }
+  .arcade-month-chart {
+    grid-template-columns: repeat(12, minmax(42px, 1fr));
+  }
+  .arcade-form,
+  .arcade-form-grid {
+    grid-template-columns: 1fr;
+  }
+  .arcade-form-wide,
+  .arcade-form h2 {
+    grid-column: auto;
+  }
+  .arcade-allocation-list {
+    grid-template-columns: 1fr;
+  }
+  .arcade-management-header,
+  .arcade-section-heading {
+    align-items: flex-start;
+  }
+  .arcade-customer-overview {
+    align-items: flex-start;
+  }
+  .arcade-record-list article {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+}
+
+@media (max-width: 440px) {
+  .arcade-dashboard-cards {
+    grid-template-columns: 1fr;
+  }
+  .arcade-payment-toolbar {
+    justify-content: flex-start;
+  }
+  .arcade-invoice-overlay {
+    padding: 0.5rem;
+  }
+  .arcade-invoice-sheet {
+    min-height: 0;
+    padding: 1rem;
+  }
+  .arcade-invoice-header {
+    flex-direction: column;
+  }
+}
+
+@media print {
+  @page {
+    size: A4;
+    margin: 0;
+  }
+  body * {
+    visibility: hidden !important;
+  }
+  .arcade-invoice-overlay,
+  .arcade-invoice-overlay * {
+    visibility: visible !important;
+  }
+  .arcade-invoice-overlay {
+    position: absolute;
+    inset: 0;
+    overflow: visible;
+    padding: 0;
+    background: #fff;
+  }
+  .arcade-invoice-toolbar {
+    display: none !important;
+  }
+  .arcade-invoice-sheet {
+    width: 100%;
+    min-height: 0;
+    margin: 0;
+    padding: 18mm;
+    box-shadow: none;
+  }
+}
+
 * {
   box-sizing: border-box;
 }
@@ -910,7 +1543,6 @@ a {
   font-size: clamp(2rem, 3vw, 2.9rem);
   line-height: 1.1;
   letter-spacing: -0.04em;
-
 }
 
 .teacher-content-editor-form {
@@ -1151,6 +1783,18 @@ a {
 
 .profile-menu {
   position: relative;
+}
+
+.profile-menu > summary {
+  list-style: none;
+}
+
+.profile-menu > summary::-webkit-details-marker {
+  display: none;
+}
+
+.profile-menu:not([open]) > .profile-menu-panel {
+  display: none;
 }
 
 .profile-menu-button {
@@ -6966,4 +7610,11 @@ small {
 .calendar-month-arrow,
 .calendar-view-button span {
   font-size: 2rem !important;
+}
+.app-brand-title {
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: #fff;
+  text-decoration: none;
+  width: 8rem;
 }

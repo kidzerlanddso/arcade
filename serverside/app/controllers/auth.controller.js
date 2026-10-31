@@ -55,13 +55,14 @@ const parsePathwayPayload = (pathway) => {
 
 const sendAuthTokens = (res, user) => {
   const isAdmin = Number(user.admin) === 1;
+  const isSparkles = Number(user.sparkles) === 1;
   const token = jwt.sign(
-    { userId: user.id, username: user.username, admin: isAdmin },
+    { userId: user.id, username: user.username, admin: isAdmin, sparkles: isSparkles },
     config.JWT_SECRET,
     { expiresIn: "15m" },
   );
   const refreshToken = jwt.sign(
-    { userId: user.id, username: user.username, admin: isAdmin },
+    { userId: user.id, username: user.username, admin: isAdmin, sparkles: isSparkles },
     config.REFRESH_SECRET,
     { expiresIn: "7d" },
   );
@@ -80,6 +81,7 @@ const sendAuthTokens = (res, user) => {
     message: "Login successful.",
     token,
     admin: isAdmin,
+    sparkles: isSparkles,
   });
 };
 
@@ -753,6 +755,7 @@ exports.refresh = function (req, res) {
         userId: decoded.userId,
         username: decoded.username,
         admin: decoded.admin,
+        sparkles: decoded.sparkles,
       },
       config.JWT_SECRET,
       { expiresIn: "15m" },
@@ -761,6 +764,7 @@ exports.refresh = function (req, res) {
     return res.json({
       token: token,
       admin: decoded.admin,
+      sparkles: decoded.sparkles,
     });
   } catch (err) {
     return res

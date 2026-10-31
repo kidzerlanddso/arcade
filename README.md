@@ -1,139 +1,46 @@
-# Rototuna Alumni Platform
+# Arcade Customer Accounts
 
-Alumni management and digital archive platform for **Rototuna Senior High School** (Alumni Connect).
+A staff system for managing arcade customer records, contacts, fees, and payments. Payments record a date and method (cash, bank transfer, or card), and can be allocated to customer fees.
 
-Graduates can stay connected with the school community: browse news and events, find classmates, view teacher profiles, and support the school through donations.
+## Project structure
 
-## Features
+- `clientside/` — React and Vite interface
+- `serverside/` — Express API and PostgreSQL access
+- `serverside/arcade_customer_management.sql` — customer, contact, fee, payment, and allocation schema
 
-- **Authentication** — email/password and Google sign-in
-- **Dashboard** — featured events carousel, latest announcements, featured teachers, Facebook/Instagram links
-- **Alumni directory** — search profiles, connections, employment & education history
-- **Events** — list/calendar views, event details, join events
-- **News** — newsletter-style announcements with images
-- **Teacher profiles** — pastoral/department teams; featured teachers on the dashboard
-- **Donations** — link out to the school’s [Kindo shop](https://shop.kindo.co.nz/app/community-shop/Rototuna%20High%20Schools)
-- **Admin** — membership requests, content management, stats
+## Run locally
 
-## Tech stack
-
-| Layer | Technology |
-|--------|------------|
-| Frontend | React, Vite, React Router, Sass |
-| Backend | Node.js, Express |
-| Database | PostgreSQL (Supabase) |
-| Storage | Supabase Storage (profile & teacher images) |
-| Deploy | Frontend: Vercel · Backend: Render |
-
-## Repository layout
-
-```
-rototuna-alumni-platform/
-├── clientside/     # React frontend
-├── serverside/     # Express API
-└── README.md
-```
-
-## Local setup
-
-### Prerequisites
-
-- Node.js 18+ (Node 22 supported)
-- npm
-- Supabase project (Postgres + Storage) or equivalent Postgres connection
-
-### 1. Backend
+Start the API:
 
 ```bash
 cd serverside
-cp .env.example .env
 npm install
 npm start
 ```
 
-API runs on **http://localhost:3001** (or `PORT` from `.env`).
-
-### 2. Frontend
+Start the web app in another terminal:
 
 ```bash
 cd clientside
-cp .env.example .env
 npm install
 npm run dev
 ```
 
-App runs on **http://localhost:3000** (Vite may pick another port if 3000 is busy).  
-Dev proxy: `/api` → `http://localhost:3001`.
+The API defaults to port `3002`; Vite proxies `/api` to that port. Set `VITE_API_URL` in `clientside/.env` when using a different API URL.
 
-## Environment variables
+## Configuration
 
-### `clientside/.env`
+Configure the PostgreSQL connection and JWT secrets in `serverside/app/config/db.config.js`. Set `PORT` and `FRONTEND_URL` in `serverside/.env` as needed. The database schema in `serverside/arcade_customer_management.sql` must be applied to PostgreSQL before using customer management.
 
-| Variable | Purpose |
-|----------|---------|
-| `VITE_API_URL` | API base URL (local: `http://localhost:3001`) |
-| `VITE_GOOGLE_CLIENT_ID` | Google OAuth Web Client ID |
+The customer management page is available at `/arcade/customers` and requires an administrator account. Customer API endpoints are also restricted to authenticated administrators.
 
-### `serverside/.env`
+## Customer API
 
-| Variable | Purpose |
-|----------|---------|
-| `GOOGLE_CLIENT_ID` | Same Google client ID as the frontend |
-| `FRONTEND_URL` | Deployed frontend origin (CORS), e.g. Vercel URL |
-| `SUPABASE_URL` | Supabase project URL |
-| `SUPABASE_SECRET_KEY` | Supabase service role key (server only) |
-| `SUPABASE_STORAGE_BUCKET` | Profile/event/news images bucket (default: `profile-images`) |
-| `SUPABASE_TEACHER_AVATAR_BUCKET` | Teacher avatars bucket (default: `teacher_avator`) |
-| `PORT` | Optional; defaults to `3001` |
-| `RESEND_API_KEY` / `RESEND_FROM_EMAIL` | Optional; membership emails |
-
-> Never commit real `.env` files. Use the `.env.example` files as templates.
-
-## Google OAuth
-
-1. Create an OAuth **Web** client in Google Cloud Console.
-2. Add authorized JavaScript origins for local and production frontends (e.g. `http://localhost:3000`, your Vercel URL).
-3. Set the same client ID in both `VITE_GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_ID`.
-
-## Keepalive (Render + Supabase)
-
-Free Render services sleep after inactivity; Supabase free tiers may pause without DB activity.
-
-- Backend exposes **`GET /keepalive`** (runs a simple DB check).
-- Point an external cron (e.g. [cron-job.org](https://cron-job.org) or UptimeRobot) at:
-
-  `https://<your-render-host>/keepalive`
-
-  every **10–14 minutes**.
-
-## Production notes
-
-- **Frontend (Vercel):** set `VITE_API_URL` to the Render API URL; build from `clientside/`.
-- **Backend (Render):** set all `serverside` env vars; set `FRONTEND_URL` to the Vercel origin.
-- Ensure Supabase Storage buckets exist and are public (or otherwise readable) for image URLs.
-
-## API overview
-
-| Prefix | Area |
-|--------|------|
-| `/auth` | Register, login, Google, membership requests |
-| `/profile` | Alumni profiles & images |
-| `/events` | Events, join, attendees |
-| `/content` | News & teachers |
-| `/connection` | Alumni connections |
-| `/employment`, `/education` | Profile history |
-| `/admin`, `/data` | Admin tools |
-| `/keepalive` | Health / DB ping |
-
-## Scripts
-
-| Location | Command | Description |
-|----------|---------|-------------|
-| `clientside` | `npm run dev` | Local frontend |
-| `clientside` | `npm run build` | Production build |
-| `serverside` | `npm start` | Start API |
-| `serverside` | `npm run import:events` | Import local events (optional) |
-
-## Licence / ownership
-
-Delivered for Rototuna Senior High School — RHS Alumni / Alumni Connect project.
+- `GET /arcade/customers` and `GET /arcade/customers/:id`
+- `POST /arcade/customers`, `PUT /arcade/customers/:id`, and `DELETE /arcade/customers/:id`
+- `POST /arcade/customers/:customerId/contacts`
+- `POST /arcade/fees`, `PUT /arcade/fees/:id`, and `DELETE /arcade/fees/:id`
+- `POST /arcade/payments` — accepts `cash`, `bank_transfer`, or `card`, a payment date, and optional fee allocations
+- `PUT /arcade/payments/:id` and `DELETE /arcade/payments/:id`
+- `GET /arcade/payments/report`
+- `GET /arcade/dashboard/stats?year=YYYY` — yearly totals and monthly fee/payment totals
