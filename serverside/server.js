@@ -1,5 +1,7 @@
 // Setup Express
-require("dotenv").config({ path: require("node:path").join(__dirname, ".env") });
+require("dotenv").config({
+  path: require("node:path").join(__dirname, ".env"),
+});
 
 const express = require("express");
 const cors = require("cors");
@@ -11,6 +13,7 @@ const app = express();
 
 // Allow local Vite and the deployed frontend (FRONTEND_URL).
 const allowedOrigins = [
+  "https://vercel.app",
   "http://localhost:5173",
   process.env.FRONTEND_URL,
 ].filter(Boolean);
@@ -60,4 +63,3 @@ const PORT = process.env.PORT || 3002;
 app.listen(PORT, () => {
   console.log(`API server is listening on port ${PORT}`);
 });
-
