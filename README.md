@@ -28,6 +28,8 @@ npm run dev
 
 The API defaults to port `3002`; Vite proxies `/api` to that port. Set `VITE_API_URL` in `clientside/.env` when using a different API URL.
 
+For Vercel, add `VITE_API_URL` to the **frontend project's** Environment Variables using the full deployed API origin, including the protocol (for example, `https://your-api-project.vercel.app`). Do not include `/auth/login` or another endpoint path. Redeploy the frontend after changing the variable. Set `FRONTEND_URL` in the API project's Environment Variables to the exact frontend origin (for example, `https://your-frontend-project.vercel.app`) so credentialed API requests pass CORS validation.
+
 ## Configuration
 
 Configure the PostgreSQL connection and JWT secrets in `serverside/app/config/db.config.js`. Set `PORT` and `FRONTEND_URL` in `serverside/.env` as needed. The database schema in `serverside/arcade_customer_management.sql` must be applied to PostgreSQL before using customer management.
