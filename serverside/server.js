@@ -4,39 +4,27 @@ require("dotenv").config({
 });
 
 const express = require("express");
-const cors = require("cors");
 const db = require("./app/models/db");
 
 const cookieParser = require("cookie-parser");
 
 const app = express();
 
-// Allow local Vite and the deployed frontend (FRONTEND_URL).
-const allowedOrigins = [
-  "http://localhost:5173",
-  process.env.FRONTEND_URL?.trim().replace(/\/+$/, ""),
-].filter(Boolean);
+const cors = require('cors');
 
-app.use(
-  cors({
-    origin: function (origin, callback) {
-      // Allow non-browser tools (no Origin header) and configured frontends.
-      const isLocalDevelopmentOrigin = /^http:\/\/localhost:\d+$/.test(
-        origin || "",
-      );
+const allowedOrigin = process.env.FRONTEND_URL || 'https://arcade-ochre-gamma.vercel.app';
 
-      if (
-        !origin ||
-        allowedOrigins.includes(origin) ||
-        isLocalDevelopmentOrigin
-      ) {
-        return callback(null, true);
-      }
-      return callback(new Error(`CORS blocked for origin: ${origin}`));
-    },
-    credentials: true,
-  }),
-);
+app.use(cors({
+  origin: allowedOrigin,
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With']
+}));
+
+// Explicitly handle preflight OPTIONS requests across all routes
+app.options('*', cors());
+
+
 
 // To help with POST and PUT requests to the server
 app.use(express.json());
