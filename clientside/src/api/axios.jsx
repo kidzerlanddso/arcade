@@ -1,5 +1,13 @@
 import axios from "axios";
-import { API_URL } from "./apiUrl";
+
+const configuredApiUrl = String(import.meta.env.VITE_API_URL || "/api")
+  .trim()
+  .replace(/\/+$/, "");
+
+export const API_URL =
+  configuredApiUrl.startsWith("/") || /^https?:\/\//i.test(configuredApiUrl)
+    ? configuredApiUrl
+    : `https://${configuredApiUrl}`;
 
 let memoryToken = localStorage.getItem("token");
 

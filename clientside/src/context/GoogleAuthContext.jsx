@@ -1,7 +1,7 @@
 import { GoogleOAuthProvider } from "@react-oauth/google";
 import axios from "axios";
 import { createContext, useContext, useEffect, useMemo, useState } from "react";
-import { API_URL } from "../api/apiUrl";
+import { API_URL } from "../api/axios";
 
 const GoogleAuthContext = createContext({
   ready: false,
