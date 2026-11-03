@@ -26,6 +26,7 @@ function ArcadeReceivables() {
   const [paymentMethod, setPaymentMethod] = useState("all");
   const [months, setMonths] = useState([currentMonth()]);
   const [payments, setPayments] = useState([]);
+  const [feeComparison, setFeeComparison] = useState([]);
   const [completedQuery, setCompletedQuery] = useState("");
   const [error, setError] = useState("");
   const queryKey = `${source}:${selectedMonth}:${paymentMethod}`;
@@ -46,6 +47,7 @@ function ArcadeReceivables() {
         const availableMonths = response.data.months || [];
         setMonths(availableMonths);
         setPayments(response.data.data || []);
+        setFeeComparison(response.data.comparison || []);
         setError("");
         setCompletedQuery(queryKey);
       })
@@ -72,6 +74,11 @@ function ArcadeReceivables() {
       ),
     0,
   );
+  const expectedFees = feeComparison.reduce(
+    (total, customer) => total + Number(customer.expected_fees || 0),
+    0,
+  );
+  const receivablesGap = expectedFees - totalReceived;
   const formattedMonth = (month) =>
     new Date(`${month}-01T00:00:00`).toLocaleDateString(undefined, {
       month: "long",
@@ -158,90 +165,197 @@ function ArcadeReceivables() {
           </p>
         ) : (
           <>
-            <div className="arcade-summary-grid arcade-received-summary">
-              <article>
-                <span>Total received</span>
-                <strong>{currency(totalReceived)}</strong>
-              </article>
-              <article>
-                <span>Payments</span>
-                <strong>{payments.length}</strong>
-              </article>
-            </div>
+            {source === "arcade" ? (
+              <>
+                <div className="arcade-summary-grid arcade-receivables-comparison-summary">
+                  <article>
+                    <span>Expected fees</span>
+                    <strong>{currency(expectedFees)}</strong>
+                  </article>
+                  <article>
+                    <span>Actual received</span>
+                    <strong>{currency(totalReceived)}</strong>
+                  </article>
+                  <article
+                    className={
+                      receivablesGap > 0
+                        ? "arcade-comparison-shortfall"
+                        : "arcade-comparison-covered"
+                    }
+                  >
+                    <span>
+                      {receivablesGap > 0
+                        ? "Still outstanding"
+                        : receivablesGap < 0
+                          ? "Overpaid"
+                          : "Fully received"}
+                    </span>
+                    <strong>{currency(Math.abs(receivablesGap))}</strong>
+                  </article>
+                  <article>
+                    <span>Payments</span>
+                    <strong>{payments.length}</strong>
+                  </article>
+                </div>
 
-            {payments.length ? (
-              <div className="table-responsive">
-                <table className="table arcade-received-table">
-                  <thead>
-                    {source === "sparkles" ? (
-                      <tr>
-                        <th>Date</th>
-                        <th className="text-end">Cash received</th>
-                        <th className="text-end">Card received</th>
-                        <th className="text-end">Total received</th>
-                      </tr>
-                    ) : (
-                      <tr>
-                        <th>Customer</th>
-                        <th>Payment date</th>
-                        <th>Method / reference month</th>
-                        <th>Fees covered</th>
-                        <th className="text-end">Amount received</th>
-                      </tr>
-                    )}
-                  </thead>
-                  <tbody>
-                    {payments.map((payment) => (
-                      source === "sparkles" ? (
-                        <tr key={payment.id}>
-                          <td>{String(payment.payment_date).slice(0, 10)}</td>
-                          <td className="text-end">{currency(payment.amount_cash)}</td>
-                          <td className="text-end">{currency(payment.amount_card)}</td>
-                          <td className="text-end">{currency(payment.amount_total)}</td>
+                <h3 className="arcade-report-subheading">
+                  Expected fees vs actual received by customer
+                </h3>
+                {feeComparison.length ? (
+                  <div className="table-responsive">
+                    <table className="table arcade-received-table">
+                      <thead>
+                        <tr>
+                          <th>Customer</th>
+                          <th className="text-end">Expected fees</th>
+                          <th className="text-end">Actual received</th>
+                          <th className="text-end">Outstanding / overpaid</th>
                         </tr>
-                      ) : (
-                        <tr key={payment.id}>
-                          <td>{payment.customer_name}</td>
-                          <td>{String(payment.paid_on).slice(0, 10)}</td>
-                          <td>
-                            {paymentMethodLabel(payment.payment_method)}
-                            {payment.reference ? ` · ${payment.reference}` : ""}
-                          </td>
-                          <td>
-                            {payment.allocations?.length
-                              ? payment.allocations
-                                  .map(
-                                    (allocation) =>
-                                      `${allocation.description || "Fee"} (${currency(allocation.allocated_amount)})`,
-                                  )
-                                  .join(", ")
-                              : "Unallocated payment"}
-                          </td>
-                          <td className="text-end">
-                            {currency(payment.amount)}
-                          </td>
+                      </thead>
+                      <tbody>
+                        {feeComparison.map((customer) => {
+                          const difference = Number(customer.difference || 0);
+                          return (
+                            <tr key={customer.customer_id}>
+                              <td>{customer.customer_name}</td>
+                              <td className="text-end">
+                                {currency(customer.expected_fees)}
+                              </td>
+                              <td className="text-end">
+                                {currency(customer.received)}
+                              </td>
+                              <td
+                                className={`text-end ${difference > 0 ? "arcade-comparison-shortfall-text" : "arcade-comparison-covered-text"}`}
+                              >
+                                {difference < 0
+                                  ? `Overpaid ${currency(Math.abs(difference))}`
+                                  : currency(difference)}
+                              </td>
+                            </tr>
+                          );
+                        })}
+                      </tbody>
+                      <tfoot>
+                        <tr>
+                          <th>Total</th>
+                          <th className="text-end">{currency(expectedFees)}</th>
+                          <th className="text-end">{currency(totalReceived)}</th>
+                          <th className="text-end">
+                            {receivablesGap < 0
+                              ? `Overpaid ${currency(Math.abs(receivablesGap))}`
+                              : currency(receivablesGap)}
+                          </th>
                         </tr>
-                      )
-                    ))}
-                  </tbody>
-                  <tfoot>
-                    <tr>
-                      <th colSpan={source === "sparkles" ? 3 : 4}>
-                        Total received
-                      </th>
-                      <th className="text-end">{currency(totalReceived)}</th>
-                    </tr>
-                  </tfoot>
-                </table>
-              </div>
+                      </tfoot>
+                    </table>
+                  </div>
+                ) : (
+                  <p className="arcade-muted">
+                    No fees or payments were recorded for {formattedMonth(selectedMonth)}.
+                  </p>
+                )}
+
+                <h3 className="arcade-report-subheading">Payment details</h3>
+                {payments.length ? (
+                  <div className="table-responsive">
+                    <table className="table arcade-received-table">
+                      <thead>
+                        <tr>
+                          <th>Customer</th>
+                          <th>Payment date</th>
+                          <th>Method / reference month</th>
+                          <th>Fees covered</th>
+                          <th className="text-end">Amount received</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {payments.map((payment) => (
+                          <tr key={payment.id}>
+                            <td>{payment.customer_name}</td>
+                            <td>{String(payment.paid_on).slice(0, 10)}</td>
+                            <td>
+                              {paymentMethodLabel(payment.payment_method)}
+                              {payment.reference ? ` · ${payment.reference}` : ""}
+                            </td>
+                            <td>
+                              {payment.allocations?.length
+                                ? payment.allocations
+                                    .map(
+                                      (allocation) =>
+                                        `${allocation.description || "Fee"} (${currency(allocation.allocated_amount)})`,
+                                    )
+                                    .join(", ")
+                                : "Unallocated payment"}
+                            </td>
+                            <td className="text-end">
+                              {currency(payment.amount)}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                ) : (
+                  <p className="arcade-muted">
+                    No payments were received for {formattedMonth(selectedMonth)}
+                    {paymentMethod !== "all"
+                      ? ` by ${paymentMethodLabel(paymentMethod).toLowerCase()}`
+                      : ""}
+                    .
+                  </p>
+                )}
+              </>
             ) : (
-              <p className="arcade-muted">
-                No payments were received for {formattedMonth(selectedMonth)}
-                {paymentMethod !== "all"
-                  ? ` by ${paymentMethodLabel(paymentMethod).toLowerCase()}`
-                  : ""}
-                .
-              </p>
+              <>
+                <div className="arcade-summary-grid arcade-received-summary">
+                  <article>
+                    <span>Total received</span>
+                    <strong>{currency(totalReceived)}</strong>
+                  </article>
+                  <article>
+                    <span>Daily records</span>
+                    <strong>{payments.length}</strong>
+                  </article>
+                </div>
+                {payments.length ? (
+                  <div className="table-responsive">
+                    <table className="table arcade-received-table">
+                      <thead>
+                        <tr>
+                          <th>Date</th>
+                          <th className="text-end">Cash received</th>
+                          <th className="text-end">Card received</th>
+                          <th className="text-end">Total received</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {payments.map((payment) => (
+                          <tr key={payment.id}>
+                            <td>{String(payment.payment_date).slice(0, 10)}</td>
+                            <td className="text-end">
+                              {currency(payment.amount_cash)}
+                            </td>
+                            <td className="text-end">
+                              {currency(payment.amount_card)}
+                            </td>
+                            <td className="text-end">
+                              {currency(payment.amount_total)}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                ) : (
+                  <p className="arcade-muted">
+                    No payments were received for {formattedMonth(selectedMonth)}
+                    {paymentMethod !== "all"
+                      ? ` by ${paymentMethodLabel(paymentMethod).toLowerCase()}`
+                      : ""}
+                    .
+                  </p>
+                )}
+              </>
             )}
           </>
         )}

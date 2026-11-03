@@ -62,41 +62,31 @@ CREATE TABLE IF NOT EXISTS sparkles_daily_payments (
     CHECK (amount_cash > 0 OR amount_card > 0)
 );
 
+CREATE TABLE IF NOT EXISTS arcade_payable_expenses (
+    id BIGSERIAL PRIMARY KEY,
+    expense_type VARCHAR(20) NOT NULL
+        CHECK (expense_type IN ('manual', 'annual')),
+    description VARCHAR(255) NOT NULL,
+    amount NUMERIC(12, 2) NOT NULL CHECK (amount > 0),
+    expense_date DATE,
+    expense_year SMALLINT,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    CHECK (
+        (expense_type = 'manual' AND expense_date IS NOT NULL AND expense_year IS NULL)
+        OR
+        (expense_type = 'annual' AND expense_date IS NULL AND expense_year IS NOT NULL)
+    ),
+    CHECK (expense_year IS NULL OR expense_year BETWEEN 2000 AND 2100)
+);
+
+CREATE INDEX IF NOT EXISTS arcade_payable_expenses_date_idx
+    ON arcade_payable_expenses (expense_date)
+    WHERE expense_type = 'manual';
+
+CREATE INDEX IF NOT EXISTS arcade_payable_expenses_year_idx
+    ON arcade_payable_expenses (expense_year)
+    WHERE expense_type = 'annual';
+
 CREATE INDEX IF NOT EXISTS arcade_fees_customer_idx ON arcade_fees (customer_id, issued_on);
 CREATE INDEX IF NOT EXISTS arcade_payments_customer_idx ON arcade_payments (customer_id, paid_on);
 CREATE INDEX IF NOT EXISTS arcade_customer_contacts_customer_idx ON arcade_customer_contacts (customer_id);
-
--- Example seed data
-INSERT INTO arcade_customers (name, notes, is_active)
-VALUES
-    ('Sunset Arcade', 'Main arcade location', TRUE),
-    ('Galaxy Gaming', 'VIP member account', TRUE)
-ON CONFLICT DO NOTHING;
-
-INSERT INTO arcade_customer_contacts (customer_id, contact_name, phone, email, contact_role, is_primary)
-VALUES
-    (1, 'Alice Brown', '+1234567890', 'alice@sunsetarcade.com', 'Manager', TRUE),
-    (1, 'Sam Lee', '+1234567891', 'sam@sunsetarcade.com', 'Finance', FALSE),
-    (2, 'Mia Stone', '+1234567892', 'mia@galaxygaming.com', 'Owner', TRUE)
-ON CONFLICT DO NOTHING;
-
-INSERT INTO arcade_fees (customer_id, description, amount, issued_on, due_on, notes)
-VALUES
-    (1, 'Monthly maintenance', 150.00, CURRENT_DATE - INTERVAL '10 day', CURRENT_DATE + INTERVAL '20 day', 'Standard monthly fee'),
-    (1, 'Game rental upgrade', 250.00, CURRENT_DATE - INTERVAL '5 day', CURRENT_DATE + INTERVAL '25 day', 'Added cabinets'),
-    (2, 'Membership fee', 300.00, CURRENT_DATE - INTERVAL '2 day', CURRENT_DATE + INTERVAL '15 day', 'Annual membership')
-ON CONFLICT DO NOTHING;
-
-INSERT INTO arcade_payments (customer_id, amount, payment_method, paid_on, reference, notes)
-VALUES
-    (1, 150.00, 'cash', CURRENT_DATE - INTERVAL '9 day', 'CASH-001', 'Paid in person'),
-    (1, 200.00, 'bank_transfer', CURRENT_DATE - INTERVAL '4 day', 'BT-1045', 'Bank transfer'),
-    (2, 300.00, 'card', CURRENT_DATE - INTERVAL '1 day', 'CARD-8854', 'Card payment via terminal')
-ON CONFLICT DO NOTHING;
-
-INSERT INTO arcade_payment_allocations (payment_id, fee_id, customer_id, allocated_amount)
-VALUES
-    (1, 1, 1, 150.00),
-    (2, 2, 1, 200.00),
-    (3, 3, 2, 300.00)
-ON CONFLICT DO NOTHING;

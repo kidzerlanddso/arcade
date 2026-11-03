@@ -11,6 +11,8 @@ module.exports = (app) => {
   app.delete("/arcade/customers/:id", ...requireAdmin, controller.deleteCustomer);
 
   app.post("/arcade/customers/:customerId/contacts", ...requireAdmin, controller.createContact);
+  app.put("/arcade/contacts/:id", ...requireAdmin, controller.updateContact);
+  app.delete("/arcade/contacts/:id", ...requireAdmin, controller.deleteContact);
 
   app.post("/arcade/fees", ...requireAdmin, controller.createFee);
   app.post("/arcade/fees/generate-monthly", ...requireAdmin, controller.generateMonthlyFees);

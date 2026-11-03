@@ -72,6 +72,115 @@ $rhs-charcoal: #25282a;
   margin-left: auto;
   color: #667085;
 }
+.arcade-customer-list-heading {
+  margin-bottom: 0.5rem;
+}
+.arcade-customer-list-filters {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+.arcade-customer-search {
+  display: grid;
+  flex: 1;
+  gap: 0.35rem;
+  max-width: 420px;
+  color: #475467;
+  font-size: 0.9rem;
+  font-weight: 700;
+}
+.arcade-customer-search input {
+  min-height: 42px;
+  padding: 0.55rem 0.7rem;
+  border: 1px solid $soft-border;
+  border-radius: 0.45rem;
+  background: #fff;
+  font: inherit;
+}
+.arcade-customer-search input:focus {
+  border-color: $rhs-light-blue;
+  outline: 3px solid rgba(69, 127, 193, 0.16);
+}
+.arcade-status-filter {
+  display: inline-flex;
+  gap: 0.25rem;
+  padding: 0.25rem;
+  border: 1px solid #e3e8ef;
+  border-radius: 0.6rem;
+  background: #f7f8fa;
+}
+.arcade-status-filter button {
+  padding: 0.5rem 0.8rem;
+  border: 0;
+  border-radius: 0.4rem;
+  background: transparent;
+  color: #596273;
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+.arcade-status-filter button.is-selected {
+  background: $rhs-navy-blue;
+  color: #fff;
+}
+.arcade-customer-no-results {
+  padding: 1rem;
+  border: 1px dashed #cbd5e1;
+  border-radius: 0.6rem;
+  background: #f8fafc;
+}
+.arcade-customer-list {
+  display: grid;
+  gap: 0.6rem;
+}
+.arcade-customer-list-item {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  align-items: center;
+  gap: 1rem;
+  width: 100%;
+  padding: 1rem 1.1rem;
+  border: 1px solid #e3e8ef;
+  border-radius: 0.65rem;
+  background: #fff;
+  color: $dark-text;
+  text-align: left;
+  cursor: pointer;
+  transition:
+    border-color 150ms ease,
+    background-color 150ms ease,
+    transform 150ms ease;
+}
+.arcade-customer-list-item:hover,
+.arcade-customer-list-item:focus-visible {
+  transform: translateY(-1px);
+  border-color: #9db8d8;
+  background: #f7faff;
+  outline: none;
+}
+.arcade-customer-list-name {
+  font-weight: 700;
+}
+.arcade-customer-status {
+  padding: 0.25rem 0.65rem;
+  border-radius: 999px;
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+.arcade-customer-status.is-active {
+  background: #e7f5ec;
+  color: #17663a;
+}
+.arcade-customer-status.is-inactive {
+  background: #f1f2f4;
+  color: #596273;
+}
+.arcade-customer-list-arrow {
+  color: #667085;
+  font-size: 1.25rem;
+}
 .arcade-tabs {
   display: flex;
   gap: 0.35rem;
@@ -130,11 +239,100 @@ $rhs-charcoal: #25282a;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   margin-top: 0;
 }
+.arcade-receivables-comparison-summary {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  margin-top: 1.25rem;
+}
+.arcade-receivables-comparison-summary article:first-child {
+  border-color: #cbdcf1;
+  background: #f0f6fc;
+}
+.arcade-receivables-comparison-summary article:nth-child(2) {
+  border-color: #cce5d2;
+  background: #eff8f1;
+}
+.arcade-receivables-comparison-summary .arcade-comparison-shortfall {
+  border-color: #f2c7c9;
+  background: #fff3f2;
+}
+.arcade-receivables-comparison-summary .arcade-comparison-covered {
+  border-color: #cce5d2;
+  background: #eff8f1;
+}
+.arcade-report-subheading {
+  margin: 1.5rem 0 0.8rem;
+  color: $rhs-navy-blue;
+  font-size: 1.05rem;
+  font-weight: 700;
+}
+.arcade-comparison-shortfall-text {
+  color: $danger-red !important;
+  font-weight: 700;
+}
+.arcade-comparison-covered-text {
+  color: $primary-green !important;
+}
 .arcade-received-table th,
 .arcade-received-table td {
   vertical-align: middle;
 }
 .arcade-received-table tfoot {
+  border-top: 2px solid $soft-border;
+}
+.arcade-payables-summary article:first-child {
+  border-color: #cbdcf1;
+  background: #f0f6fc;
+}
+.arcade-payables-summary article:nth-child(2) {
+  border-color: #cce5d2;
+  background: #eff8f1;
+}
+.arcade-payables-summary article:nth-child(3) {
+  border-color: #e4d7f0;
+  background: #f8f3fc;
+}
+.arcade-payables-summary article:nth-child(4) {
+  border-color: #f3dfb8;
+  background: #fff9ec;
+}
+.arcade-payables-form {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+.arcade-payables-form-actions {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: 0.65rem;
+}
+.arcade-payables-form-actions .arcade-muted {
+  margin-right: auto;
+}
+.arcade-payables-table thead {
+  background: $rhs-navy-blue;
+  color: #fff;
+}
+.arcade-payables-table th,
+.arcade-payables-table td {
+  vertical-align: middle;
+}
+.arcade-payables-table td:nth-child(1) {
+  min-width: 180px;
+}
+.arcade-payables-table td:nth-child(3) {
+  min-width: 190px;
+}
+.arcade-payables-automatic {
+  display: inline-block;
+  padding: 0.25rem 0.55rem;
+  border-radius: 999px;
+  background: #fff3d6;
+  color: #805500;
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+.arcade-payables-table tfoot {
   border-top: 2px solid $soft-border;
 }
 .arcade-sparkles .arcade-section {
@@ -465,11 +663,12 @@ $rhs-charcoal: #25282a;
   color: #667085;
 }
 .arcade-invoice-footnote {
-  margin-top: 2rem;
+  margin-top: 5rem;
   padding-top: 1rem;
   border-top: 1px solid #e4e7ec;
   color: #667085;
-  font-size: 0.85rem;
+  font-size: 0.65rem;
+  font-style: italic;
 }
 .arcade-muted {
   margin: 0;
@@ -549,6 +748,13 @@ $rhs-charcoal: #25282a;
 }
 
 @media (max-width: 760px) {
+  .arcade-customer-list-filters {
+    align-items: stretch;
+    flex-direction: column;
+  }
+  .arcade-customer-search {
+    max-width: none;
+  }
   .arcade-received-heading {
     align-items: flex-start;
     flex-direction: column;
@@ -557,6 +763,9 @@ $rhs-charcoal: #25282a;
     width: 100%;
   }
   .arcade-summary-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .arcade-receivables-comparison-summary {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
   .arcade-dashboard-cards {
@@ -574,6 +783,10 @@ $rhs-charcoal: #25282a;
   .arcade-form,
   .arcade-form-grid {
     grid-template-columns: 1fr;
+  }
+  .arcade-payables-form-actions {
+    grid-column: 1 / -1;
+    justify-content: flex-start;
   }
   .arcade-form-wide,
   .arcade-form h2 {
@@ -596,6 +809,17 @@ $rhs-charcoal: #25282a;
 }
 
 @media (max-width: 440px) {
+  .arcade-receivables-comparison-summary {
+    grid-template-columns: 1fr;
+  }
+  .arcade-status-filter {
+    justify-content: space-between;
+  }
+  .arcade-status-filter button {
+    flex: 1;
+    padding-right: 0.5rem;
+    padding-left: 0.5rem;
+  }
   .arcade-dashboard-cards {
     grid-template-columns: 1fr;
   }
@@ -7582,39 +7806,170 @@ input:checked + .slider::before {
   background: #fff;
 }
 
-// Force one uniform font size across body text only. Headings (h1–h6)
-// are excluded so title styles like .events-title keep their designed sizes.
-// Icon-glyph buttons (×, ‹ › chevrons) are excluded below.
-p,
-span,
-a,
-li,
-label,
-dt,
-dd,
-td,
-th,
-caption,
-input,
-textarea,
-select,
-button,
-strong,
-em,
-small {
-  font-size: 16px !important;
-}
-
-.close-button,
-.calendar-nav-button,
-.calendar-month-arrow,
-.calendar-view-button span {
-  font-size: 2rem !important;
-}
 .app-brand-title {
   font-size: 1.75rem;
   font-weight: 700;
   color: #fff;
   text-decoration: none;
   width: 8rem;
+}
+
+img,
+video,
+iframe {
+  max-width: 100%;
+}
+
+.table-responsive {
+  max-width: 100%;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  -webkit-overflow-scrolling: touch;
+}
+
+.app-loading {
+  display: grid;
+  min-height: 50vh;
+  place-items: center;
+  padding: 1.5rem;
+  color: #667085;
+  text-align: center;
+}
+
+@media (max-width: 768px) {
+  .content-page {
+    width: min(100% - 24px, 1100px);
+    padding: 32px 0 48px;
+  }
+
+  .app-header-inner {
+    padding-right: 16px;
+    padding-left: 16px;
+  }
+
+  .arcade-management {
+    padding: 1.25rem 1rem 2.5rem;
+  }
+
+  .arcade-management-header,
+  .arcade-customer-overview {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .arcade-customer-actions,
+  .arcade-modal-actions {
+    flex-wrap: wrap;
+  }
+
+  .arcade-customer-list-item {
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 0.6rem 0.8rem;
+    padding: 0.85rem;
+  }
+
+  .arcade-tabs {
+    max-width: 100%;
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+  }
+
+  .arcade-tabs button {
+    flex: 0 0 auto;
+  }
+
+  .modal-overlay,
+  .event-edit-modal-overlay {
+    align-items: flex-start;
+    padding: 12px;
+  }
+
+  .modal-card {
+    max-height: calc(100vh - 24px);
+    max-height: calc(100dvh - 24px);
+    overflow-y: auto;
+  }
+}
+
+@media (max-width: 480px) {
+  .content-page {
+    width: calc(100% - 20px);
+    padding-top: 24px;
+  }
+
+  .site-topbar-inner {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .arcade-management {
+    padding-right: 0.75rem;
+    padding-left: 0.75rem;
+  }
+
+  .arcade-customer-actions > .btn,
+  .arcade-modal-actions > .btn {
+    flex: 1 1 auto;
+  }
+
+  .arcade-summary-grid,
+  .arcade-receivables-comparison-summary,
+  .arcade-dashboard-cards {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .arcade-customer-list-item {
+    font-size: 1rem;
+  }
+
+  .arcade-customer-list-name {
+    grid-column: 1;
+    grid-row: 1;
+    min-width: 0;
+    overflow-wrap: anywhere;
+  }
+
+  .arcade-customer-status {
+    grid-column: 1;
+    grid-row: 2;
+    justify-self: start;
+  }
+
+  .arcade-customer-list-arrow {
+    grid-column: 2;
+    grid-row: 1 / span 2;
+  }
+
+  .arcade-report-filters {
+    width: 100%;
+  }
+
+  .arcade-report-filters .arcade-month-picker {
+    min-width: 100%;
+  }
+
+  .arcade-form,
+  .arcade-form-grid,
+  .arcade-allocation-list {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .arcade-form-wide {
+    grid-column: auto;
+  }
+
+  .arcade-modal {
+    width: 100%;
+  }
+
+  .events-carousel-slide {
+    min-height: 340px;
+    border-radius: 16px;
+  }
+
+  .events-carousel-nav {
+    width: 38px;
+    height: 38px;
+  }
 }

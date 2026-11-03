@@ -1,6 +1,9 @@
 import { useCallback, useEffect, useState } from "react";
+import { useNavigate, useParams } from "react-router-dom";
 import api from "../api/axios";
 import kl_logo from "../assets/logo.png";
+import editIcon from "../assets/edit.png";
+import deleteIcon from "../assets/bin.png";
 
 const today = () => {
   const date = new Date();
@@ -15,15 +18,22 @@ const currency = (value) =>
   });
 
 function ArcadeCustomerManagement() {
+  const navigate = useNavigate();
+  const { customerId } = useParams();
   const [customers, setCustomers] = useState([]);
+  const [customerSearch, setCustomerSearch] = useState("");
+  const [customerStatusFilter, setCustomerStatusFilter] = useState("all");
   const [selectedId, setSelectedId] = useState("");
   const [details, setDetails] = useState(null);
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
-  const [loading, setLoading] = useState(true);
+  const [loadedView, setLoadedView] = useState("");
+  const viewKey = customerId || "list";
+  const loading = loadedView !== viewKey;
   const [saving, setSaving] = useState(false);
   const [activeModal, setActiveModal] = useState(null);
   const [editingCustomerId, setEditingCustomerId] = useState(null);
+  const [editingContactId, setEditingContactId] = useState(null);
   const [editingFeeId, setEditingFeeId] = useState(null);
   const [editingPaymentId, setEditingPaymentId] = useState(null);
   const [selectedPaymentIds, setSelectedPaymentIds] = useState([]);
@@ -57,58 +67,65 @@ function ArcadeCustomerManagement() {
   });
 
   const loadCustomers = useCallback(
-    async (preferredId = selectedId) => {
+    async (preferredId = customerId) => {
       const customerResponse = await api.get("/arcade/customers");
       const rows = customerResponse.data?.data || [];
       setCustomers(rows);
-      const nextId = rows.some((row) => String(row.id) === String(preferredId))
-        ? String(preferredId)
-        : rows[0]
-          ? String(rows[0].id)
-          : "";
-      setSelectedId(nextId);
-      if (nextId) {
-        const detailResponse = await api.get(`/arcade/customers/${nextId}`);
+      if (preferredId) {
+        const detailResponse = await api.get(
+          `/arcade/customers/${preferredId}`,
+        );
+        setSelectedId(String(preferredId));
         setDetails(detailResponse.data);
       } else {
+        setSelectedId("");
         setDetails(null);
       }
     },
-    [selectedId],
+    [customerId],
   );
 
   useEffect(() => {
     let active = true;
-    const load = async () => {
-      try {
-        const generationResponse = await api.post(
-          "/arcade/fees/generate-monthly",
-        );
-        if (active && generationResponse.data.created_count > 0) {
+    api
+      .post("/arcade/fees/generate-monthly")
+      .then((response) => {
+        if (active && response.data.created_count > 0) {
           setNotice(
-            `Generated ${generationResponse.data.created_count} monthly fee${generationResponse.data.created_count === 1 ? "" : "s"} based on last month.`,
+            `Generated ${response.data.created_count} monthly fee${response.data.created_count === 1 ? "" : "s"} based on last month.`,
           );
         }
-      } catch (requestError) {
+      })
+      .catch((requestError) => {
         if (active) {
           setError(
             requestError.response?.data?.message ||
               "Unable to generate monthly fees.",
           );
         }
-      }
+      });
+    return () => {
+      active = false;
+    };
+  }, []);
 
+  useEffect(() => {
+    let active = true;
+    const load = async () => {
       try {
         const customerResponse = await api.get("/arcade/customers");
         if (!active) return;
         const rows = customerResponse.data?.data || [];
         setCustomers(rows);
-        if (rows[0]) {
-          setSelectedId(String(rows[0].id));
+        if (customerId) {
+          setSelectedId(String(customerId));
           const detailResponse = await api.get(
-            `/arcade/customers/${rows[0].id}`,
+            `/arcade/customers/${customerId}`,
           );
           if (active) setDetails(detailResponse.data);
+        } else {
+          setSelectedId("");
+          setDetails(null);
         }
       } catch (requestError) {
         if (active)
@@ -116,35 +133,16 @@ function ArcadeCustomerManagement() {
             requestError.response?.data?.message ||
               "Unable to load customer records.",
           );
+        if (active && customerId) setDetails(null);
       } finally {
-        if (active) setLoading(false);
+        if (active) setLoadedView(viewKey);
       }
     };
     load();
     return () => {
       active = false;
     };
-  }, []);
-
-  const selectCustomer = async (event) => {
-    const id = event.target.value;
-    setSelectedId(id);
-    setSelectedPaymentIds([]);
-    setPaymentForm((current) => ({ ...current, allocations: {} }));
-    setError("");
-    if (!id) {
-      setDetails(null);
-      return;
-    }
-    try {
-      const response = await api.get(`/arcade/customers/${id}`);
-      setDetails(response.data);
-    } catch (requestError) {
-      setError(
-        requestError.response?.data?.message || "Unable to load this customer.",
-      );
-    }
-  };
+  }, [customerId, viewKey]);
 
   const submit = async (event, kind) => {
     event.preventDefault();
@@ -161,10 +159,23 @@ function ArcadeCustomerManagement() {
           : await api.post("/arcade/customers", customerForm);
         setCustomerForm({ name: "", notes: "", is_active: true });
         setEditingCustomerId(null);
-        await loadCustomers(String(response.data.customer.id));
+        const savedCustomerId = String(response.data.customer.id);
+        await loadCustomers(savedCustomerId);
+        if (!editingCustomerId) {
+          navigate(`/arcade/customers/${savedCustomerId}`);
+        }
         setNotice(editingCustomerId ? "Customer updated." : "Customer added.");
       } else if (kind === "contact") {
-        await api.post(`/arcade/customers/${selectedId}/contacts`, contactForm);
+        const wasEditing = Boolean(editingContactId);
+        if (editingContactId) {
+          await api.put(`/arcade/contacts/${editingContactId}`, contactForm);
+        } else {
+          await api.post(
+            `/arcade/customers/${selectedId}/contacts`,
+            contactForm,
+          );
+        }
+        setEditingContactId(null);
         setContactForm({
           contact_name: "",
           phone: "",
@@ -173,7 +184,7 @@ function ArcadeCustomerManagement() {
           is_primary: false,
         });
         await loadCustomers(selectedId);
-        setNotice("Contact added.");
+        setNotice(wasEditing ? "Contact updated." : "Contact added.");
       } else if (kind === "fee") {
         const feeRequest = {
           ...feeForm,
@@ -252,6 +263,16 @@ function ArcadeCustomerManagement() {
   };
 
   const customerSummary = details?.summary || {};
+  const filteredCustomers = customers.filter((customer) => {
+    const matchesSearch = customer.name
+      .toLowerCase()
+      .includes(customerSearch.trim().toLowerCase());
+    const matchesStatus =
+      customerStatusFilter === "all" ||
+      (customerStatusFilter === "active" && customer.is_active) ||
+      (customerStatusFilter === "inactive" && !customer.is_active);
+    return matchesSearch && matchesStatus;
+  });
   const selectedPayments = (details?.payments || []).filter((payment) =>
     selectedPaymentIds.includes(String(payment.id)),
   );
@@ -293,14 +314,16 @@ function ArcadeCustomerManagement() {
     setError("");
   };
   const openModal = (name, record = null) => {
-    if (name === "contact")
+    if (name === "contact") {
+      setEditingContactId(record?.id || null);
       setContactForm({
-        contact_name: "",
-        phone: "",
-        email: "",
-        contact_role: "",
-        is_primary: false,
+        contact_name: record?.contact_name || "",
+        phone: record?.phone || "",
+        email: record?.email || "",
+        contact_role: record?.contact_role || "",
+        is_primary: record?.is_primary || false,
       });
+    }
     if (name === "fee") {
       setEditingFeeId(record?.id || null);
       setFeeForm({
@@ -378,7 +401,9 @@ function ArcadeCustomerManagement() {
   const deleteCustomer = async () => {
     if (
       !selectedId ||
-      !window.confirm(`Delete ${details?.customer?.name || "this customer"}?`)
+      !window.confirm(
+        `Archive ${details?.customer?.name || "this customer"}? Their fees and payment history will be kept.`,
+      )
     )
       return;
     setSaving(true);
@@ -387,11 +412,28 @@ function ArcadeCustomerManagement() {
     try {
       await api.delete(`/arcade/customers/${selectedId}`);
       await loadCustomers("");
-      setNotice("Customer deleted.");
+      navigate("/arcade/customers");
+      setNotice("Customer archived. Fees and payment history have been kept.");
     } catch (requestError) {
       setError(
-        requestError.response?.data?.message ||
-          "Unable to delete customer. Remove its fee and payment records first.",
+        requestError.response?.data?.message || "Unable to archive customer.",
+      );
+    } finally {
+      setSaving(false);
+    }
+  };
+  const deleteContact = async (contact) => {
+    if (!window.confirm(`Delete contact ${contact.contact_name}?`)) return;
+    setSaving(true);
+    setError("");
+    setNotice("");
+    try {
+      await api.delete(`/arcade/contacts/${contact.id}`);
+      await loadCustomers(selectedId);
+      setNotice("Contact deleted.");
+    } catch (requestError) {
+      setError(
+        requestError.response?.data?.message || "Unable to delete contact.",
       );
     } finally {
       setSaving(false);
@@ -442,16 +484,31 @@ function ArcadeCustomerManagement() {
       <header className="arcade-management-header">
         <div>
           <p className="arcade-eyebrow">Kidzerland - ARCADE </p>
-          <h1>Membership management</h1>
-          <p>Keep contacts, fees, and payments together.</p>
+          <h1>{customerId ? "Customer details" : "Customers"}</h1>
+          <p>
+            {customerId
+              ? "Manage customer contacts, fees, and payments."
+              : "Select a customer to view and manage their account."}
+          </p>
         </div>
-        <button
-          type="button"
-          className="btn btn-primary"
-          onClick={() => openCustomerForm()}
-        >
-          Add customer
-        </button>
+        <div className="arcade-customer-actions">
+          {customerId && (
+            <button
+              type="button"
+              className="btn btn-outline-primary"
+              onClick={() => navigate("/arcade/customers")}
+            >
+              All customers
+            </button>
+          )}
+          <button
+            type="button"
+            className="btn btn-primary"
+            onClick={() => openCustomerForm()}
+          >
+            Add customer
+          </button>
+        </div>
       </header>
 
       {error && (
@@ -477,276 +534,363 @@ function ArcadeCustomerManagement() {
         </section>
       )}
 
+      {!loading && !customerId && customers.length > 0 && (
+        <section className="arcade-section">
+          <div className="arcade-section-heading arcade-customer-list-heading">
+            <div>
+              <h2>Customer accounts</h2>
+              <p>
+                Showing {filteredCustomers.length} of {customers.length}{" "}
+                customer{customers.length === 1 ? "" : "s"}
+              </p>
+            </div>
+          </div>
+          <div className="arcade-customer-list-filters">
+            <label className="arcade-customer-search">
+              <span>Search customers</span>
+              <input
+                type="search"
+                value={customerSearch}
+                onChange={(event) => setCustomerSearch(event.target.value)}
+                placeholder="Search by customer name"
+              />
+            </label>
+            <div
+              className="arcade-status-filter"
+              role="group"
+              aria-label="Filter customers by status"
+            >
+              {[
+                ["all", "All"],
+                ["active", "Active"],
+                ["inactive", "Inactive"],
+              ].map(([filter, label]) => (
+                <button
+                  type="button"
+                  key={filter}
+                  className={customerStatusFilter === filter ? "is-selected" : ""}
+                  aria-pressed={customerStatusFilter === filter}
+                  onClick={() => setCustomerStatusFilter(filter)}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
+          </div>
+          <div className="arcade-customer-list">
+            {filteredCustomers.map((customer) => (
+              <button
+                type="button"
+                className="arcade-customer-list-item"
+                key={customer.id}
+                onClick={() => navigate(`/arcade/customers/${customer.id}`)}
+              >
+                <span className="arcade-customer-list-name">
+                  {customer.name}
+                </span>
+                <span
+                  className={`arcade-customer-status ${customer.is_active ? "is-active" : "is-inactive"}`}
+                >
+                  {customer.is_active ? "Active" : "Inactive"}
+                </span>
+                <span className="arcade-customer-list-arrow" aria-hidden="true">
+                  →
+                </span>
+              </button>
+            ))}
+            {!filteredCustomers.length && (
+              <p className="arcade-muted arcade-customer-no-results">
+                No customers match these search and status filters.
+              </p>
+            )}
+          </div>
+        </section>
+      )}
+
       {details && !loading && (
         <>
-            <section className="arcade-customer-picker">
-              <label htmlFor="customer-select">Customer</label>
-              <select
-                id="customer-select"
-                value={selectedId}
-                onChange={selectCustomer}
-                disabled={loading || customers.length === 0}
+          <section className="arcade-customer-overview">
+            <div>
+              <h2>{details.customer?.name}</h2>
+              {details.customer?.created_at && (
+                <p>
+                  Started from{" "}
+                  <strong> {details.customer.created_at.split("T")[0]}</strong>
+                </p>
+              )}
+            </div>
+            <div className="arcade-customer-actions">
+              <button
+                type="button"
+                className="btn btn-outline-primary"
+                onClick={() => openCustomerForm(details.customer)}
               >
-                {customers.length === 0 && (
-                  <option value="">No customers yet</option>
-                )}
-                {customers.map((customer) => (
-                  <option key={customer.id} value={customer.id}>
-                    {customer.name}
-                  </option>
-                ))}
-              </select>
-              <span>
-                {customers.length} customer{customers.length === 1 ? "" : "s"}
-              </span>
-            </section>
-            <section className="arcade-customer-overview">
+                <img
+                  src={editIcon}
+                  alt="Edit"
+                  style={{ width: "16px", height: "16px" }}
+                />
+              </button>
+              <button
+                type="button"
+                className="btn btn-outline-danger"
+                onClick={deleteCustomer}
+                disabled={saving}
+              >
+                Archive
+              </button>
+            </div>
+          </section>
+          <section
+            className="arcade-summary-grid"
+            aria-label="Customer balance summary"
+          >
+            <article>
+              <span>Fees</span>
+              <strong>{currency(customerSummary.total_fees)}</strong>
+            </article>
+            <article>
+              <span>Paid</span>
+              <strong>{currency(customerSummary.total_paid)}</strong>
+            </article>
+            <article>
+              <span>Balance</span>
+              <strong>{currency(customerSummary.balance)}</strong>
+            </article>
+            <article>
+              <span>Account</span>
+              <strong>
+                {details.customer?.is_active ? "Active" : "Inactive"}
+              </strong>
+            </article>
+          </section>
+
+          <section className="arcade-section">
+            <div className="arcade-section-heading">
               <div>
-                <h2>{details.customer?.name}</h2>
-                {details.customer?.created_at && (
-                  <p>
-                    Started from{" "}
-                    <strong>
-                      {" "}
-                      {details.customer.created_at.split("T")[0]}
-                    </strong>
-                  </p>
+                <h2>Contacts</h2>
+                <p>People to reach for this customer.</p>
+              </div>
+              <button
+                type="button"
+                className="btn btn-outline-primary"
+                onClick={() => openModal("contact")}
+              >
+                Add contact
+              </button>
+            </div>
+            {details.contacts?.length ? (
+              <div className="arcade-record-list">
+                {details.contacts.map((contact) => (
+                  <article key={contact.id}>
+                    <div>
+                      <strong>
+                        {contact.contact_name}
+                        {contact.is_primary ? " · Primary" : ""}
+                      </strong>
+                      <span>{contact.contact_role || "Contact"}</span>
+                    </div>
+                    <div className="arcade-record-actions">
+                      {contact.phone && (
+                        <a href={`tel:${contact.phone}`}>{contact.phone}</a>
+                      )}
+                      {contact.email && (
+                        <a href={`mailto:${contact.email}`}>{contact.email}</a>
+                      )}
+                      <button
+                        type="button"
+                        className="btn btn-sm btn-outline-primary"
+                        onClick={() => openModal("contact", contact)}
+                      >
+                        <img
+                          src={editIcon}
+                          alt="Edit"
+                          style={{ width: "16px", height: "16px" }}
+                        />
+                      </button>
+                      <button
+                        type="button"
+                        className="btn btn-sm btn-outline-danger"
+                        onClick={() => deleteContact(contact)}
+                        disabled={saving}
+                      >
+                        <img
+                          src={deleteIcon}
+                          alt="Delete"
+                          style={{ width: "16px", height: "16px" }}
+                        />
+                      </button>
+                    </div>
+                  </article>
+                ))}
+              </div>
+            ) : (
+              <p className="arcade-muted">No contacts recorded.</p>
+            )}
+          </section>
+
+          <section className="arcade-section">
+            <div className="arcade-section-heading">
+              <div>
+                <h2>Monthly Fees</h2>
+                <p>Charges issued to this customer.</p>
+              </div>
+              <button
+                type="button"
+                className="btn btn-outline-primary"
+                onClick={() => openModal("fee")}
+              >
+                Add fee
+              </button>
+            </div>
+            {details.fees?.length ? (
+              <div className="arcade-record-list">
+                {details.fees.map((fee) => (
+                  <article key={fee.id}>
+                    <div>
+                      <strong>{fee.description || "Monthly fee"}</strong>
+                      <span>Issued {fee.issued_on}</span>
+                      <span>M: {fee.notes}</span>
+                    </div>
+                    <strong>{currency(fee.amount)}</strong>
+                    <div className="arcade-record-actions">
+                      <button
+                        type="button"
+                        className="btn btn-sm btn-outline-primary"
+                        onClick={() => openModal("fee", fee)}
+                      >
+                        <img
+                          src={editIcon}
+                          alt="Edit"
+                          style={{ width: "16px", height: "16px" }}
+                        />
+                      </button>
+                      <button
+                        type="button"
+                        className="btn btn-sm btn-outline-danger"
+                        onClick={() => deleteFee(fee)}
+                        disabled={saving}
+                      >
+                        <img
+                          src={deleteIcon}
+                          alt="Delete"
+                          style={{ width: "16px", height: "16px" }}
+                        />
+                      </button>
+                    </div>
+                  </article>
+                ))}
+              </div>
+            ) : (
+              <p className="arcade-muted">No fees recorded.</p>
+            )}
+          </section>
+
+          <section className="arcade-section">
+            <div className="arcade-section-heading">
+              <div>
+                <h2>Payments</h2>
+                <p>
+                  Record cash, bank transfer, or card payments and allocate them
+                  to a fee.
+                </p>
+              </div>
+              <div className="arcade-payment-toolbar">
+                {details.payments?.length > 0 && (
+                  <label className="arcade-select-all">
+                    <input
+                      type="checkbox"
+                      checked={allPaymentsSelected}
+                      onChange={toggleAllPayments}
+                    />
+                    Select all
+                  </label>
                 )}
-              </div>
-              <div className="arcade-customer-actions">
                 <button
                   type="button"
                   className="btn btn-outline-primary"
-                  onClick={() => openCustomerForm(details.customer)}
+                  onClick={generateInvoice}
+                  disabled={selectedPayments.length === 0}
                 >
-                  Edit
+                  Generate invoice
+                  {selectedPayments.length
+                    ? ` (${selectedPayments.length})`
+                    : ""}
                 </button>
-                <button
-                  type="button"
-                  className="btn btn-outline-danger"
-                  onClick={deleteCustomer}
-                  disabled={saving}
-                >
-                  Delete
-                </button>
-              </div>
-            </section>
-            <section
-              className="arcade-summary-grid"
-              aria-label="Customer balance summary"
-            >
-              <article>
-                <span>Fees</span>
-                <strong>{currency(customerSummary.total_fees)}</strong>
-              </article>
-              <article>
-                <span>Paid</span>
-                <strong>{currency(customerSummary.total_paid)}</strong>
-              </article>
-              <article>
-                <span>Balance</span>
-                <strong>{currency(customerSummary.balance)}</strong>
-              </article>
-              <article>
-                <span>Account</span>
-                <strong>
-                  {details.customer?.is_active ? "Active" : "Inactive"}
-                </strong>
-              </article>
-            </section>
-
-            <section className="arcade-section">
-              <div className="arcade-section-heading">
-                <div>
-                  <h2>Contacts</h2>
-                  <p>People to reach for this customer.</p>
-                </div>
                 <button
                   type="button"
                   className="btn btn-outline-primary"
-                  onClick={() => openModal("contact")}
+                  onClick={() => openModal("payment")}
                 >
-                  Add contact
+                  Record payment
                 </button>
               </div>
-              {details.contacts?.length ? (
-                <div className="arcade-record-list">
-                  {details.contacts.map((contact) => (
-                    <article key={contact.id}>
-                      <div>
-                        <strong>
-                          {contact.contact_name}
-                          {contact.is_primary ? " · Primary" : ""}
-                        </strong>
-                        <span>{contact.contact_role || "Contact"}</span>
-                      </div>
-                      <div>
-                        {contact.phone && (
-                          <a href={`tel:${contact.phone}`}>{contact.phone}</a>
-                        )}
-                        {contact.email && (
-                          <a href={`mailto:${contact.email}`}>
-                            {contact.email}
-                          </a>
-                        )}
-                      </div>
-                    </article>
-                  ))}
-                </div>
-              ) : (
-                <p className="arcade-muted">No contacts recorded.</p>
-              )}
-            </section>
-
-            <section className="arcade-section">
-              <div className="arcade-section-heading">
-                <div>
-                  <h2>Monthly Fees</h2>
-                  <p>Charges issued to this customer.</p>
-                </div>
-                <button
-                  type="button"
-                  className="btn btn-outline-primary"
-                  onClick={() => openModal("fee")}
-                >
-                  Add fee
-                </button>
-              </div>
-              {details.fees?.length ? (
-                <div className="arcade-record-list">
-                  {details.fees.map((fee) => (
-                    <article key={fee.id}>
-                      <div>
-                        <strong>{fee.description || "Monthly fee"}</strong>
-                        <span>Issued {fee.issued_on}</span>
-                        <span>M: {fee.notes}</span>
-                      </div>
-                      <strong>{currency(fee.amount)}</strong>
-                      <div className="arcade-record-actions">
-                        <button
-                          type="button"
-                          className="btn btn-sm btn-outline-primary"
-                          onClick={() => openModal("fee", fee)}
-                        >
-                          Edit
-                        </button>
-                        <button
-                          type="button"
-                          className="btn btn-sm btn-outline-danger"
-                          onClick={() => deleteFee(fee)}
-                          disabled={saving}
-                        >
-                          Delete
-                        </button>
-                      </div>
-                    </article>
-                  ))}
-                </div>
-              ) : (
-                <p className="arcade-muted">No fees recorded.</p>
-              )}
-            </section>
-
-            <section className="arcade-section">
-              <div className="arcade-section-heading">
-                <div>
-                  <h2>Payments</h2>
-                  <p>
-                    Record cash, bank transfer, or card payments and allocate
-                    them to a fee.
-                  </p>
-                </div>
-                <div className="arcade-payment-toolbar">
-                  {details.payments?.length > 0 && (
-                    <label className="arcade-select-all">
+            </div>
+            {details.payments?.length ? (
+              <div className="arcade-record-list">
+                {details.payments.map((payment) => (
+                  <article key={payment.id}>
+                    <label className="arcade-payment-checkbox">
                       <input
                         type="checkbox"
-                        checked={allPaymentsSelected}
-                        onChange={toggleAllPayments}
+                        checked={selectedPaymentIds.includes(
+                          String(payment.id),
+                        )}
+                        onChange={() => togglePaymentSelection(payment.id)}
+                        aria-label={`Select payment ${currency(payment.amount)} dated ${payment.paid_on}`}
                       />
-                      Select all
                     </label>
-                  )}
-                  <button
-                    type="button"
-                    className="btn btn-outline-primary"
-                    onClick={generateInvoice}
-                    disabled={selectedPayments.length === 0}
-                  >
-                    Generate invoice
-                    {selectedPayments.length
-                      ? ` (${selectedPayments.length})`
-                      : ""}
-                  </button>
-                  <button
-                    type="button"
-                    className="btn btn-outline-primary"
-                    onClick={() => openModal("payment")}
-                  >
-                    Record payment
-                  </button>
-                </div>
-              </div>
-              {details.payments?.length ? (
-                <div className="arcade-record-list">
-                  {details.payments.map((payment) => (
-                    <article key={payment.id}>
-                      <label className="arcade-payment-checkbox">
-                        <input
-                          type="checkbox"
-                          checked={selectedPaymentIds.includes(
-                            String(payment.id),
-                          )}
-                          onChange={() => togglePaymentSelection(payment.id)}
-                          aria-label={`Select payment ${currency(payment.amount)} dated ${payment.paid_on}`}
-                        />
-                      </label>
-                      <div>
-                        <strong>
-                          {currency(payment.amount)} ·{" "}
-                          {payment.payment_method === "bank_transfer"
-                            ? "Bank transfer"
-                            : payment.payment_method === "card"
-                              ? "Card"
-                              : "Cash"}
-                        </strong>
-                        <span>
-                          Paid {payment.paid_on}
-                          {payment.reference
-                            ? ` · Ref ${payment.reference}`
-                            : ""}
+                    <div>
+                      <strong>
+                        {currency(payment.amount)} ·{" "}
+                        {payment.payment_method === "bank_transfer"
+                          ? "Bank transfer"
+                          : payment.payment_method === "card"
+                            ? "Card"
+                            : "Cash"}
+                      </strong>
+                      <span>
+                        Paid {payment.paid_on}
+                        {payment.reference ? ` · Ref ${payment.reference}` : ""}
+                      </span>
+                      {payment.allocations?.map((allocation) => (
+                        <span key={allocation.fee_id}>
+                          Allocated {currency(allocation.allocated_amount)}{" "}
                         </span>
-                        {payment.allocations?.map((allocation) => (
-                          <span key={allocation.fee_id}>
-                            Allocated{" "}
-                            {currency(allocation.allocated_amount)}{" "}
-                          </span>
-                        ))}
-                      </div>
-                      <div className="arcade-record-actions">
-                        <button
-                          type="button"
-                          className="btn btn-sm btn-outline-primary"
-                          onClick={() => openModal("payment", payment)}
-                        >
-                          Edit
-                        </button>
-                        <button
-                          type="button"
-                          className="btn btn-sm btn-outline-danger"
-                          onClick={() => deletePayment(payment)}
-                          disabled={saving}
-                        >
-                          Delete
-                        </button>
-                      </div>
-                    </article>
-                  ))}
-                </div>
-              ) : (
-                <p className="arcade-muted">No payments recorded.</p>
-              )}
-            </section>
+                      ))}
+                    </div>
+                    <div className="arcade-record-actions">
+                      <button
+                        type="button"
+                        className="btn btn-sm btn-outline-primary"
+                        onClick={() => openModal("payment", payment)}
+                      >
+                        <img
+                          src={editIcon}
+                          alt="Edit"
+                          style={{ width: "16px", height: "16px" }}
+                        />
+                      </button>
+                      <button
+                        type="button"
+                        className="btn btn-sm btn-outline-danger"
+                        onClick={() => deletePayment(payment)}
+                        disabled={saving}
+                      >
+                        <img
+                          src={deleteIcon}
+                          alt="Delete"
+                          style={{ width: "16px", height: "16px" }}
+                        />
+                      </button>
+                    </div>
+                  </article>
+                ))}
+              </div>
+            ) : (
+              <p className="arcade-muted">No payments recorded.</p>
+            )}
+          </section>
         </>
       )}
 
@@ -770,7 +914,9 @@ function ArcadeCustomerManagement() {
                     ? "Edit customer"
                     : "Add customer"
                   : activeModal === "contact"
-                    ? "Add contact"
+                    ? editingContactId
+                      ? "Edit contact"
+                      : "Add contact"
                     : activeModal === "fee"
                       ? editingFeeId
                         ? "Edit fee"
@@ -988,7 +1134,9 @@ function ArcadeCustomerManagement() {
                           ? "Save fee changes"
                           : "Save fee"
                         : activeModal === "contact"
-                          ? "Save contact"
+                          ? editingContactId
+                            ? "Save contact changes"
+                            : "Save contact"
                           : editingCustomerId
                             ? "Save changes"
                             : "Save customer"}
@@ -1023,12 +1171,21 @@ function ArcadeCustomerManagement() {
                 <p className="arcade-logo" aria-label="Kidzerland logo">
                   <img src={kl_logo} />
                 </p>
-                <h1>Payment invoice</h1>
+
                 <p>
+                  KIDZERLAND FZE,
+                  <br /> F20 IT Plaza - Dubai Silicon Oasis,
+                  <br /> Dubai.
+                  <br />
+                </p>
+                <p>
+                  {" "}
+                  <br />
                   Payment record for {details?.customer?.name || "Customer"}
                 </p>
               </div>
               <div className="arcade-invoice-meta">
+                <h1>Payment invoice</h1>
                 <span>
                   <strong>Invoice no.</strong> {invoiceNumber}
                 </span>
@@ -1048,7 +1205,7 @@ function ArcadeCustomerManagement() {
                 <thead>
                   <tr>
                     <th>Payment date</th>
-                    <th>Method / reference</th>
+                    <th>Mode of payment</th>
                     <th>Month</th>
                     <th className="arcade-invoice-amount">Amount</th>
                   </tr>
@@ -1098,8 +1255,7 @@ function ArcadeCustomerManagement() {
               </table>
             </div>
             <p className="arcade-invoice-footnote">
-              This invoice summarizes the selected payment records for the
-              customer shown above.
+              This is a system generated invoice. Requires no signature.
             </p>
           </article>
         </div>

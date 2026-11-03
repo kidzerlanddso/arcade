@@ -39,6 +39,7 @@ const isStrongPassword = (value) =>
 function ProtectedRoute({ children, adminOnly = false, sparklesOnly = false }) {
   const navigate = useNavigate();
   const session = readSession();
+  const [menuOpen, setMenuOpen] = useState(false);
   const [resetOpen, setResetOpen] = useState(false);
   const [formData, setFormData] = useState({
     currentPassword: "",
@@ -114,25 +115,69 @@ function ProtectedRoute({ children, adminOnly = false, sparklesOnly = false }) {
       <header className="app-header">
         <div className="app-header-inner">
           <Link
-            to={session.sparkles && !session.admin ? "/arcade/sparkles" : "/dashboard"}
+            to={
+              session.sparkles && !session.admin
+                ? "/arcade/sparkles"
+                : "/dashboard"
+            }
             className="app-brand"
-            aria-label={session.sparkles && !session.admin ? "Sparkles home" : "Dashboard home"}
+            aria-label={
+              session.sparkles && !session.admin
+                ? "Sparkles home"
+                : "Dashboard home"
+            }
           >
             <span className="app-brand-title">
-              <img src={kl_logo} />
+              <img src={kl_logo} alt="" />
             </span>
           </Link>
-          <nav className="app-header-nav" aria-label="Main navigation">
+          <button
+            type="button"
+            className="app-header-menu-toggle"
+            aria-label={
+              menuOpen ? "Close navigation menu" : "Open navigation menu"
+            }
+            aria-expanded={menuOpen}
+            aria-controls="app-header-navigation"
+            onClick={() => setMenuOpen((open) => !open)}
+          >
+            <span />
+            <span />
+            <span />
+          </button>
+          <nav
+            id="app-header-navigation"
+            className={`app-header-nav${menuOpen ? " is-open" : ""}`}
+            aria-label="Main navigation"
+          >
             {session.admin ? (
               <>
-                <Link to="/dashboard">Dashboard</Link>
-                <Link to="/arcade/customers">KL Arcade</Link>
-                <Link to="/arcade/receivables">Receivables</Link>
+                <Link to="/dashboard" onClick={() => setMenuOpen(false)}>
+                  Dashboard
+                </Link>
+                <Link to="/arcade/customers" onClick={() => setMenuOpen(false)}>
+                  KL Arcade
+                </Link>
               </>
             ) : null}
             {(session.admin || session.sparkles) && (
-              <Link to="/arcade/sparkles">Sparkles</Link>
+              <Link to="/arcade/sparkles" onClick={() => setMenuOpen(false)}>
+                Sparkles
+              </Link>
             )}
+            {session.admin ? (
+              <>
+                <Link
+                  to="/arcade/receivables"
+                  onClick={() => setMenuOpen(false)}
+                >
+                  Receivables
+                </Link>
+                <Link to="/arcade/payables" onClick={() => setMenuOpen(false)}>
+                  Payables
+                </Link>
+              </>
+            ) : null}
             <details className="profile-menu">
               <summary className="profile-menu-button">
                 {session.username}
@@ -141,7 +186,10 @@ function ProtectedRoute({ children, adminOnly = false, sparklesOnly = false }) {
                 <button
                   type="button"
                   className="profile-menu-item"
-                  onClick={() => setResetOpen(true)}
+                  onClick={() => {
+                    setMenuOpen(false);
+                    setResetOpen(true);
+                  }}
                 >
                   Reset password
                 </button>

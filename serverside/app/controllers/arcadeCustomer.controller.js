@@ -197,7 +197,10 @@ exports.deleteCustomer = async (req, res) => {
     }
 
     const result = await db.query(
-      `DELETE FROM arcade_customers WHERE id = $1 RETURNING *`,
+      `UPDATE arcade_customers
+       SET is_active = FALSE
+       WHERE id = $1
+       RETURNING *`,
       [customerId],
     );
 
@@ -205,7 +208,7 @@ exports.deleteCustomer = async (req, res) => {
       return res.status(404).json({ message: "Customer not found." });
     }
 
-    return res.status(200).json({ message: "Customer deleted successfully." });
+    return res.status(200).json({ message: "Customer archived successfully." });
   } catch (error) {
     return res.status(500).json({ message: error.message || "Unable to delete customer." });
   }
@@ -247,6 +250,93 @@ exports.createContact = async (req, res) => {
     return res.status(201).json({ message: "Contact added successfully.", contact: result.rows[0] });
   } catch (error) {
     return res.status(500).json({ message: error.message || "Unable to add contact." });
+  }
+};
+
+exports.updateContact = async (req, res) => {
+  const contactId = Number(req.params.id);
+  const contactName = String(req.body?.contact_name || "").trim();
+  const phone = String(req.body?.phone || "").trim() || null;
+  const email = String(req.body?.email || "").trim() || null;
+  const contactRole = String(req.body?.contact_role || "").trim() || null;
+  const isPrimary = req.body?.is_primary === true || req.body?.is_primary === "true";
+
+  if (!Number.isInteger(contactId) || contactId <= 0) {
+    return res.status(400).json({ message: "A valid contact ID is required." });
+  }
+  if (!contactName) {
+    return res.status(400).json({ message: "Contact name is required." });
+  }
+  if (!phone && !email) {
+    return res.status(400).json({ message: "At least one of phone or email is required." });
+  }
+
+  let client;
+  try {
+    client = await db.connect();
+    await client.query("BEGIN");
+    const existing = await client.query(
+      "SELECT customer_id FROM arcade_customer_contacts WHERE id = $1 FOR UPDATE",
+      [contactId],
+    );
+    if (!existing.rowCount) {
+      await client.query("ROLLBACK");
+      return res.status(404).json({ message: "Contact not found." });
+    }
+
+    const customerId = existing.rows[0].customer_id;
+    if (isPrimary) {
+      await client.query(
+        `UPDATE arcade_customer_contacts
+         SET is_primary = FALSE
+         WHERE customer_id = $1 AND id <> $2 AND is_primary = TRUE`,
+        [customerId, contactId],
+      );
+    }
+
+    const result = await client.query(
+      `UPDATE arcade_customer_contacts
+       SET contact_name = $2, phone = $3, email = $4,
+           contact_role = $5, is_primary = $6
+       WHERE id = $1
+       RETURNING *`,
+      [contactId, contactName, phone, email, contactRole, isPrimary],
+    );
+    await client.query("COMMIT");
+    return res.status(200).json({ message: "Contact updated successfully.", contact: result.rows[0] });
+  } catch (error) {
+    if (client) {
+      try {
+        await client.query("ROLLBACK");
+      } catch (rollbackError) {
+        console.error("Unable to roll back contact update:", rollbackError);
+      }
+    }
+    if (error.code === "23505") {
+      return res.status(409).json({ message: "This customer already has a primary contact." });
+    }
+    return res.status(500).json({ message: error.message || "Unable to update contact." });
+  } finally {
+    client?.release();
+  }
+};
+
+exports.deleteContact = async (req, res) => {
+  const contactId = Number(req.params.id);
+  if (!Number.isInteger(contactId) || contactId <= 0) {
+    return res.status(400).json({ message: "A valid contact ID is required." });
+  }
+  try {
+    const result = await db.query(
+      "DELETE FROM arcade_customer_contacts WHERE id = $1 RETURNING id",
+      [contactId],
+    );
+    if (!result.rowCount) {
+      return res.status(404).json({ message: "Contact not found." });
+    }
+    return res.status(200).json({ message: "Contact deleted successfully." });
+  } catch (error) {
+    return res.status(500).json({ message: error.message || "Unable to delete contact." });
   }
 };
 
@@ -776,7 +866,7 @@ exports.getPaymentReport = async (req, res) => {
       });
     }
 
-    const [payments, months] = await Promise.all([
+    const [payments, comparison, months] = await Promise.all([
       db.query(
       `
         SELECT
@@ -806,9 +896,42 @@ exports.getPaymentReport = async (req, res) => {
       `,
       [monthStart, nextMonthStart, paymentMethod],
       ),
+      db.query(
+        `
+          WITH fee_totals AS (
+            SELECT customer_id, SUM(amount) AS expected_fees
+            FROM arcade_fees
+            WHERE issued_on >= $1 AND issued_on < $2
+            GROUP BY customer_id
+          ), payment_totals AS (
+            SELECT customer_id, SUM(amount) AS received
+            FROM arcade_payments
+            WHERE paid_on >= $1
+              AND paid_on < $2
+              AND ($3 = 'all' OR payment_method = $3)
+            GROUP BY customer_id
+          )
+          SELECT c.id AS customer_id,
+                 c.name AS customer_name,
+                 COALESCE(fee_totals.expected_fees, 0) AS expected_fees,
+                 COALESCE(payment_totals.received, 0) AS received,
+                 COALESCE(fee_totals.expected_fees, 0)
+                   - COALESCE(payment_totals.received, 0) AS difference
+          FROM arcade_customers c
+          LEFT JOIN fee_totals ON fee_totals.customer_id = c.id
+          LEFT JOIN payment_totals ON payment_totals.customer_id = c.id
+          WHERE fee_totals.expected_fees IS NOT NULL
+             OR payment_totals.received IS NOT NULL
+          ORDER BY c.name ASC
+        `,
+        [monthStart, nextMonthStart, paymentMethod],
+      ),
       db.query(`
-        SELECT DISTINCT TO_CHAR(paid_on, 'YYYY-MM') AS month
+        SELECT TO_CHAR(paid_on, 'YYYY-MM') AS month
         FROM arcade_payments
+        UNION
+        SELECT TO_CHAR(issued_on, 'YYYY-MM') AS month
+        FROM arcade_fees
         UNION
         SELECT TO_CHAR(CURRENT_DATE, 'YYYY-MM') AS month
         ORDER BY month DESC
@@ -818,6 +941,7 @@ exports.getPaymentReport = async (req, res) => {
     return res.status(200).json({
       source,
       data: payments.rows,
+      comparison: comparison.rows,
       months: months.rows.map((row) => row.month),
     });
   } catch (error) {

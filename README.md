@@ -40,7 +40,7 @@ The customer management page is available at `/arcade/customers` and requires an
 
 - `GET /arcade/customers` and `GET /arcade/customers/:id`
 - `POST /arcade/customers`, `PUT /arcade/customers/:id`, and `DELETE /arcade/customers/:id`
-- `POST /arcade/customers/:customerId/contacts`
+- `POST /arcade/customers/:customerId/contacts`, `PUT /arcade/contacts/:id`, and `DELETE /arcade/contacts/:id`
 - `POST /arcade/fees`, `PUT /arcade/fees/:id`, and `DELETE /arcade/fees/:id`
 - `POST /arcade/payments` — accepts `cash`, `bank_transfer`, or `card`, a payment date, and optional fee allocations
 - `PUT /arcade/payments/:id` and `DELETE /arcade/payments/:id`
